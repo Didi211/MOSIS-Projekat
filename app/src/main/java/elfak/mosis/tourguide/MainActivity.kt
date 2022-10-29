@@ -24,17 +24,7 @@ class MainActivity : ComponentActivity() {
         setContent {
 
             TourGuideTheme {
-                val systemUiController = rememberSystemUiController()
-                val backgroundColor = MaterialTheme.colors.background
-                SideEffect {
-                    systemUiController.setStatusBarColor(
-                        color = backgroundColor,
-                        darkIcons = true
-                    )
-                    systemUiController.setNavigationBarColor(
-                        color = backgroundColor
-                    )
-                }
+
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
