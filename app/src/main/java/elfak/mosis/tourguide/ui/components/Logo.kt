@@ -11,7 +11,8 @@ import androidx.compose.ui.unit.TextUnit
 import elfak.mosis.tourguide.R
 
 @Composable
-fun LogoComponent(logoSize: Dp) {
+fun LogoComponent(logoSize: Dp, titleSize: TextUnit = MaterialTheme.typography.h1.fontSize) {
+
     Column(
 //        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -20,7 +21,8 @@ fun LogoComponent(logoSize: Dp) {
         Text(
             stringResource(id = R.string.home_screen_title).uppercase(),
             style = MaterialTheme.typography.h1,
-            color = MaterialTheme.colors.primary
+            color = MaterialTheme.colors.primary,
+            fontSize = titleSize
         )
     }
 }
