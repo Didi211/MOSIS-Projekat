@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
+import elfak.mosis.tourguide.ui.components.CustomWelcomeScreenLogoComponent
 import elfak.mosis.tourguide.ui.screens.WelcomeScreen
 import elfak.mosis.tourguide.ui.theme.TourGuideTheme
 
@@ -24,7 +25,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    WelcomeScreen()
+//                    WelcomeScreen()
+                    CustomWelcomeScreenLogoComponent(text = "Register")
                 }
             }
         }

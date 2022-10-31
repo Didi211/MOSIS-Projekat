@@ -5,4 +5,5 @@
     <string name="app_name">TourGuide</string>
     <string name="home_screen_title">Tour Guide</string>
     <string name="home_screen_subtitle">Make your travels easier</string>
+    <string name="back_arrow_button">Back Arrow Button</string>
 </resources>
