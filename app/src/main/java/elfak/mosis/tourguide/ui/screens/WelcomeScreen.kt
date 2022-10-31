@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.components.ButtonComponent
 import elfak.mosis.tourguide.ui.components.LogoComponent
@@ -24,7 +23,7 @@ val btnPaddingTop = 100.dp
 //endregion
 
 @Composable
-fun HomeScreen() {
+fun WelcomeScreen() {
     Column(
         modifier = Modifier
             .fillMaxHeight()
