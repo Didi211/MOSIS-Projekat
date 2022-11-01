@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
-import elfak.mosis.tourguide.ui.components.CustomWelcomeScreenLogoComponent
-import elfak.mosis.tourguide.ui.screens.WelcomeScreen
+import androidx.navigation.compose.rememberNavController
+import elfak.mosis.tourguide.ui.navigation.Navigation
 import elfak.mosis.tourguide.ui.theme.TourGuideTheme
 
 class MainActivity : ComponentActivity() {
@@ -17,16 +17,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
         setContent {
-
+            val navController = rememberNavController()
             TourGuideTheme {
-
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-//                    WelcomeScreen()
-                    CustomWelcomeScreenLogoComponent(text = "Register")
+                    Navigation()
                 }
             }
         }

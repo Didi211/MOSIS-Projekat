@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.components.ButtonComponent
 import elfak.mosis.tourguide.ui.components.LogoComponent
+import elfak.mosis.tourguide.ui.navigation.Screen
 
 //region ui sizes
 val buttonWidth = 230.dp
@@ -23,57 +24,62 @@ val btnPaddingTop = 100.dp
 //endregion
 
 @Composable
-fun WelcomeScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .padding(top = paddingTop, bottom = paddingBottom),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Column {
-            //Logo, Title and Subtitle
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                //Logo Component
-                LogoComponent(logoSize)
-                //Subtitle
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    stringResource(id = R.string.home_screen_subtitle),
-                    style = MaterialTheme.typography.subtitle1,
-                    color = MaterialTheme.colors.primary
-                )
+fun WelcomeScreen(
+    navigateToLogin: () -> Unit,
+//    navigateToRegister: () -> Unit,
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = paddingTop, bottom = paddingBottom)
+                .align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Column {
+                //Logo, Title and Subtitle
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    //Logo Component
+                    LogoComponent(logoSize)
+                    //Subtitle
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        stringResource(id = R.string.home_screen_subtitle),
+                        style = MaterialTheme.typography.subtitle1,
+                        color = MaterialTheme.colors.primary
+                    )
+                }
+                //Buttons
+                Column(modifier = Modifier.padding(top = btnPaddingTop)) {
+                    //Login
+                    ButtonComponent(
+                        text = "Login",
+                        width = buttonWidth,
+                        onClick = navigateToLogin
+                    )
+                    Spacer(modifier = Modifier.height(15.dp))
+                    //Register
+                    ButtonComponent(
+                        text = "Register",
+                        width = buttonWidth,
+                        onClick = { }
+                            //navigateToRegister
+                    )
+                }
             }
-            //Buttons
-            Column(modifier = Modifier.padding(top = btnPaddingTop)) {
-                //Login
-                ButtonComponent(
-                    text = "Login",
-                    width = buttonWidth,
-                    onClick = {
-                        //Login Action
-                    }
-                )
-                Spacer(modifier = Modifier.height(15.dp))
-                //Register
-                ButtonComponent(
-                    text = "Register",
-                    width = buttonWidth,
-                    onClick = {
-                        //Register Action
-                    }
-                )
-            }
+
         }
-    }
-    //Image - travelers
-    Row(
-        horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.Bottom
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.travelers),
-            contentDescription = stringResource(id = R.string.travelers_description),
-        )
+        //Image - travelers
+        Row(
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.Bottom,
+            modifier = Modifier.align(Alignment.BottomEnd)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.travelers),
+                contentDescription = stringResource(id = R.string.travelers_description),
+            )
+        }
     }
 }
 
