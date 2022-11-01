@@ -1,6 +1,5 @@
 package elfak.mosis.tourguide.ui.components
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -16,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.ui.navigation.Screen
 
 
 val logoSize = 75.dp
@@ -35,9 +35,7 @@ fun CustomWelcomeScreenLogoComponent(text: String) {
             val context = LocalContext.current
             //Back Arrow Button
             IconButton(
-                onClick = {
-                Toast.makeText(context,"Not implemented yet",Toast.LENGTH_SHORT).show()
-                },
+                onClick = {  },
             )
                  {
                 Icon(
