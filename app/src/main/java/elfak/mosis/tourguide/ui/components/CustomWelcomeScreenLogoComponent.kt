@@ -26,7 +26,7 @@ val padding = 15.dp
 
 
 @Composable
-fun CustomWelcomeScreenLogoComponent(text: String) {
+fun CustomWelcomeScreenLogoComponent(text: String, navigateBack: () -> Unit) {
     Box(modifier = Modifier
         .fillMaxSize()
         .padding(padding)
@@ -35,7 +35,7 @@ fun CustomWelcomeScreenLogoComponent(text: String) {
             val context = LocalContext.current
             //Back Arrow Button
             IconButton(
-                onClick = {  },
+                onClick = navigateBack,
             )
                  {
                 Icon(
