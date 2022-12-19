@@ -13,8 +13,8 @@ import androidx.compose.ui.unit.dp
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.components.ButtonComponent
 import elfak.mosis.tourguide.ui.components.LogoComponent
-import elfak.mosis.tourguide.ui.navigation.Screen
 
+// NOTE: should be placed somewhere to be widely accessible - like constants or so
 //region ui sizes
 val buttonWidth = 230.dp
 val logoSize  = 150.dp
@@ -25,8 +25,8 @@ val btnPaddingTop = 100.dp
 
 @Composable
 fun WelcomeScreen(
-    navigateToLogin: () -> Unit,
-//    navigateToRegister: () -> Unit,
+    navigateToLogin: () -> Unit = {},
+    navigateToRegister: () -> Unit = {},
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -62,8 +62,7 @@ fun WelcomeScreen(
                     ButtonComponent(
                         text = "Register",
                         width = buttonWidth,
-                        onClick = { }
-                            //navigateToRegister
+                        onClick = navigateToRegister
                     )
                 }
             }

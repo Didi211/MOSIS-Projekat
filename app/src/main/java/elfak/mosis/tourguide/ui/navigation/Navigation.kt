@@ -1,14 +1,9 @@
 package elfak.mosis.tourguide.ui.navigation
 
-import androidx.annotation.AnimatorRes
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import elfak.mosis.tourguide.ui.components.CustomWelcomeScreenLogoComponent
 import elfak.mosis.tourguide.ui.screens.LoginScreen
 import elfak.mosis.tourguide.ui.screens.WelcomeScreen
 
