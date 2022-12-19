@@ -1,9 +1,9 @@
 package elfak.mosis.tourguide.ui.screens
 
 import androidx.compose.runtime.Composable
-import elfak.mosis.tourguide.ui.components.CustomWelcomeScreenLogoComponent
+import elfak.mosis.tourguide.ui.components.LogoWithTextComponent
 
 @Composable
 fun LoginScreen(navigateBack: () -> Unit) {
-    CustomWelcomeScreenLogoComponent(text = "Login", navigateBack)
+    LogoWithTextComponent(text = "Login", navigateBack)
 }

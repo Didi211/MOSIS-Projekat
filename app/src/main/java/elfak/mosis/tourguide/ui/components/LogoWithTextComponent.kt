@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import elfak.mosis.tourguide.R
-import elfak.mosis.tourguide.ui.navigation.Screen
 
 
 val logoSize = 75.dp
@@ -26,7 +25,7 @@ val padding = 15.dp
 
 
 @Composable
-fun CustomWelcomeScreenLogoComponent(text: String, navigateBack: () -> Unit) {
+fun LogoWithTextComponent(text: String, navigateBack: () -> Unit) {
     Box(modifier = Modifier
         .fillMaxSize()
         .padding(padding)
