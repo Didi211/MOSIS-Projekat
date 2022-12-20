@@ -36,6 +36,11 @@ val Typography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 20.sp
     ),
+    body1 = TextStyle(
+        fontFamily = Ubuntu,
+        fontWeight = FontWeight.Thin,
+        fontSize = 18.sp,
+    )
     /* Other default text styles to override
     caption = TextStyle(
         fontFamily = FontFamily.Default,

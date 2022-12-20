@@ -53,14 +53,14 @@ fun WelcomeScreen(
                 Column(modifier = Modifier.padding(top = btnPaddingTop)) {
                     //Login
                     ButtonComponent(
-                        text = "Login",
+                        text = stringResource(id = R.string.login),
                         width = buttonWidth,
                         onClick = navigateToLogin
                     )
                     Spacer(modifier = Modifier.height(15.dp))
                     //Register
                     ButtonComponent(
-                        text = "Register",
+                        text = stringResource(id = R.string.register),
                         width = buttonWidth,
                         onClick = navigateToRegister
                     )

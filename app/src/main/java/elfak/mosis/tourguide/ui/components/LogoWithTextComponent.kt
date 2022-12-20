@@ -10,7 +10,6 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,11 +26,10 @@ val padding = 15.dp
 @Composable
 fun LogoWithTextComponent(text: String, navigateBack: () -> Unit) {
     Box(modifier = Modifier
-        .fillMaxSize()
+        .fillMaxWidth()
         .padding(padding)
     ) {
         Column(modifier = Modifier.align(Alignment.TopStart)) {
-            val context = LocalContext.current
             //Back Arrow Button
             IconButton(
                 onClick = navigateBack,
@@ -64,8 +62,3 @@ fun LogoWithTextComponent(text: String, navigateBack: () -> Unit) {
     }
 
 }
-
-// NOTE: check later
-//fun navigateBack(): () -> Unit{
-// //navigate to WelcomeScreen always
-//}
