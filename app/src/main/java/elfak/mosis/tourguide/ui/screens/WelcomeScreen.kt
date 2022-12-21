@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.components.ButtonComponent
 import elfak.mosis.tourguide.ui.components.LogoComponent
+import elfak.mosis.tourguide.ui.components.TravelersImage
 
 // NOTE: should be placed somewhere to be widely accessible - like constants or so
 //region ui sizes
@@ -67,17 +68,6 @@ fun WelcomeScreen(
                 }
             }
 
-        }
-        //Image - travelers
-        Row(
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.Bottom,
-            modifier = Modifier.align(Alignment.BottomEnd)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.travelers),
-                contentDescription = stringResource(id = R.string.travelers_description),
-            )
         }
     }
 }

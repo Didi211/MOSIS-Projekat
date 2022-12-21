@@ -1,8 +1,13 @@
 package elfak.mosis.tourguide.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
@@ -20,6 +25,7 @@ import elfak.mosis.tourguide.ui.InputTypes
 import elfak.mosis.tourguide.ui.components.BasicInputComponent
 import elfak.mosis.tourguide.ui.components.ButtonComponent
 import elfak.mosis.tourguide.ui.components.LogoWithTextComponent
+import elfak.mosis.tourguide.ui.components.TravelersImage
 
 @Composable
 fun LoginScreen(navigateBack: () -> Unit) {
@@ -33,7 +39,10 @@ fun LoginScreen(navigateBack: () -> Unit) {
             // inputs
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .weight(1f, fill = false)
             ) {
                 BasicInputComponent(
                     label = stringResource(id = R.string.username) + ":",
@@ -43,7 +52,7 @@ fun LoginScreen(navigateBack: () -> Unit) {
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Next
                     ),
-                    inputType = InputTypes.Text
+                    inputType = InputTypes.Text,
                 )
                 Spacer(modifier = Modifier.height(15.dp))
                 BasicInputComponent(
@@ -52,11 +61,12 @@ fun LoginScreen(navigateBack: () -> Unit) {
                         autoCorrect = false,
                         capitalization = KeyboardCapitalization.None,
                         keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Default
+                        imeAction = ImeAction.Done,
                     ),
                     inputType = InputTypes.Password
                 )
                 Spacer(modifier = Modifier.heightIn(30.dp))
+
 
                 // buttons
                 ButtonComponent(text = stringResource(id = R.string.login), width = 230.dp, onClick = { /* implement later */})
@@ -65,22 +75,12 @@ fun LoginScreen(navigateBack: () -> Unit) {
                     onClick = { /*implement later */ }) {
                     Text(
                         textDecoration = TextDecoration.Underline,
-                        text = stringResource(id = R.string.forgot_password)
+                        text = stringResource(id = R.string.forgot_password),
+                        modifier = Modifier.background(color = MaterialTheme.colors.background)
+
                     )
                 }
             }
-        }
-
-        //Image - travelers
-        Row(
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.Bottom,
-            modifier = Modifier.align(Alignment.BottomEnd)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.travelers),
-                contentDescription = stringResource(id = R.string.travelers_description),
-            )
         }
     }
 }
