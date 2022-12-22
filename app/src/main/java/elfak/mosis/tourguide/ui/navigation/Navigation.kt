@@ -19,7 +19,7 @@ fun Navigation() {
         TravelersImage(modifier =  Modifier.align(Alignment.BottomEnd))
     }
     //define routes here
-    NavHost(navController = navController, startDestination = Screen.LoginScreen.route) {
+    NavHost(navController = navController, startDestination = Screen.WelcomeScreen.route) {
         composable(Screen.WelcomeScreen.route) {
             WelcomeScreen(
                 navigateToLogin = { navController.navigate(Screen.LoginScreen.route) }
