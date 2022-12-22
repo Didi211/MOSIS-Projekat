@@ -28,14 +28,22 @@ val Typography = Typography(
         fontFamily = Ubuntu,
         fontWeight = FontWeight.Medium,
         fontSize = 30.sp,
-
-
     ),
     button = TextStyle(
         fontFamily = Ubuntu,
         fontWeight = FontWeight.Normal,
         fontSize = 20.sp
     ),
+    body1 = TextStyle(
+        fontFamily = Ubuntu,
+        fontWeight = FontWeight.Thin,
+        fontSize = 18.sp,
+    ),
+    caption = TextStyle(
+        fontFamily = Ubuntu,
+        fontWeight = FontWeight.Thin,
+        fontSize = 18.sp,
+    )
     /* Other default text styles to override
     caption = TextStyle(
         fontFamily = FontFamily.Default,
