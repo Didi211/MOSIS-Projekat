@@ -1,5 +1,6 @@
 package elfak.mosis.tourguide.ui.navigation
 
+import androidx.annotation.AnimatorRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -23,13 +24,9 @@ fun Navigation() {
             )
         }
         composable(Screen.LoginScreen.route) {
-            LoginScreen()
+            LoginScreen(
+                navigateBack = { navController.popBackStack() }
+            )
         }
-//        composable("mini_logo") {
-//            CustomWelcomeScreenLogoComponent(
-//                text = "register",
-//                navigator = navigator
-//            )
-//        }
     }
 }
