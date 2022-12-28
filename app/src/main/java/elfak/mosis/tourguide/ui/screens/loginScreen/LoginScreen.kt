@@ -29,9 +29,6 @@ fun LoginScreen(
     navigateBack: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
-//    var uiState by remember  { mutableStateOf(viewModel.uiState)}
-//    var username by remember { mutableStateOf("")}
-//    var password by remember { mutableStateOf("")}
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -64,7 +61,6 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(15.dp))
                 BasicInputComponent(
                     text = viewModel.uiState.password,
-//                    text = password,
                     onTextChanged = {
                         viewModel.changePassword(it)
                     },
