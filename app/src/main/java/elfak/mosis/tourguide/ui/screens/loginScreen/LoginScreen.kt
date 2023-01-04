@@ -27,9 +27,8 @@ import elfak.mosis.tourguide.ui.components.LogoWithTextComponent
 @Composable
 fun LoginScreen(
     navigateBack: () -> Unit,
-    viewModel: LoginViewModel = viewModel()
+    viewModel: LoginViewModel
 ) {
-
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // logo
