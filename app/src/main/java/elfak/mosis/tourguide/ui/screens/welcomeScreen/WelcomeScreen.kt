@@ -13,8 +13,9 @@ import androidx.compose.ui.unit.dp
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.components.ButtonComponent
 import elfak.mosis.tourguide.ui.components.LogoComponent
-import elfak.mosis.tourguide.ui.navigation.Screen
+import elfak.mosis.tourguide.ui.components.TravelersImage
 
+// NOTE: should be placed somewhere to be widely accessible - like constants or so
 //region ui sizes
 val buttonWidth = 230.dp
 val logoSize  = 150.dp
@@ -25,8 +26,8 @@ val btnPaddingTop = 100.dp
 
 @Composable
 fun WelcomeScreen(
-    navigateToLogin: () -> Unit,
-//    navigateToRegister: () -> Unit,
+    navigateToLogin: () -> Unit = {},
+    navigateToRegister: () -> Unit = {},
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -53,32 +54,20 @@ fun WelcomeScreen(
                 Column(modifier = Modifier.padding(top = btnPaddingTop)) {
                     //Login
                     ButtonComponent(
-                        text = "Login",
+                        text = stringResource(id = R.string.login),
                         width = buttonWidth,
                         onClick = navigateToLogin
                     )
                     Spacer(modifier = Modifier.height(15.dp))
                     //Register
                     ButtonComponent(
-                        text = "Register",
+                        text = stringResource(id = R.string.register),
                         width = buttonWidth,
-                        onClick = { }
-                            //navigateToRegister
+                        onClick = navigateToRegister
                     )
                 }
             }
 
-        }
-        //Image - travelers
-        Row(
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.Bottom,
-            modifier = Modifier.align(Alignment.BottomEnd)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.travelers),
-                contentDescription = stringResource(id = R.string.travelers_description),
-            )
         }
     }
 }
