@@ -14,20 +14,20 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-    @Singleton
-    @Provides
-    fun provideUsersDao(appDatabase: TourGuideDatabase): UsersDatabaseDao
-        = appDatabase.usersDao()
-
-    @Singleton
-    @Provides
-    fun providesAppDatabase(@ApplicationContext context: Context): TourGuideDatabase
-        = Room.databaseBuilder(
-            context,
-            TourGuideDatabase::class.java,
-            "tour_guide_db"
-        )
-        .fallbackToDestructiveMigration()
-        .build()
+//    @Singleton
+//    @Provides
+//    fun provideUsersDao(appDatabase: TourGuideDatabase): UsersDatabaseDao
+//        = appDatabase.usersDao()
+//
+//    @Singleton
+//    @Provides
+//    fun providesAppDatabase(@ApplicationContext context: Context): TourGuideDatabase
+//        = Room.databaseBuilder(
+//            context,
+//            TourGuideDatabase::class.java,
+//            "tour_guide_db"
+//        )
+//        .fallbackToDestructiveMigration()
+//        .build()
 
 }

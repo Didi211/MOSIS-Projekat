@@ -16,10 +16,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val usersRepository: UsersRepository
+    private val authRepository: AuthRepository
 ) : ViewModel() {
-    private val _usersList = MutableStateFlow<List<UserModel>>(emptyList())
-    val usersList = _usersList.asStateFlow()
+//    private val _usersList = MutableStateFlow<List<UserModel>>(emptyList())
+//    val usersList = _usersList.asStateFlow()
 
     var uiState by mutableStateOf(LoginUiState())
         private set
@@ -35,15 +35,16 @@ class LoginViewModel @Inject constructor(
     fun login() {
         /* TODO - call api for login */
         viewModelScope.launch {
-            usersRepository.createUser(
-                UserModel(
-                    username = uiState.username,
-                    password = uiState.password,
-                    loggedIn = true,
-                    firstname = "Dimitrije",
-                    lastname = "Mitic"
-                )
-            )
+            authRepository.login(uiState.username, uiState.password)
+//            usersRepository.createUser(
+//                UserModel(
+//                    username = uiState.username,
+//                    password = uiState.password,
+//                    loggedIn = true,
+//                    firstname = "Dimitrije",
+//                    lastname = "Mitic"
+//                )
+//            )
         }
     }
 }
