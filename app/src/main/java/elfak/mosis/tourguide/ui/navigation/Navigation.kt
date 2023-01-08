@@ -11,8 +11,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import elfak.mosis.tourguide.ui.components.TravelersImage
+import elfak.mosis.tourguide.ui.screens.RegisterScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginViewModel
+import elfak.mosis.tourguide.ui.screens.registerScreen.RegisterViewModel
 import elfak.mosis.tourguide.ui.screens.welcomeScreen.WelcomeScreen
 
 @Composable
@@ -26,7 +28,8 @@ fun Navigation() {
     NavHost(navController = navController, startDestination = Screen.WelcomeScreen.route) {
         composable(Screen.WelcomeScreen.route) {
             WelcomeScreen(
-                navigateToLogin = { navController.navigate(Screen.LoginScreen.route) }
+                navigateToLogin = { navController.navigate(Screen.LoginScreen.route) },
+                navigateToRegister = { navController.navigate(Screen.RegisterScreen.route) }
             )
         }
         composable(Screen.LoginScreen.route) {
@@ -34,6 +37,13 @@ fun Navigation() {
             LoginScreen(
                 navigateBack = { navController.popBackStack() },
                 viewModel = loginViewModel
+            )
+        }
+        composable(Screen.RegisterScreen.route){
+            val registerViewModel = hiltViewModel<RegisterViewModel>()
+            RegisterScreen(
+                navigateBack = {navController.popBackStack() },
+                viewModel = registerViewModel
             )
         }
     }

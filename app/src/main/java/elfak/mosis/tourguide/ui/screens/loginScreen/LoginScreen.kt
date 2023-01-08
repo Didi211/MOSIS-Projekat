@@ -17,7 +17,6 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.InputTypes
 import elfak.mosis.tourguide.ui.components.BasicInputComponent
@@ -32,7 +31,7 @@ fun LoginScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // logo
-            LogoWithTextComponent(text = stringResource(id = R.string.login), navigateBack)
+            LogoWithTextComponent(text = stringResource(id = R.string.login), navigateBack) //ovo copy za register
             Spacer(modifier = Modifier.height(30.dp))
 
             // inputs
@@ -75,16 +74,17 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.heightIn(30.dp))
 
                 // buttons
-                ButtonComponent(
+                ButtonComponent( //pravljeno
                     text = stringResource(id = R.string.login),
                     width = 230.dp,
                     onClick =  {
                         viewModel.login()
                     }
                 )
-                TextButton(
+                TextButton( //postoji
                     modifier = Modifier.padding(all = 10.dp),
                     onClick = { /* TODO - navigate to forgot password screen */ }) {
+                    //telo textbutton-a
                     Text(
                         textDecoration = TextDecoration.Underline,
                         text = stringResource(id = R.string.forgot_password),
