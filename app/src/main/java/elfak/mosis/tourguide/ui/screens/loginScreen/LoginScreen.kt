@@ -26,6 +26,7 @@ import elfak.mosis.tourguide.ui.components.LogoWithTextComponent
 @Composable
 fun LoginScreen(
     navigateBack: () -> Unit,
+    navigateToHome: () -> Unit,
     viewModel: LoginViewModel
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -78,7 +79,7 @@ fun LoginScreen(
                     text = stringResource(id = R.string.login),
                     width = 230.dp,
                     onClick =  {
-                        viewModel.login()
+                        viewModel.login(navigateToHome)
                     }
                 )
                 TextButton(

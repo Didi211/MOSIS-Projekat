@@ -1,27 +1,29 @@
 package elfak.mosis.tourguide.di
 
-import android.content.Context
-import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.ktx.app
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import elfak.mosis.tourguide.data.database.TourGuideDatabase
-import elfak.mosis.tourguide.data.database.UsersDatabaseDao
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    /* For classes that are imported from the outside we define their injection here
+    *  Our custom services for DI are created here automatically
+    *  */
+
+
+    // We need firebase as an injection in auth repository and others.
     @Singleton
     @Provides
     fun provideFirebaseAuth(firebase: Firebase): FirebaseAuth = firebase.auth
 
+    // It is needed for the injection above
     @Singleton
     @Provides
     fun provideFirebase(): Firebase = Firebase
