@@ -1,16 +1,13 @@
 package elfak.mosis.tourguide.ui.screens.loginScreen
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import elfak.mosis.tourguide.data.models.UserModel
 import elfak.mosis.tourguide.data.respository.AuthRepository
-import elfak.mosis.tourguide.data.respository.UsersRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,19 +29,18 @@ class LoginViewModel @Inject constructor(
     }
 
 
-    fun login() {
-        /* TODO - call api for login */
+    fun login(onSuccess: () -> Unit) {
         viewModelScope.launch {
-            authRepository.login(uiState.username, uiState.password)
-//            usersRepository.createUser(
-//                UserModel(
-//                    username = uiState.username,
-//                    password = uiState.password,
-//                    loggedIn = true,
-//                    firstname = "Dimitrije",
-//                    lastname = "Mitic"
-//                )
-//            )
+            // to launch coroutine - async function that does not block main thread
+            try {
+                val result = authRepository.login(uiState.username, uiState.password)
+                Log.d("COROUTINE", "${result.user?.email}")
+                // TODO - send user id on homescreen or save it locally as currentUser
+                onSuccess()
+            }
+            catch (err: Exception) {
+                Log.e("COROUTINE", "${err.message}" )
+            }
         }
     }
 }

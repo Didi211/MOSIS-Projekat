@@ -17,7 +17,6 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.InputTypes
 import elfak.mosis.tourguide.ui.components.BasicInputComponent
@@ -27,6 +26,7 @@ import elfak.mosis.tourguide.ui.components.LogoWithTextComponent
 @Composable
 fun LoginScreen(
     navigateBack: () -> Unit,
+    navigateToHome: () -> Unit,
     viewModel: LoginViewModel
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -79,7 +79,7 @@ fun LoginScreen(
                     text = stringResource(id = R.string.login),
                     width = 230.dp,
                     onClick =  {
-                        viewModel.login()
+                        viewModel.login(navigateToHome)
                     }
                 )
                 TextButton(
