@@ -36,6 +36,8 @@ class LoginViewModel @Inject constructor(
         /* TODO - call api for login */
         viewModelScope.launch {
             authRepository.login(uiState.username, uiState.password)
+
+
 //            usersRepository.createUser(
 //                UserModel(
 //                    username = uiState.username,
