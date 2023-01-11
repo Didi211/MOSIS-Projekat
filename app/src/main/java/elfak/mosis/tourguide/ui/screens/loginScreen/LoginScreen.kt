@@ -25,6 +25,7 @@ import elfak.mosis.tourguide.ui.InputTypes
 import elfak.mosis.tourguide.ui.components.BasicInputComponent
 import elfak.mosis.tourguide.ui.components.ButtonComponent
 import elfak.mosis.tourguide.ui.components.LogoWithTextComponent
+import es.dmoral.toasty.Toasty
 
 
 @Composable
@@ -34,7 +35,8 @@ fun LoginScreen(
     viewModel: LoginViewModel
 ) {
     if (viewModel.uiState.hasErrors) {
-        Toast.makeText(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_SHORT).show()
+        Toasty.error(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_SHORT, true).show()
+//        Toast.makeText(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_SHORT).show()
         viewModel.clearErrorMessge()
     }
     Box(modifier = Modifier.fillMaxSize()) {
@@ -112,8 +114,5 @@ fun LoginScreen(
                 }
             }
         }
-        Column {
-        }
     }
-
 }
