@@ -1,6 +1,5 @@
 package elfak.mosis.tourguide.ui.screens.loginScreen
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,8 +14,6 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
-//    private val _usersList = MutableStateFlow<List<UserModel>>(emptyList())
-//    val usersList = _usersList.asStateFlow()
 
     var uiState by mutableStateOf(LoginUiState())
         private set
