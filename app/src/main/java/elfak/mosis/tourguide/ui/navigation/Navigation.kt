@@ -33,7 +33,12 @@ fun Navigation() {
             val loginViewModel = hiltViewModel<LoginViewModel>()
             LoginScreen(
                 navigateBack = { navController.popBackStack() },
-                navigateToHome = { navController.navigate(Screen.HomeScreen.route) },
+                navigateToHome = {
+                    navController.navigate(Screen.HomeScreen.route) {
+                        // removes all from backstack so when user clicks back button it will close the app
+                        popUpTo(Screen.WelcomeScreen.route) { inclusive = true }
+                    }
+                },
                 viewModel = loginViewModel
             )
         }

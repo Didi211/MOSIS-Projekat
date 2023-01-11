@@ -34,13 +34,16 @@ class LoginViewModel @Inject constructor(
             // to launch coroutine - async function that does not block main thread
             try {
                 val result = authRepository.login(uiState.username, uiState.password)
-                Log.d("COROUTINE", "${result.user?.email}")
-                // TODO - send user id on homescreen or save it locally as currentUser
+                // TODO - send user id on home screen or save it locally as currentUser
                 onSuccess()
             }
             catch (err: Exception) {
-                Log.e("COROUTINE", "${err.message}" )
+                uiState = uiState.copy(hasErrors = true, errorMessage = err.message ?: "Error occurred")
             }
         }
+    }
+
+    fun clearErrorMessge() {
+        uiState = uiState.copy(hasErrors = false)
     }
 }

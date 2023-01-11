@@ -2,6 +2,7 @@ package elfak.mosis.tourguide.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
@@ -21,9 +22,9 @@ fun BasicInputComponent(
     onTextChanged: (String) -> Unit,
     label: String,
     keyboardOptions: KeyboardOptions,
-    inputType: InputTypes
+    inputType: InputTypes,
+    keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
-//    var text by remember { mutableStateOf(TextFieldValue("")) }
     val colors = MaterialTheme.colors
     val inputColors = TextFieldDefaults.outlinedTextFieldColors(
         backgroundColor = colors.secondary,
@@ -36,7 +37,6 @@ fun BasicInputComponent(
     )
 
     Column {
-
         OutlinedTextField(
             value = text,
             label = { Text(
@@ -50,6 +50,7 @@ fun BasicInputComponent(
             singleLine = true,
             keyboardOptions = keyboardOptions,
             visualTransformation = if (inputType == InputTypes.Password) PasswordVisualTransformation() else VisualTransformation.None,
+            keyboardActions = keyboardActions
         )
 
     }

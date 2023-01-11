@@ -10,7 +10,6 @@ import javax.inject.Singleton
 class AuthRepository @Inject constructor(
     private val firebase: FirebaseAuth
 ) {
-
     /* This implementation of firebase functions uses callback functions when the async call is completed
     *  So suspend keyword is not needed, but still they will be call inside the coroutine */
 
