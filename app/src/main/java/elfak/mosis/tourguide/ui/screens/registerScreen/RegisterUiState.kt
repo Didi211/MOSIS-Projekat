@@ -5,5 +5,7 @@ data class RegisterUiState(
     var username: String = "",
     var email: String = "",
     var password: String = "",
-    var confirm_password: String = ""
+    var confirm_password: String = "",
+    var hasErrors: Boolean = false,
+    var errorMessage: String = ""
 )

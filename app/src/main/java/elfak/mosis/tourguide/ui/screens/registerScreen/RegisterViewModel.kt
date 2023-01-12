@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.data.respository.AuthRepository
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginUiState
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,20 +38,23 @@ class RegisterViewModel  @Inject constructor(
         uiState = uiState.copy(confirm_password = confirm_password)
     }
 
+    fun register(onSuccess: () -> Unit) {
+        /* TODO - call api for register */
+        viewModelScope.launch {
+            // to launch coroutine - async function that does not block main thread
+            try {
+                val result = authRepository.register(uiState.username, uiState.password, uiState.email, uiState.fullname)
+                // TODO - send user id on home screen or save it locally as currentUser
+                onSuccess()
+            }
+            catch (err:Exception) {
+                uiState = uiState.copy(hasErrors = true, errorMessage = err.message ?: "Error occurred")
+            }
+        }
+    }
 
-//    fun login() {
-//        /* TODO - call api for login */
-//        viewModelScope.launch {
-//            authRepository.login(uiState.username, uiState.password)
-////            usersRepository.createUser(
-////                UserModel(
-////                    username = uiState.username,
-////                    password = uiState.password,
-////                    loggedIn = true,
-////                    firstname = "Dimitrije",
-////                    lastname = "Mitic"
-////                )
-////            )
-//        }
-//    }
+    fun clearErrorMessage() {
+        uiState = uiState.copy(hasErrors = false)
+    }
+
 }

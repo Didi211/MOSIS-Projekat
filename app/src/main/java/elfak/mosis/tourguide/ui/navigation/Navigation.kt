@@ -57,6 +57,11 @@ fun Navigation() {
             val registerViewModel = hiltViewModel<RegisterViewModel>()
             RegisterScreen(
                 navigateBack = {navController.popBackStack() },
+                navigateToHome = {navController.navigate(Screen.HomeScreen.route){
+                    popUpTo(Screen.WelcomeScreen.route) { inclusive = true }
+
+                    }
+                },
                 viewModel = registerViewModel
             )
         }

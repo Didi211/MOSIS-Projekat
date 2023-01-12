@@ -29,6 +29,7 @@ import elfak.mosis.tourguide.ui.screens.registerScreen.RegisterViewModel
 @Composable
 fun RegisterScreen(
     navigateBack: () -> Unit,
+    navigateToHome: () -> Unit,
     viewModel: RegisterViewModel
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -131,7 +132,7 @@ fun RegisterScreen(
                     text = stringResource(id = R.string.register),
                     width = 230.dp,
                     onClick = {
-//                        viewModel.login()
+                        viewModel.register(navigateToHome)
                     }
                 )
 //                TextButton( //postoji
