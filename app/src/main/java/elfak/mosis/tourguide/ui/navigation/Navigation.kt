@@ -5,11 +5,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import elfak.mosis.tourguide.ui.components.TravelersImage
+import elfak.mosis.tourguide.ui.screens.RegisterScreen
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginViewModel
@@ -45,7 +45,6 @@ fun Navigation() {
                 viewModel = viewModel
             )
         }
-
         composable(Screen.WelcomeScreen.route) {
             WelcomeScreen(
                 navigateToLogin = { navController.navigate(Screen.LoginScreen.route) },
@@ -77,13 +76,11 @@ fun Navigation() {
             RegisterScreen(
                 navigateBack = {navController.popBackStack() },
                 navigateToHome = {navController.navigate(Screen.HomeScreen.route){
-                    popUpTo(Screen.WelcomeScreen.route) { inclusive = true }
-
+                        popUpTo(Screen.WelcomeScreen.route) { inclusive = true }
                     }
                 },
                 viewModel = registerViewModel
             )
         }
     }
-
 }
