@@ -13,10 +13,9 @@ class AuthRepository @Inject constructor(
     /* This implementation of firebase functions uses callback functions when the async call is completed
     *  So suspend keyword is not needed, but still they will be call inside the coroutine */
 
-    suspend fun login(username: String, password: String): Task<AuthResult> {
+    fun login(username: String, password: String): Task<AuthResult> {
         // current way of handling async functions
         // IMPORTANT - if functions throws exception await won't catch it - use try catch also
         return firebase.signInWithEmailAndPassword(username, password)
     }
-
 }
