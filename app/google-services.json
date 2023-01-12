@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "627524189825",
+    "project_id": "tourguide-28b4f",
+    "storage_bucket": "tourguide-28b4f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:627524189825:android:8ab9a901f687f8dc651780",
+        "android_client_info": {
+          "package_name": "elfak.mosis.tourguide"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "627524189825-qop9rlttcj5ncfgl6mbhlc6g37ojo87i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGfG0OxR9PaHKk2dyj-C_3Hw9UKiw66ug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "627524189825-qop9rlttcj5ncfgl6mbhlc6g37ojo87i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

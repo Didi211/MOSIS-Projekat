@@ -6,20 +6,15 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import elfak.mosis.tourguide.data.models.UserModel
 import elfak.mosis.tourguide.data.respository.AuthRepository
-import elfak.mosis.tourguide.data.respository.UsersRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
-//    private val _usersList = MutableStateFlow<List<UserModel>>(emptyList())
-//    val usersList = _usersList.asStateFlow()
 
     var uiState by mutableStateOf(LoginUiState())
         private set
@@ -32,19 +27,21 @@ class LoginViewModel @Inject constructor(
     }
 
 
-    fun login() {
-        /* TODO - call api for login */
+    fun login(onSuccess: () -> Unit) {
         viewModelScope.launch {
-            authRepository.login(uiState.username, uiState.password)
-//            usersRepository.createUser(
-//                UserModel(
-//                    username = uiState.username,
-//                    password = uiState.password,
-//                    loggedIn = true,
-//                    firstname = "Dimitrije",
-//                    lastname = "Mitic"
-//                )
-//            )
+            // to launch coroutine - async function that does not block main thread
+            try {
+                val result = authRepository.login(uiState.username, uiState.password).await()
+                // TODO - send user id on home screen or save it locally as currentUser
+                onSuccess()
+            }
+            catch (err: Exception) {
+                uiState = uiState.copy(hasErrors = true, errorMessage = err.message ?: "Error occurred")
+            }
         }
+    }
+
+    fun clearErrorMessage() {
+        uiState = uiState.copy(hasErrors = false)
     }
 }
