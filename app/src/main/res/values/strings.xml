@@ -11,4 +11,8 @@
     <string name="forgot_password">Forgot password?</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="fullname">Full name</string>
+    <string name="email">Email</string>
+
 </resources>
