@@ -12,6 +12,7 @@ import elfak.mosis.tourguide.ui.components.TravelersImage
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginViewModel
+import elfak.mosis.tourguide.ui.screens.resetPasswordScreen.ResetPasswordScreen
 import elfak.mosis.tourguide.ui.screens.welcomeScreen.WelcomeScreen
 
 @Composable
@@ -39,11 +40,15 @@ fun Navigation() {
                         popUpTo(Screen.WelcomeScreen.route) { inclusive = true }
                     }
                 },
+                navigateToResetPassword = { navController.navigate(Screen.ResetPasswordScreen.route) },
                 viewModel = loginViewModel
             )
         }
         composable(Screen.HomeScreen.route) {
             HomeScreen()
+        }
+        composable(Screen.ResetPasswordScreen.route) {
+            ResetPasswordScreen()
         }
     }
 

@@ -32,6 +32,7 @@ import es.dmoral.toasty.Toasty
 fun LoginScreen(
     navigateBack: () -> Unit,
     navigateToHome: () -> Unit,
+    navigateToResetPassword: () -> Unit,
     viewModel: LoginViewModel
 ) {
     if (viewModel.uiState.hasErrors) {
@@ -104,7 +105,8 @@ fun LoginScreen(
                 // Forgot password
                 TextButton(
                     modifier = Modifier.padding(all = 10.dp),
-                    onClick = { /* TODO - navigate to forgot password screen */ }) {
+                    onClick = navigateToResetPassword
+                ) {
                     Text(
                         textDecoration = TextDecoration.Underline,
                         text = stringResource(id = R.string.forgot_password),

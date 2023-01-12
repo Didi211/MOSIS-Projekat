@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.data.respository.AuthRepository
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,7 +31,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             // to launch coroutine - async function that does not block main thread
             try {
-                val result = authRepository.login(uiState.username, uiState.password)
+                val result = authRepository.login(uiState.username, uiState.password).await()
                 // TODO - send user id on home screen or save it locally as currentUser
                 onSuccess()
             }
