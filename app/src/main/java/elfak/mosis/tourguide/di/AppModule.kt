@@ -2,6 +2,8 @@ package elfak.mosis.tourguide.di
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import dagger.Module
 import dagger.Provides
@@ -22,6 +24,10 @@ object AppModule {
     @Singleton
     @Provides
     fun provideFirebaseAuth(firebase: Firebase): FirebaseAuth = firebase.auth
+
+    @Singleton
+    @Provides
+    fun provideFirebaseFirestore(firebase: Firebase): FirebaseFirestore = firebase.firestore
 
     // It is needed for the injection above
     @Singleton

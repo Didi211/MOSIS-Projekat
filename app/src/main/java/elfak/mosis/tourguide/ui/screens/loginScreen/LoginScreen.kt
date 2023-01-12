@@ -42,7 +42,7 @@ fun LoginScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // logo
-            LogoWithTextComponent(text = stringResource(id = R.string.login), navigateBack)
+            LogoWithTextComponent(text = stringResource(id = R.string.login), navigateBack) //ovo copy za register
             Spacer(modifier = Modifier.height(30.dp))
 
             // inputs
@@ -94,7 +94,7 @@ fun LoginScreen(
 
                 // buttons
                 // Login
-                ButtonComponent(
+                ButtonComponent( //pravljeno
                     text = stringResource(id = R.string.login),
                     width = 230.dp,
                     onClick =  {
@@ -103,8 +103,9 @@ fun LoginScreen(
 
                 )
                 // Forgot password
-                TextButton(
+                TextButton( //postoji
                     modifier = Modifier.padding(all = 10.dp),
+                    //telo textbutton-a
                     onClick = navigateToResetPassword
                 ) {
                     Text(
