@@ -1,6 +1,5 @@
 package elfak.mosis.tourguide.ui.screens.loginScreen
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,14 +8,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.data.respository.AuthRepository
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
-//    private val _usersList = MutableStateFlow<List<UserModel>>(emptyList())
-//    val usersList = _usersList.asStateFlow()
 
     var uiState by mutableStateOf(LoginUiState())
         private set
@@ -33,14 +31,17 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             // to launch coroutine - async function that does not block main thread
             try {
-                val result = authRepository.login(uiState.username, uiState.password)
-                Log.d("COROUTINE", "${result.user?.email}")
-                // TODO - send user id on homescreen or save it locally as currentUser
+                val result = authRepository.login(uiState.username, uiState.password).await()
+                // TODO - send user id on home screen or save it locally as currentUser
                 onSuccess()
             }
             catch (err: Exception) {
-                Log.e("COROUTINE", "${err.message}" )
+                uiState = uiState.copy(hasErrors = true, errorMessage = err.message ?: "Error occurred")
             }
         }
+    }
+
+    fun clearErrorMessage() {
+        uiState = uiState.copy(hasErrors = false)
     }
 }

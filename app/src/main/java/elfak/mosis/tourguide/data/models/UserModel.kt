@@ -10,7 +10,6 @@ data class UserModel(
     val id: UUID = UUID.randomUUID(),
 //    @ColumnInfo(name = "username")
     val username: String,
-    val password: String,
     val firstname: String,
     val lastname: String,
     val loggedIn: Boolean

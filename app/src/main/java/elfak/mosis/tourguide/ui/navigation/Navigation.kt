@@ -12,6 +12,7 @@ import elfak.mosis.tourguide.ui.components.TravelersImage
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginViewModel
+import elfak.mosis.tourguide.ui.screens.resetPasswordScreen.ResetPasswordScreen
 import elfak.mosis.tourguide.ui.screens.welcomeScreen.WelcomeScreen
 
 @Composable
@@ -33,12 +34,21 @@ fun Navigation() {
             val loginViewModel = hiltViewModel<LoginViewModel>()
             LoginScreen(
                 navigateBack = { navController.popBackStack() },
-                navigateToHome = { navController.navigate(Screen.HomeScreen.route) },
+                navigateToHome = {
+                    navController.navigate(Screen.HomeScreen.route) {
+                        // removes all from backstack so when user clicks back button it will close the app
+                        popUpTo(Screen.WelcomeScreen.route) { inclusive = true }
+                    }
+                },
+                navigateToResetPassword = { navController.navigate(Screen.ResetPasswordScreen.route) },
                 viewModel = loginViewModel
             )
         }
         composable(Screen.HomeScreen.route) {
             HomeScreen()
+        }
+        composable(Screen.ResetPasswordScreen.route) {
+            ResetPasswordScreen()
         }
     }
 
