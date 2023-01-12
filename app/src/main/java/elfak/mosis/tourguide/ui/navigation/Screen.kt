@@ -5,7 +5,7 @@ sealed class Screen(val route: String)  {
     object LoginScreen: Screen("login_screen")
     object HomeScreen: Screen("home_screen")
     object ResetPasswordScreen: Screen("reset_password_screen")
-
+    object SplashScreen: Screen("splash_screen")
     fun withArgs(vararg args: String): String {
         return buildString {
             append(route)

@@ -36,7 +36,7 @@ fun LoginScreen(
     viewModel: LoginViewModel
 ) {
     if (viewModel.uiState.hasErrors) {
-        Toasty.error(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_SHORT, true).show()
+        Toasty.error(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_LONG, true).show()
         viewModel.clearErrorMessage()
     }
     Box(modifier = Modifier.fillMaxSize()) {

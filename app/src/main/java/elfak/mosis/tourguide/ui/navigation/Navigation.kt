@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -13,7 +14,11 @@ import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginViewModel
 import elfak.mosis.tourguide.ui.screens.resetPasswordScreen.ResetPasswordScreen
+import elfak.mosis.tourguide.ui.screens.splashScreen.SplashScreen
+import elfak.mosis.tourguide.ui.screens.splashScreen.SplashScreenViewModel
 import elfak.mosis.tourguide.ui.screens.welcomeScreen.WelcomeScreen
+
+
 
 @Composable
 fun Navigation() {
@@ -24,7 +29,24 @@ fun Navigation() {
     }
     //define routes here
     // TODO - navigation graphs
-    NavHost(navController = navController, startDestination = Screen.WelcomeScreen.route) {
+    NavHost(navController = navController, startDestination = Screen.SplashScreen.route) {
+        composable(Screen.SplashScreen.route) {
+            val viewModel = hiltViewModel<SplashScreenViewModel>()
+            SplashScreen(
+                navigateToWelcome = {
+                    navController.navigate(Screen.WelcomeScreen.route) {
+                        popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                    }
+                },
+                navigateToHome = {
+                    navController.navigate(Screen.HomeScreen.route) {
+                        popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                    }
+                },
+                viewModel = viewModel
+            )
+        }
+
         composable(Screen.WelcomeScreen.route) {
             WelcomeScreen(
                 navigateToLogin = { navController.navigate(Screen.LoginScreen.route) }

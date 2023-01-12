@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.Dp
 import elfak.mosis.tourguide.R
 
 @Composable
-fun LogoImage(size: Dp) {
+fun LogoImage(size: Dp, modifier: Modifier = Modifier) {
     Image(
         painter = painterResource(id = R.drawable.logo),
         contentDescription = stringResource(id = R.string.logo_description),
         contentScale = ContentScale.FillHeight,
-        modifier = Modifier.size(size)
+        modifier = modifier.size(size)
     )         
 }

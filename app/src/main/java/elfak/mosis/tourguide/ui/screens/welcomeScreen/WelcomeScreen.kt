@@ -14,11 +14,11 @@ import elfak.mosis.tourguide.ui.components.LogoComponent
 
 // NOTE: should be placed somewhere to be widely accessible - like constants or so
 //region ui sizes
-val buttonWidth = 230.dp
-val logoSize  = 150.dp
-val paddingTop = 40.dp
-val paddingBottom = 100.dp
-val btnPaddingTop = 100.dp
+private val buttonWidth = 230.dp
+private val logoSize  = 150.dp
+private val paddingTop = 40.dp
+private val paddingBottom = 100.dp
+private val btnPaddingTop = 100.dp
 //endregion
 
 @Composable
