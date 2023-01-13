@@ -10,13 +10,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun HomeScreen(viewModel: HomeScreenViewModel, navigateToWelcome: () -> Unit) {
+fun HomeScreen(
+    viewModel: HomeScreenViewModel,
+    navigateToWelcome: () -> Unit,
+    navigateToTour: () -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text("HomeScreen")
+        Button(onClick = {
+            navigateToTour()
+        }) {
+            Text(text = "Create Tour")
+        }
         Button(onClick = {
             viewModel.logout()
             navigateToWelcome()
