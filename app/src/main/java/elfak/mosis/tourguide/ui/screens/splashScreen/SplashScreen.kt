@@ -28,24 +28,17 @@ fun SplashScreen(
     viewModel: SplashScreenViewModel
 ) {
     val scaleLogo = remember { Animatable(0.0f) }
-    val scaleText = remember { Animatable(0.0f) }
 
     //Animation
     LaunchedEffect(key1 = true) {
         scaleLogo.animateTo(
             targetValue = 1.2f,
-            animationSpec = tween(800, easing = {
+            animationSpec = tween(650, easing = {
                 OvershootInterpolator(4f).getInterpolation(it)
             })
         )
-        delay(100L)
-        scaleText.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(800, easing = {
-                OvershootInterpolator(4f).getInterpolation(it)
-            } )
-        )
-        delay(1000L)
+
+        delay(500L)
         if (viewModel.isLoggedIn()) {
             navigateToHome()
         }
@@ -65,14 +58,6 @@ fun SplashScreen(
         ) {
             //Logo Component
             LogoImage(size = 180.dp, modifier = Modifier.scale(scaleLogo.value))
-            //Subtitle
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                stringResource(id = R.string.home_screen_subtitle),
-                style = MaterialTheme.typography.subtitle1,
-                color = MaterialTheme.colors.primary,
-                modifier = Modifier.scale(scaleText.value)
-            )
         }
     }
 }

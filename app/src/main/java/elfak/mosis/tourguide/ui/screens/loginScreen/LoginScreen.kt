@@ -13,7 +13,9 @@ import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -35,6 +37,8 @@ fun LoginScreen(
     navigateToResetPassword: () -> Unit,
     viewModel: LoginViewModel
 ) {
+    val focusManager = LocalFocusManager.current
+
     if (viewModel.uiState.hasErrors) {
         Toasty.error(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_LONG, true).show()
         viewModel.clearErrorMessage()
@@ -84,9 +88,7 @@ fun LoginScreen(
                         imeAction = ImeAction.Done,
                     ),
                     keyboardActions = KeyboardActions(
-                        onDone = {
-                            viewModel.login(navigateToHome)
-                        }
+                        onDone = { login(viewModel, focusManager,navigateToHome) }
                     ),
                     inputType = InputTypes.Password
                 )
@@ -97,9 +99,7 @@ fun LoginScreen(
                 ButtonComponent( //pravljeno
                     text = stringResource(id = R.string.login),
                     width = 230.dp,
-                    onClick =  {
-                        viewModel.login(navigateToHome)
-                    }
+                    onClick =  { login(viewModel, focusManager, navigateToHome) }
 
                 )
                 // Forgot password
@@ -116,5 +116,12 @@ fun LoginScreen(
                 }
             }
         }
+    }
+}
+
+private fun login(viewModel: LoginViewModel, focusManager: FocusManager, navigateToHome: () -> Unit) {
+    viewModel.login {
+        focusManager.clearFocus()
+        navigateToHome()
     }
 }

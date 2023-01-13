@@ -19,22 +19,11 @@ class MainActivity : ComponentActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
         setContent {
             TourGuideTheme {
-//                val db = FirebaseFirestore.getInstance()
-//
-//                val users: MutableMap<String, Any> = HashMap()
-//                users["username"] = "dimitrije"
-//                users["password"] = "password"
-
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-//                    db.collection("users")
-//                        .add(users)
-//                        .addOnSuccessListener {
-//                            Log.i("FIREBASE", "$it")
-//                        }
                     Navigation()
                 }
             }
