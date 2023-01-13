@@ -36,9 +36,10 @@ class AuthRepository @Inject constructor(
             .addOnFailureListener { e ->
                 Log.w(TAG, "Error adding document", e)
             }
-
-
         return result
+    }
 
+    fun logout() {
+        return firebaseAuth.signOut()
     }
 }

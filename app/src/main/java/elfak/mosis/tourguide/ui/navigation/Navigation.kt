@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import elfak.mosis.tourguide.ui.components.TravelersImage
 import elfak.mosis.tourguide.ui.screens.RegisterScreen
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
+import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreenViewModel
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginViewModel
 import elfak.mosis.tourguide.ui.screens.resetPasswordScreen.ResetPasswordScreen
@@ -66,7 +67,14 @@ fun Navigation() {
             )
         }
         composable(Screen.HomeScreen.route) {
-            HomeScreen()
+            val viewModel = hiltViewModel<HomeScreenViewModel>()
+            HomeScreen(
+                navigateToWelcome = {
+                    navController.navigate(Screen.WelcomeScreen.route) {
+                        popUpTo(Screen.HomeScreen.route) { inclusive = true }
+                    }
+                },
+                    viewModel = viewModel)
         }
         composable(Screen.ResetPasswordScreen.route) {
             ResetPasswordScreen()
