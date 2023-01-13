@@ -9,12 +9,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import elfak.mosis.tourguide.ui.components.TravelersImage
-import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
 import elfak.mosis.tourguide.ui.screens.RegisterScreen
+import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
+import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreenViewModel
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginViewModel
 import elfak.mosis.tourguide.ui.screens.resetPasswordScreen.ResetPasswordScreen
 import elfak.mosis.tourguide.ui.screens.registerScreen.RegisterViewModel
+import elfak.mosis.tourguide.ui.screens.splashScreen.SplashScreen
+import elfak.mosis.tourguide.ui.screens.splashScreen.SplashScreenViewModel
 import elfak.mosis.tourguide.ui.screens.welcomeScreen.WelcomeScreen
 
 @Composable
@@ -26,7 +29,23 @@ fun Navigation() {
     }
     //define routes here
     // TODO - navigation graphs
-    NavHost(navController = navController, startDestination = Screen.WelcomeScreen.route) {
+    NavHost(navController = navController, startDestination = Screen.SplashScreen.route) {
+        composable(Screen.SplashScreen.route) {
+            val viewModel = hiltViewModel<SplashScreenViewModel>()
+            SplashScreen(
+                navigateToWelcome = {
+                    navController.navigate(Screen.WelcomeScreen.route) {
+                        popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                    }
+                },
+                navigateToHome = {
+                    navController.navigate(Screen.HomeScreen.route) {
+                        popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                    }
+                },
+                viewModel = viewModel
+            )
+        }
         composable(Screen.WelcomeScreen.route) {
             WelcomeScreen(
                 navigateToLogin = { navController.navigate(Screen.LoginScreen.route) },
@@ -48,7 +67,14 @@ fun Navigation() {
             )
         }
         composable(Screen.HomeScreen.route) {
-            HomeScreen()
+            val viewModel = hiltViewModel<HomeScreenViewModel>()
+            HomeScreen(
+                navigateToWelcome = {
+                    navController.navigate(Screen.WelcomeScreen.route) {
+                        popUpTo(Screen.HomeScreen.route) { inclusive = true }
+                    }
+                },
+                    viewModel = viewModel)
         }
         composable(Screen.ResetPasswordScreen.route) {
             ResetPasswordScreen()
@@ -58,13 +84,11 @@ fun Navigation() {
             RegisterScreen(
                 navigateBack = {navController.popBackStack() },
                 navigateToHome = {navController.navigate(Screen.HomeScreen.route){
-                    popUpTo(Screen.WelcomeScreen.route) { inclusive = true }
-
+                        popUpTo(Screen.WelcomeScreen.route) { inclusive = true }
                     }
                 },
                 viewModel = registerViewModel
             )
         }
     }
-
 }
