@@ -27,7 +27,7 @@ class AuthRepository @Inject constructor(
 
     suspend fun register(username: String, password: String, email: String, fullname: String): Any {
 
-        val result = firebaseAuth.createUserWithEmailAndPassword(username, password).await()
+        val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
 
         val user = UserModel(username, fullname, email)
         val result1 = firebaseStore.collection("Users").add(user).addOnSuccessListener { documentReference ->

@@ -1,30 +1,25 @@
-package elfak.mosis.tourguide.ui.screens
+package elfak.mosis.tourguide.ui.screens.registerScreen
 
-import androidx.compose.foundation.background
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.InputTypes
 import elfak.mosis.tourguide.ui.components.BasicInputComponent
 import elfak.mosis.tourguide.ui.components.ButtonComponent
 import elfak.mosis.tourguide.ui.components.LogoWithTextComponent
-import elfak.mosis.tourguide.ui.screens.loginScreen.LoginViewModel
-import elfak.mosis.tourguide.ui.screens.registerScreen.RegisterViewModel
+import es.dmoral.toasty.Toasty
 
 @Composable
 fun RegisterScreen(
@@ -32,6 +27,11 @@ fun RegisterScreen(
     navigateToHome: () -> Unit,
     viewModel: RegisterViewModel
 ) {
+    if (viewModel.uiState.hasErrors) {
+        Toasty.error(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_LONG, true).show()
+        viewModel.clearErrorMessage()
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // logo
@@ -104,7 +104,7 @@ fun RegisterScreen(
                         autoCorrect = false,
                         capitalization = KeyboardCapitalization.None,
                         keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done,
+                        imeAction = ImeAction.Next,
                     ),
                     inputType = InputTypes.Password
                 )
@@ -121,6 +121,9 @@ fun RegisterScreen(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Done,
                     ),
+//                    keyboardActions = KeyboardActions(
+//                        onDone = { login(viewModel, focusManager,navigateToHome) }
+//                    ),
                     inputType = InputTypes.Password
                 )
 
@@ -151,8 +154,3 @@ fun RegisterScreen(
     }
 }
 
-//@Preview
-//@Composable
-//fun PreviewRegister(){
-//    Text("Register page")
-//}
