@@ -43,7 +43,7 @@ fun WelcomeScreen(
                     //Subtitle
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        stringResource(id = R.string.home_screen_subtitle),
+                        stringResource(id = R.string.welcome_screen_subtitle),
                         style = MaterialTheme.typography.subtitle1,
                         color = MaterialTheme.colors.primary
                     )
