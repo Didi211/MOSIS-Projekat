@@ -3,6 +3,7 @@ package elfak.mosis.tourguide.ui.screens.loginScreen
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -57,13 +58,13 @@ fun LoginScreen(
                     .verticalScroll(rememberScrollState())
                     .weight(1f, fill = false)
             ) {
-                // Username
+                // Email
                 BasicInputComponent(
-                    text = viewModel.uiState.username,
+                    text = viewModel.uiState.email,
                     onTextChanged = {
-                        viewModel.changeUsername(it.trim())
+                        viewModel.changeEmail(it.trim())
                     },
-                    label = stringResource(id = R.string.username) + ":",
+                    label = stringResource(id = R.string.email) + ":",
                     keyboardOptions = KeyboardOptions.Default.copy(
                         autoCorrect = false,
                         capitalization = KeyboardCapitalization.None,
@@ -124,4 +125,4 @@ private fun login(viewModel: LoginViewModel, focusManager: FocusManager, navigat
         focusManager.clearFocus()
         navigateToHome()
     }
-}
+}}

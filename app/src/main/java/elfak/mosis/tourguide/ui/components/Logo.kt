@@ -24,7 +24,7 @@ fun LogoComponent(
     ) {
         LogoImage(size = logoSize)
         Text(
-            stringResource(id = R.string.home_screen_title).uppercase(),
+            stringResource(id = R.string.welcome_screen_title).uppercase(),
             style = MaterialTheme.typography.h1,
             color = MaterialTheme.colors.primary,
             fontSize = titleSize

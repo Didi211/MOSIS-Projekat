@@ -19,8 +19,8 @@ class LoginViewModel @Inject constructor(
     var uiState by mutableStateOf(LoginUiState())
         private set
 
-    fun changeUsername(username: String) {
-        uiState = uiState.copy(username = username)
+    fun changeEmail(email: String) {
+        uiState = uiState.copy(email = email)
     }
     fun changePassword(password: String) {
         uiState = uiState.copy(password = password)
@@ -31,7 +31,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             // to launch coroutine - async function that does not block main thread
             try {
-                val result = authRepository.login(uiState.username, uiState.password).await()
+                val result = authRepository.login(uiState.email, uiState.password).await()
                 // TODO - send user id on home screen or save it locally as currentUser
                 onSuccess()
             }
