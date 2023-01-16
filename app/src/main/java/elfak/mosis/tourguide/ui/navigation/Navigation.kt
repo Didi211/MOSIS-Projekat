@@ -1,6 +1,12 @@
 package elfak.mosis.tourguide.ui.navigation
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,9 +24,7 @@ import elfak.mosis.tourguide.ui.screens.welcomeScreen.WelcomeScreen
 fun Navigation() {
     val navController = rememberNavController()
 
-
     //define routes here
-    // TODO - navigation graphs
     NavHost(navController = navController, startDestination = Screen.SplashScreen.route) {
         composable(Screen.SplashScreen.route) {
             val viewModel = hiltViewModel<SplashScreenViewModel>()
@@ -73,7 +77,6 @@ fun Navigation() {
         composable(Screen.ResetPasswordScreen.route) {
             ResetPasswordScreen()
         }
-        mainGraph(navController)
-
+        mainGraph(navController = navController)
     }
 }

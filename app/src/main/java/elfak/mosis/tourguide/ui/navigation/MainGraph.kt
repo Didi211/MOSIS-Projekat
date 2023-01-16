@@ -8,8 +8,11 @@ import androidx.navigation.navigation
 import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreen
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreenViewModel
+import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreenViewModel
 
 fun NavGraphBuilder.mainGraph(navController: NavController) {
+
+
     navigation(startDestination = Screen.HomeScreen.route, route = Screen.Main.route) {
         composable(Screen.HomeScreen.route) {
             val viewModel = hiltViewModel<HomeScreenViewModel>()
@@ -26,12 +29,9 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             )
         }
         composable(Screen.TourScreen.route) {
+            val viewModel = hiltViewModel<TourScreenViewModel>()
             TourScreen(
-                navigateToWelcome = {
-                    navController.navigate(Screen.WelcomeScreen.route) {
-                        popUpTo(Screen.Main.route) { inclusive = true }
-                    }
-                }
+                viewModel = viewModel
             )
         }
     }
