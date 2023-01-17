@@ -19,6 +19,7 @@
     <!--  Screen titles   -->
     <string name="home">Home</string>
     <string name="tour">Tour</string>
+
     <!--  button description  -->
     <string name="add">Add</string>
     <string name="search">Search</string>
@@ -27,5 +28,9 @@
     <string name="forgot_password">Forgot password?</string>
     <string name="back_arrow_button">Back Arrow Button</string>
 
-
+    <!--  permissions  -->
+    <string name="permission_granted">Permission granted</string>
+    <string name="permission_denied">Permission denied</string>
+    <string name="allow_permissions">Allow permission</string>
+    <string name="permission_not_enabled">App needs location in order to function properly. Please allow it.</string>
 </resources>

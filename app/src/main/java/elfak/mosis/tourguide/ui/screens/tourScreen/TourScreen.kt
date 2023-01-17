@@ -1,21 +1,21 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
-import androidx.compose.foundation.background
+import android.Manifest
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.google.accompanist.permissions.*
+import com.google.maps.android.compose.GoogleMap
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.ui.components.MultiplePermissionsDialog
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
@@ -26,6 +26,8 @@ fun TourScreen(
 ) {
     val scaffoldState = rememberScaffoldState()
     val coroutineScope = rememberCoroutineScope()
+
+
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -45,6 +47,7 @@ fun TourScreen(
                 // menuItems
             )
         },
+        drawerGesturesEnabled = scaffoldState.drawerState.isOpen,
         floatingActionButton = {
             TourGuideFloatingButton(
                 contentDescription = stringResource(id = R.string.add),
@@ -65,6 +68,7 @@ fun TourScreen(
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MainContent(
     viewModel: TourScreenViewModel,
@@ -75,8 +79,21 @@ fun MainContent(
             .fillMaxSize()
             .padding(padding),
     ) {
+        val permissionsState = rememberMultiplePermissionsState(
+            permissions = listOf(
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        )
+        MultiplePermissionsDialog(
+            permissionsState = permissionsState,
+            permissionTextOnDenied = stringResource(id = R.string.permission_not_enabled ),
+            buttonText = stringResource(id = R.string.allow_permissions)
+        )
+        if (permissionsState.allPermissionsGranted) {
+            GoogleMap() {
 
+            }
+        }
     }
-
-
 }

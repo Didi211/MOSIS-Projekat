@@ -51,10 +51,14 @@ android {
 }
 
 dependencies {
+
+    // Accompanist permission library
+    implementation "com.google.accompanist:accompanist-permissions:0.28.0"
+
     //Google maps
     implementation 'com.google.maps.android:maps-compose:2.8.0'
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
-
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
 
 
     // Toasty
