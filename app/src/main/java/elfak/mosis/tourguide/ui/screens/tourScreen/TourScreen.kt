@@ -1,6 +1,10 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
@@ -45,7 +49,10 @@ fun TourScreen(
             TourGuideFloatingButton(
                 contentDescription = stringResource(id = R.string.add),
                 icon = Icons.Rounded.Search,
-                modifier = Modifier.size(36.dp), // TODO - shape, border, background
+                modifier = Modifier.border(color = MaterialTheme.colors.primary, width = 3.dp, shape = RoundedCornerShape(15)),
+                backgroundColor = MaterialTheme.colors.background,
+                contentColor = MaterialTheme.colors.primary,
+                shape = RoundedCornerShape(15),
                 onClick = { /*TODO - Search location*/ }
             )
         }

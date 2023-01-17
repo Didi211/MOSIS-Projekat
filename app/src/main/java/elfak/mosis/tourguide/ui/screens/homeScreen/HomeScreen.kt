@@ -49,7 +49,6 @@ fun HomeScreen(
             TourGuideFloatingButton(
                 contentDescription = stringResource(id = R.string.add),
                 icon = Icons.Rounded.Add,
-                modifier = Modifier.size(36.dp),
                 onClick = navigateToTour
             )
         }
