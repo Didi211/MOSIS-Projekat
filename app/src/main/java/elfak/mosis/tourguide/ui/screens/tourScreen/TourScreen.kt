@@ -70,12 +70,10 @@ fun MainContent(
     viewModel: TourScreenViewModel,
     padding: PaddingValues
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
 
     }

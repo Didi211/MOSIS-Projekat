@@ -4,6 +4,7 @@ plugins {
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
     id 'com.google.gms.google-services'
+    id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 }
 
 android {
@@ -50,6 +51,12 @@ android {
 }
 
 dependencies {
+    //Google maps
+    implementation 'com.google.maps.android:maps-compose:2.8.0'
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
+
+
+
     // Toasty
     implementation 'com.github.GrenderG:Toasty:1.5.2'
 
