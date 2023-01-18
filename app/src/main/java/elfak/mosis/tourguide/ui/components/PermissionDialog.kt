@@ -20,6 +20,10 @@ fun MultiplePermissionsDialog(permissionsState: MultiplePermissionsState, permis
     Box(modifier = Modifier.fillMaxSize().padding(15.dp)) {
         Column(verticalArrangement = Arrangement.Center, horizontalAlignment = CenterHorizontally) {
             if (!permissionsState.allPermissionsGranted) {
+
+                // this is current way of enabling permissions
+                // it will be changed to update permissions on myLocation button
+
                 Text(
                     text = permissionTextOnDenied,
                     style = MaterialTheme.typography.body1,
