@@ -130,7 +130,7 @@ fun MainContent(
 
 @OptIn(ExperimentalPermissionsApi::class)
 private fun checkPermissions(permissionsState: MultiplePermissionsState, viewModel: TourScreenViewModel, context: Context) {
-
+    // TODO - move this in separate folder and make it reusable
     if(permissionsState.allPermissionsGranted) {
         /* TODO - turn on/off gps */
         viewModel.toggleGps(!viewModel.uiState.gpsEnabled)
@@ -158,6 +158,8 @@ private fun checkPermissions(permissionsState: MultiplePermissionsState, viewMod
 }
 
 private fun createPermissions() : List<String> {
+    // TODO - move this in separate folder and make it reusable
+
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
