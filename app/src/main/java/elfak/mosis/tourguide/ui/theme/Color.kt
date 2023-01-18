@@ -10,4 +10,5 @@ val BgBlue = Color(0xFFBEDEE2)
 val DarkGreen = Color(0xFF255D57)
 val Orange = Color(0xFFFFBE59)
 val OrangeBorderFocused = Color(0xFFFFA212)
+val LightRed = Color(0xFFFF6F6F)
 

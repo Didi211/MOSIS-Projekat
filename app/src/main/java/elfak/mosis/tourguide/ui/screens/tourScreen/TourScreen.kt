@@ -1,15 +1,16 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
 import android.Manifest
-import androidx.compose.foundation.border
+import android.content.Context
+import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.*
@@ -18,17 +19,24 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.rememberCameraPositionState
 import elfak.mosis.tourguide.R
-import elfak.mosis.tourguide.ui.components.PermissionDialog
+import elfak.mosis.tourguide.ui.components.maps.LocationState
+import elfak.mosis.tourguide.ui.components.maps.MyLocationButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
+import es.dmoral.toasty.Toasty
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun TourScreen(
     viewModel: TourScreenViewModel
 ) {
     val scaffoldState = rememberScaffoldState()
     val coroutineScope = rememberCoroutineScope()
+    val permissionsState = rememberMultiplePermissionsState(
+        permissions = createPermissions()
+    )
+    val context = LocalContext.current
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -51,22 +59,16 @@ fun TourScreen(
         drawerGesturesEnabled = scaffoldState.drawerState.isOpen,
         floatingActionButton = {
             Column {
+                // my location button
+                MyLocationButton(viewModel.uiState.locationState) {
+                    checkPermissions(permissionsState, viewModel, context)
+                }
+                Spacer(Modifier.height(15.dp))
+
+                // search button
                 TourGuideFloatingButton(
                     contentDescription = stringResource(id = R.string.add),
                     icon = Icons.Rounded.Search,
-                    modifier = Modifier.border(color = MaterialTheme.colors.primary, width = 3.dp, shape = RoundedCornerShape(15)),
-                    backgroundColor = MaterialTheme.colors.background,
-                    contentColor = MaterialTheme.colors.primary,
-                    shape = RoundedCornerShape(15),
-                    onClick = { /*TODO - Search location*/ }
-                )
-                TourGuideFloatingButton(
-                    contentDescription = stringResource(id = R.string.add),
-                    icon = Icons.Rounded.Search,
-                    modifier = Modifier.border(color = MaterialTheme.colors.primary, width = 3.dp, shape = RoundedCornerShape(15)),
-                    backgroundColor = MaterialTheme.colors.background,
-                    contentColor = MaterialTheme.colors.primary,
-                    shape = RoundedCornerShape(15),
                     onClick = { /*TODO - Search location*/ }
                 )
             }
@@ -75,7 +77,8 @@ fun TourScreen(
     ) {
         MainContent(
             viewModel = viewModel,
-            padding = it
+            padding = it,
+            permissionsState = permissionsState,
         )
 
     }
@@ -85,40 +88,87 @@ fun TourScreen(
 @Composable
 fun MainContent(
     viewModel: TourScreenViewModel,
-    padding: PaddingValues
+    padding: PaddingValues,
+    permissionsState: MultiplePermissionsState,
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding),
     ) {
-        // permissions needed
-        val permissionsState = rememberPermissionState(
-            permission = Manifest.permission.ACCESS_FINE_LOCATION,
-        )
-        checkPermissions(permissionsState = permissionsState)
-        if (permissionsState.status.isGranted) {
-            val currentLocation = LatLng(1.35, 103.87)
-            val cameraPositionState = rememberCameraPositionState {
-                position = CameraPosition.fromLatLngZoom(currentLocation, 16f)
+
+        // Location icon setting
+        if (permissionsState.allPermissionsGranted) {
+            if (viewModel.uiState.gpsEnabled) {
+                viewModel.changeLocationState(LocationState.Located)
+                // TODO -  find exact coordinates
             }
-
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState
-            ) {
-
+            else {
+                viewModel.changeLocationState(LocationState.LocationOn)
             }
         }
+        else {
+            viewModel.changeLocationState(LocationState.LocationOff)
+        }
+
+
+
+        val currentLocation = LatLng(1.35, 103.87)
+        val cameraPositionState = rememberCameraPositionState {
+            position = CameraPosition.fromLatLngZoom(currentLocation, 16f)
+        }
+
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState
+        ) {
+
+        }
+
     }
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
-@Composable
-private fun checkPermissions(permissionsState: PermissionState) {
-    PermissionDialog(
-        permissionState = permissionsState,
-        permissionTextOnDenied = stringResource(id = R.string.permission_not_enabled),
-        buttonText = stringResource(id = R.string.allow_permissions)
-    )
+private fun checkPermissions(permissionsState: MultiplePermissionsState, viewModel: TourScreenViewModel, context: Context) {
+
+    if(permissionsState.allPermissionsGranted) {
+        /* TODO - turn on/off gps */
+        viewModel.toggleGps(!viewModel.uiState.gpsEnabled)
+        val text = if (viewModel.uiState.gpsEnabled) "on" else "off"
+        Toasty.info(
+            context,
+            "gps - $text",
+            Toast.LENGTH_SHORT,
+            true
+        ).show()
+    }
+    else {
+        if (permissionsState.shouldShowRationale) {
+            Toasty.info(
+                context,
+                R.string.permission_not_enabled,
+                Toast.LENGTH_LONG,
+                true
+            ).show()
+        }
+        else {
+            permissionsState.launchMultiplePermissionRequest()
+        }
+    }
 }
+
+private fun createPermissions() : List<String> {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        )
+    } else {
+        listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+        )
+    }
+}
+

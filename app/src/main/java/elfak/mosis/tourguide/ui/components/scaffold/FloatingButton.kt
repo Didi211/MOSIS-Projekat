@@ -12,12 +12,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun TourGuideFloatingButton(
     contentDescription: String,
     icon: ImageVector = Icons.Filled.Add,
+    iconSize: Dp = 40.dp,
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colors.secondary,
     contentColor: Color = MaterialTheme.colors.onSecondary,
@@ -33,8 +35,8 @@ fun TourGuideFloatingButton(
         onClick()
     }) {
         Icon(
-            modifier = Modifier.size(40.dp),
-            imageVector = icon,
+            icon,
+            modifier = Modifier.size(iconSize),
             contentDescription = contentDescription
         )
     }
