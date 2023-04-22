@@ -70,16 +70,6 @@ fun TourScreen(
                 MyLocationButton(viewModel.uiState.locationState) {
                     composableScope.launch {
                         locateAndRepositionCamera(viewModel, permissionsState, context, cameraPositionState)
-//                        val currentLocation = async { viewModel.locateUser(permissionsState, viewModel, context) }.await()
-//                        if (currentLocation != null) {
-//
-//                            cameraPositionState.animate(
-//                                CameraUpdateFactory.newCameraPosition(
-//                                    CameraPosition.fromLatLngZoom(currentLocation, 18f)
-//                                ),
-//                                1500
-//                            )
-//                        }
                     }
                 }
                 Spacer(Modifier.height(15.dp))
@@ -90,6 +80,7 @@ fun TourScreen(
                     icon = Icons.Rounded.Search,
                     onClick = {
                         /* TODO - Search locations */
+                        viewModel.enableGps()
                     }
                 )
             }
@@ -106,24 +97,6 @@ fun TourScreen(
     }
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
-suspend fun locateAndRepositionCamera(
-    viewModel: TourScreenViewModel,
-    permissionsState: MultiplePermissionsState,
-    context: Context,
-    cameraPositionState: CameraPositionState
-) {
-    val currentLocation =  viewModel.locateUser(permissionsState, viewModel, context)
-    if (currentLocation != null) {
-
-        cameraPositionState.animate(
-            CameraUpdateFactory.newCameraPosition(
-                CameraPosition.fromLatLngZoom(currentLocation, 18f)
-            ),
-            1500
-        )
-    }
-}
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -171,17 +144,39 @@ fun MainContent(
             onMapLoaded = {
                 if (viewModel.uiState.gpsEnabled) {
                     coroutineScope.launch {
-                        locateAndRepositionCamera(viewModel, permissionsState, context, cameraPositionState)
+                        locateAndRepositionCamera(viewModel, permissionsState, context, cameraPositionState, false)
                     }
                 }
             }
 
         ) {
-            Marker(
-                state = MarkerState(position = viewModel.uiState.currentLocation),
-                title = "I am here",
-//                draggable = true
-            )
+            if (viewModel.uiState.gpsEnabled) {
+                Marker(
+                    state = MarkerState(position = viewModel.uiState.currentLocation),
+                    title = "I am here",
+    //                draggable = true
+                )
+            }
         }
+    }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+suspend fun locateAndRepositionCamera(
+    viewModel: TourScreenViewModel,
+    permissionsState: MultiplePermissionsState,
+    context: Context,
+    cameraPositionState: CameraPositionState,
+    showDisabledGpsMessage: Boolean = true
+) {
+    val currentLocation =  viewModel.locateUser(permissionsState, viewModel, context, showDisabledGpsMessage)
+    if (currentLocation != null) {
+
+        cameraPositionState.animate(
+            CameraUpdateFactory.newCameraPosition(
+                CameraPosition.fromLatLngZoom(currentLocation, 18f)
+            ),
+            1500
+        )
     }
 }

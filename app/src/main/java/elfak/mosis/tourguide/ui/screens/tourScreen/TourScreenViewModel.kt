@@ -52,7 +52,7 @@ class TourScreenViewModel @Inject constructor(
 
     @SuppressLint("MissingPermission", "NewApi")
     @OptIn(ExperimentalPermissionsApi::class)
-    suspend fun locateUser(permissionsState: MultiplePermissionsState, viewModel: ViewModel, context: Context): LatLng? {
+    suspend fun locateUser(permissionsState: MultiplePermissionsState, viewModel: ViewModel, context: Context, showGpsDisabledMessage: Boolean = true): LatLng? {
         // TODO - move this in separate folder and make it reusable
         if(permissionsState.allPermissionsGranted) {
             if (this.uiState.gpsEnabled) {
@@ -65,7 +65,7 @@ class TourScreenViewModel @Inject constructor(
                     val longitude = location.longitude
                     changeLocation(LatLng(latitude, longitude))
                     return this.uiState.currentLocation
-                } else {
+                } else if (showGpsDisabledMessage){
                     Toasty.info(
                         context,
                         R.string.location_needed,
