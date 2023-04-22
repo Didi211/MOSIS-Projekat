@@ -45,10 +45,10 @@ object AppModule {
     @Provides
     fun providePermissionWrapper(): PermissionWrapper = PermissionWrapper()
 
-//    @Provides
-//    fun provideFusedLocationProviderClient(@ApplicationContext context: Context)
-//        :FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-//
+    @Provides
+    fun provideFusedLocationProviderClient(@ApplicationContext context: Context)
+        :FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+
 //    @Provides
 //    fun provideLocationClient(
 //        @ApplicationContext context: Context,
