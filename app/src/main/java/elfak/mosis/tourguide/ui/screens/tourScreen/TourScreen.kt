@@ -1,9 +1,8 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
-import android.Manifest
 import android.content.Context
 import android.os.Build
-import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -14,29 +13,37 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.*
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.maps.android.compose.*
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import elfak.mosis.tourguide.ui.components.maps.MyLocationButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
-import es.dmoral.toasty.Toasty
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun TourScreen(
-    viewModel: TourScreenViewModel
+    viewModel: TourScreenViewModel,
 ) {
     val scaffoldState = rememberScaffoldState()
     val coroutineScope = rememberCoroutineScope()
     val permissionsState = rememberMultiplePermissionsState(
-        permissions = createPermissions()
+        permissions = viewModel.createLocationPermissions()
     )
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition(viewModel.uiState.currentLocation,10f,0f,0f)
+    }
     val context = LocalContext.current
+    val composableScope = rememberCoroutineScope()
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -61,7 +68,19 @@ fun TourScreen(
             Column {
                 // my location button
                 MyLocationButton(viewModel.uiState.locationState) {
-                    checkPermissions(permissionsState, viewModel, context)
+                    composableScope.launch {
+                        locateAndRepositionCamera(viewModel, permissionsState, context, cameraPositionState)
+//                        val currentLocation = async { viewModel.locateUser(permissionsState, viewModel, context) }.await()
+//                        if (currentLocation != null) {
+//
+//                            cameraPositionState.animate(
+//                                CameraUpdateFactory.newCameraPosition(
+//                                    CameraPosition.fromLatLngZoom(currentLocation, 18f)
+//                                ),
+//                                1500
+//                            )
+//                        }
+                    }
                 }
                 Spacer(Modifier.height(15.dp))
 
@@ -69,7 +88,9 @@ fun TourScreen(
                 TourGuideFloatingButton(
                     contentDescription = stringResource(id = R.string.add),
                     icon = Icons.Rounded.Search,
-                    onClick = { /*TODO - Search location*/ }
+                    onClick = {
+                        /* TODO - Search locations */
+                    }
                 )
             }
 
@@ -79,8 +100,28 @@ fun TourScreen(
             viewModel = viewModel,
             padding = it,
             permissionsState = permissionsState,
+            cameraPositionState = cameraPositionState,
+            context = context
         )
+    }
+}
 
+@OptIn(ExperimentalPermissionsApi::class)
+suspend fun locateAndRepositionCamera(
+    viewModel: TourScreenViewModel,
+    permissionsState: MultiplePermissionsState,
+    context: Context,
+    cameraPositionState: CameraPositionState
+) {
+    val currentLocation =  viewModel.locateUser(permissionsState, viewModel, context)
+    if (currentLocation != null) {
+
+        cameraPositionState.animate(
+            CameraUpdateFactory.newCameraPosition(
+                CameraPosition.fromLatLngZoom(currentLocation, 18f)
+            ),
+            1500
+        )
     }
 }
 
@@ -90,18 +131,23 @@ fun MainContent(
     viewModel: TourScreenViewModel,
     padding: PaddingValues,
     permissionsState: MultiplePermissionsState,
+    cameraPositionState: CameraPositionState,
+    context: Context
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding),
     ) {
 
+
+
         // Location icon setting
         if (permissionsState.allPermissionsGranted) {
             if (viewModel.uiState.gpsEnabled) {
                 viewModel.changeLocationState(LocationState.Located)
-                // TODO -  find exact coordinates
             }
             else {
                 viewModel.changeLocationState(LocationState.LocationOn)
@@ -111,66 +157,31 @@ fun MainContent(
             viewModel.changeLocationState(LocationState.LocationOff)
         }
 
-
-
-        val currentLocation = LatLng(1.35, 103.87)
-        val cameraPositionState = rememberCameraPositionState {
-            position = CameraPosition.fromLatLngZoom(currentLocation, 16f)
-        }
-
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState
+            uiSettings = MapUiSettings(
+                zoomControlsEnabled = false,
+//                myLocationButtonEnabled = true
+            ),
+            properties = MapProperties(
+                mapType = MapType.NORMAL,
+//                isMyLocationEnabled = true
+            ),
+            cameraPositionState = cameraPositionState,
+            onMapLoaded = {
+                if (viewModel.uiState.gpsEnabled) {
+                    coroutineScope.launch {
+                        locateAndRepositionCamera(viewModel, permissionsState, context, cameraPositionState)
+                    }
+                }
+            }
+
         ) {
-
-        }
-
-    }
-}
-
-@OptIn(ExperimentalPermissionsApi::class)
-private fun checkPermissions(permissionsState: MultiplePermissionsState, viewModel: TourScreenViewModel, context: Context) {
-    // TODO - move this in separate folder and make it reusable
-    if(permissionsState.allPermissionsGranted) {
-        /* TODO - turn on/off gps */
-        viewModel.toggleGps(!viewModel.uiState.gpsEnabled)
-        val text = if (viewModel.uiState.gpsEnabled) "on" else "off"
-        Toasty.info(
-            context,
-            "gps - $text",
-            Toast.LENGTH_SHORT,
-            true
-        ).show()
-    }
-    else {
-        if (permissionsState.shouldShowRationale) {
-            Toasty.info(
-                context,
-                R.string.permission_not_enabled,
-                Toast.LENGTH_LONG,
-                true
-            ).show()
-        }
-        else {
-            permissionsState.launchMultiplePermissionRequest()
+            Marker(
+                state = MarkerState(position = viewModel.uiState.currentLocation),
+                title = "I am here",
+//                draggable = true
+            )
         }
     }
 }
-
-private fun createPermissions() : List<String> {
-    // TODO - move this in separate folder and make it reusable
-
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-        )
-    } else {
-        listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-        )
-    }
-}
-
