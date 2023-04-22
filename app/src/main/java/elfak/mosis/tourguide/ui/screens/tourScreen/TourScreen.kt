@@ -1,6 +1,7 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
 import android.content.Context
+import android.location.Location
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
@@ -13,9 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.*
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.*
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.components.maps.LocationState
@@ -23,9 +22,6 @@ import elfak.mosis.tourguide.ui.components.maps.MyLocationButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -69,7 +65,7 @@ fun TourScreen(
                 // my location button
                 MyLocationButton(viewModel.uiState.locationState) {
                     composableScope.launch {
-                        locateAndRepositionCamera(viewModel, permissionsState, context, cameraPositionState)
+                        locateAndRepositionCamera(viewModel, cameraPositionState)
                     }
                 }
                 Spacer(Modifier.height(15.dp))
@@ -115,12 +111,20 @@ fun MainContent(
             .padding(padding),
     ) {
 
-
+        Text(text = "Is moving - ${cameraPositionState.isMoving}")
 
         // Location icon setting
-        if (permissionsState.allPermissionsGranted) {
-            if (viewModel.uiState.gpsEnabled) {
-                viewModel.changeLocationState(LocationState.Located)
+        if (permissionsState.allPermissionsGranted && viewModel.uiState.gpsEnabled) {
+            if (!cameraPositionState.isMoving) {
+                val distance = distanceInMeter(
+                    startLat = viewModel.uiState.currentLocation.latitude,
+                    startLon = viewModel.uiState.currentLocation.longitude,
+                    endLat = cameraPositionState.position.target.latitude,
+                    endLon = cameraPositionState.position.target.longitude
+                )
+                if (distance <= 1) {
+                    viewModel.changeLocationState(LocationState.Located)
+                }
             }
             else {
                 viewModel.changeLocationState(LocationState.LocationOn)
@@ -142,10 +146,9 @@ fun MainContent(
             ),
             cameraPositionState = cameraPositionState,
             onMapLoaded = {
-                if (viewModel.uiState.gpsEnabled) {
-                    coroutineScope.launch {
-                        locateAndRepositionCamera(viewModel, permissionsState, context, cameraPositionState, false)
-                    }
+                coroutineScope.launch {
+                    locateAndRepositionCamera(viewModel, cameraPositionState)
+                    // TODO - check is gps enabled and switch flag if it is on
                 }
             }
 
@@ -153,7 +156,9 @@ fun MainContent(
             if (viewModel.uiState.gpsEnabled) {
                 Marker(
                     state = MarkerState(position = viewModel.uiState.currentLocation),
-                    title = "I am here",
+                    title = "My address - " +
+                            "${viewModel.uiState.currentLocation.latitude} - " +
+                            "${viewModel.uiState.currentLocation.longitude}",
     //                draggable = true
                 )
             }
@@ -161,22 +166,18 @@ fun MainContent(
     }
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
 suspend fun locateAndRepositionCamera(
     viewModel: TourScreenViewModel,
-    permissionsState: MultiplePermissionsState,
-    context: Context,
     cameraPositionState: CameraPositionState,
-    showDisabledGpsMessage: Boolean = true
 ) {
-    val currentLocation =  viewModel.locateUser(permissionsState, viewModel, context, showDisabledGpsMessage)
-    if (currentLocation != null) {
-
-        cameraPositionState.animate(
-            CameraUpdateFactory.newCameraPosition(
-                CameraPosition.fromLatLngZoom(currentLocation, 18f)
-            ),
-            1500
-        )
-    }
+    viewModel.startLocationUpdates()
+    viewModel.onLocationChanged(cameraPositionState)
 }
+
+private fun distanceInMeter(startLat: Double, startLon: Double, endLat: Double, endLon: Double): Float {
+    var results = FloatArray(1)
+    Location.distanceBetween(startLat,startLon,endLat,endLon,results)
+    return results[0]
+}
+
+
