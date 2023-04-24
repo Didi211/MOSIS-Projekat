@@ -3,6 +3,8 @@ package elfak.mosis.tourguide.ui.components.scaffold
 import android.graphics.drawable.Icon
 import android.view.Menu
 import android.view.MenuItem
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,15 +19,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import elfak.mosis.tourguide.ui.components.padding
+import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.ui.components.*
 import elfak.mosis.tourguide.ui.navigation.Screen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+val logoSize = 80.dp
+val titleSize = 20.sp
 
 @Composable
 fun TourGuideNavigationDrawer(
@@ -40,23 +49,57 @@ fun TourGuideNavigationDrawer(
     var menuDefaultList: ArrayList<MenuData> = ArrayList<MenuData>()
     prepareMenuList(menuDefaultList, navController, menuViewModel)
 
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .background(color = MaterialTheme.colors.primary)) {
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 121.dp)
+//            .background(color = MaterialTheme.colors.primary)
+        )
+        {
+            LogoImage(size = logoSize)
+        }
+
+    }
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .padding(start = 105.dp) )
+    {
+        Text(
+            stringResource(id = R.string.welcome_screen_title).uppercase(),
+            style = MaterialTheme.typography.h1,
+            color = MaterialTheme.colors.primary,
+            fontSize = titleSize
+        )
+
+    }
+//    Spacer(modifier = Modifier.background(color = MaterialTheme.colors.background).heightIn( 1.dp ))
+
     LazyColumn( modifier = Modifier.fillMaxSize()){
         items(menuDefaultList){ itemObject:MenuData ->
             MenuItemStyle(menuItem = itemObject)
         }
     }
 }
+
+
+
 @Composable
 fun MenuItemStyle(menuItem: MenuData) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 30.dp, top = 40.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 30.dp, top = 40.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
         androidx.compose.material.Icon(
             imageVector = menuItem.menuIcon,
             contentDescription = menuItem.name,
-            modifier = Modifier.size(30.dp).clickable { menuItem.navigate() },
+            modifier = Modifier
+                .size(30.dp)
+                .clickable { menuItem.navigate() },
             tint = colors.primary
         )
         Text(text = menuItem.name, style = MaterialTheme.typography.h6, color = colors.primary, modifier = Modifier.padding(start = 20.dp))
@@ -65,6 +108,16 @@ fun MenuItemStyle(menuItem: MenuData) {
 }
 
 fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController, viewModel: MenuViewModel){
+//    menuList.add(
+//        MenuData(
+//            android.app.res.drawable.logovectorize.xml,
+//            "TOUR GUIDE",
+//            navigate = ( )
+//
+//        )
+//   )
+
+
     menuList.add(
         MenuData(
             Icons.Rounded.Home,
