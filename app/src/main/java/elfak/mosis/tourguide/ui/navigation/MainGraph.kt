@@ -5,9 +5,9 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreen
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreenViewModel
+import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreen
 import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreenViewModel
 
 fun NavGraphBuilder.mainGraph(navController: NavController) {
@@ -31,7 +31,7 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
         composable(Screen.TourScreen.route) {
             val viewModel = hiltViewModel<TourScreenViewModel>()
             TourScreen(
-                viewModel = viewModel
+                viewModel = viewModel,
             )
         }
     }
