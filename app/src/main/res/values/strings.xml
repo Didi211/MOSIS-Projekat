@@ -35,6 +35,7 @@
     <string name="allow_permissions">Allow permission</string>
 
     <!--  location  -->
-    <string name="permission_not_enabled">App needs location permissions in order to function properly. Please allow it in settings.</string>
+    <string name="permission_not_allowed">App needs location permissions in order to function properly. Please allow it in settings.</string>
+    <string name="permission_denied_twice">Permissions have been denied more than once. Please allow them in settings.</string>
     <string name="location_needed">App needs location enabled to find your location.</string>
 </resources>

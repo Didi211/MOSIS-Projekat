@@ -48,10 +48,10 @@ sealed class LocationButtonTypes(
     )
     object LocationOn: LocationButtonTypes(
         color = Color.Gray,
-        icon = Icons.Filled.LocationOn // permission on gps off
+        icon = Icons.Filled.LocationOn // permission on gps on but camera not centered
     )
     object Located: LocationButtonTypes(
         color = DarkGreen,
-        icon = Icons.Filled.LocationOn // permission and gps are on
+        icon = Icons.Filled.LocationOn // permission and gps are on, device being tracked on map
     )
 }

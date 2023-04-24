@@ -2,15 +2,28 @@ package elfak.mosis.tourguide.business.helper
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.content.IntentSender
+import android.content.pm.PackageManager
+import android.content.res.Resources
+import android.location.GpsStatus
+import elfak.mosis.tourguide.R
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.ui.res.stringResource
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
+import com.google.android.gms.tasks.Task
+import com.google.rpc.context.AttributeContext.Resource
+import es.dmoral.toasty.Toasty
 import javax.inject.Inject
 import javax.inject.Singleton
+
 
 @SuppressLint("MissingPermission")
 @Singleton
@@ -24,9 +37,14 @@ class LocationHelper @Inject constructor(
     private var onLocationResultListener: (location: Location) -> Unit = { }
     private var createdPermissions = false
     private var permissions: List<String>? = null
+
+
     init {
         request = createRequest()
+
     }
+
+
 
     private fun createRequest(): LocationRequest {
         // New builder
@@ -48,18 +66,24 @@ class LocationHelper @Inject constructor(
 
     fun startLocationTracking() {
         try {
-            if(!isGpsOn()) {
-                // TODO - turn on gps
+            val builder = LocationSettingsRequest.Builder()
+                .addLocationRequest(this.request)
+            val client: SettingsClient = LocationServices.getSettingsClient(context)
+            val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
+            task.addOnSuccessListener {
+                Toasty.info(context, "GPS ON ").show()
+            }
+            task.addOnFailureListener {
+                Toasty.error(context, R.string.location_needed, Toast.LENGTH_SHORT).show()
             }
             fusedLocationProviderClient.requestLocationUpdates(this.request, this, Looper.getMainLooper())
 
         }
         catch(e: Exception) {
-            Log.e("ERORR",e.message!!)
+            Log.e("ERROR",e.message!!)
         }
-
-
     }
+
 
     fun stopLocationTracking() {
         fusedLocationProviderClient.flushLocations()
@@ -109,6 +133,23 @@ class LocationHelper @Inject constructor(
         val results = FloatArray(1)
         Location.distanceBetween(startLat,startLon,endLat,endLon,results)
         return results[0]
+    }
+
+    fun hasAllowedPermissions(): Boolean {
+        var hasAllPermissions = true
+
+        for (permission in permissions!!) {
+            //you can return false instead of assigning, but by assigning you can log all permission values
+            if (!hasPermission(permission)) {
+                hasAllPermissions = false
+            }
+        }
+        return hasAllPermissions
+    }
+
+    private fun hasPermission(permission: String): Boolean {
+        val res = context.checkCallingOrSelfPermission(permission)
+        return res == PackageManager.PERMISSION_GRANTED;
     }
 }
 
