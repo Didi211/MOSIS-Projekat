@@ -18,9 +18,7 @@ import elfak.mosis.tourguide.ui.screens.welcomeScreen.WelcomeScreen
 fun Navigation() {
     val navController = rememberNavController()
 
-
     //define routes here
-    // TODO - navigation graphs
     NavHost(navController = navController, startDestination = Screen.SplashScreen.route) {
         composable(Screen.SplashScreen.route) {
             val viewModel = hiltViewModel<SplashScreenViewModel>()
@@ -73,7 +71,6 @@ fun Navigation() {
         composable(Screen.ResetPasswordScreen.route) {
             ResetPasswordScreen()
         }
-        mainGraph(navController)
-
+        mainGraph(navController = navController)
     }
 }

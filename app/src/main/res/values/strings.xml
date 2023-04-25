@@ -4,7 +4,7 @@
     <string name="travelers_description">Travelers image</string>
 
     <!--  titles  -->
-    <string name="app_name">TourGuide</string>
+    <string name="app_name">Tour Guide</string>
     <string name="welcome_screen_title">Tour Guide</string>
     <string name="welcome_screen_subtitle">Make your travels easier</string>
 
@@ -18,6 +18,7 @@
 
     <!--  Screen titles   -->
     <string name="home">Home</string>
+    <string name="tour">Tour</string>
 
     <!--  button description  -->
     <string name="add">Add</string>
@@ -26,6 +27,15 @@
     <string name="register">Register</string>
     <string name="forgot_password">Forgot password?</string>
     <string name="back_arrow_button">Back Arrow Button</string>
+    <string name="my_location_button">My location Button</string>
 
+    <!--  permissions  -->
+    <string name="permission_granted">Permission granted</string>
+    <string name="permission_denied">Permission denied</string>
+    <string name="allow_permissions">Allow permission</string>
 
+    <!--  location  -->
+    <string name="permission_not_allowed">App needs location permissions in order to function properly.</string>
+    <string name="permission_denied_twice">Permissions have been denied more than once. Please allow them in settings.</string>
+    <string name="location_needed">App needs GPS enabled to find your location.</string>
 </resources>

@@ -1,5 +1,8 @@
 package elfak.mosis.tourguide.di
 
+import android.content.Context
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -8,7 +11,9 @@ import com.google.firebase.ktx.Firebase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import elfak.mosis.tourguide.business.helper.LocationHelper
 import javax.inject.Singleton
 
 @Module
@@ -35,6 +40,16 @@ object AppModule {
     fun provideFirebase(): Firebase = Firebase
 
 
+    @Provides
+    fun provideFusedLocationProviderClient(@ApplicationContext context: Context)
+        :FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+
+
+    @Provides
+    fun provideLocationHelper(
+        @ApplicationContext context: Context,
+        fusedLocationProviderClient: FusedLocationProviderClient
+    ) : LocationHelper =  LocationHelper(context, fusedLocationProviderClient)
 
 //    @Singleton
 //    @Provides
