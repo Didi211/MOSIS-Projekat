@@ -10,6 +10,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -34,13 +35,14 @@ fun TourScreen(
     val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
     val coroutineScope = rememberCoroutineScope()
+    var permissionAlreadyRequested by rememberSaveable {
+        mutableStateOf(false)
+    }
     val permissionsState = rememberMultiplePermissionsState(
         permissions = viewModel.createLocationPermissions(),
         onPermissionsResult = {
-            if (!viewModel.checkPermissions()) {
-                showDeniedPermissionMessage(context, R.string.permission_not_allowed)
-                return@rememberMultiplePermissionsState
-            }
+            viewModel.checkPermissions()
+            permissionAlreadyRequested = true
         }
     )
     val cameraPositionState = rememberCameraPositionState {
@@ -75,15 +77,12 @@ fun TourScreen(
                         if(!viewModel.checkPermissions()) {
                             viewModel.changeLocationState(LocationState.LocationOff)
                             // ask for permissions
-                            permissionsState.launchMultiplePermissionRequest()
-                            if(permissionsState.shouldShowRationale) {
-                                // FIXME - need better understanding with rationale
+                            if(!permissionAlreadyRequested || permissionsState.shouldShowRationale) {
+                                permissionsState.launchMultiplePermissionRequest()
                                 return@launch
                             }
-                            else {
-                                showDeniedPermissionMessage(context, R.string.permission_denied_twice)
-                                return@launch
-                            }
+                            showDeniedPermissionMessage(context, R.string.permission_denied_twice)
+                            return@launch
                         }
                         // check gps
                         if(!viewModel.checkGps()) {
@@ -179,6 +178,3 @@ fun MainContent(
 fun showDeniedPermissionMessage(context: Context, @StringRes message: Int) {
     Toasty.error(context,message, Toast.LENGTH_LONG).show()
 }
-
-
-
