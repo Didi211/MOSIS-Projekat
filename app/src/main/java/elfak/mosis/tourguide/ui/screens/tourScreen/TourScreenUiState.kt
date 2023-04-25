@@ -8,7 +8,7 @@ data class TourScreenUiState(
     var gpsEnabled: Boolean = false,
     val defaultLocation: LatLng = LatLng(43.32472, 21.90333),
     var currentLocation: LatLng = defaultLocation,
-    var newLocation: LatLng = defaultLocation,
-    var newLocationArrived: Boolean = false,
-    var isTrackingLocation: Boolean = false
+    var locationPermissionAllowed: Boolean = false,
+    var requestingLocationUpdates: Boolean = false, // LocationState.Located is the same as isTrackingLocation,
+    val minimalDistanceInMeters: Int = 0, //between two sequential locations, for map move animation
 )

@@ -1,7 +1,6 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
 import android.annotation.SuppressLint
-import android.location.Location
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,6 +15,7 @@ import com.google.maps.android.compose.CameraPositionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.business.helper.LocationHelper
 import elfak.mosis.tourguide.ui.components.maps.LocationState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
@@ -29,19 +29,9 @@ class TourScreenViewModel @Inject constructor(
 
     var uiState by mutableStateOf(TourScreenUiState())
         private set
-    init {
-        uiState = uiState.copy(gpsEnabled = locationHelper.isGpsOn())
-    }
 
     fun changeLocationState(state: LocationState) {
         uiState = uiState.copy(locationState = state)
-    }
-
-    fun enableGps() {
-        uiState = uiState.copy(gpsEnabled = true)
-    }
-    fun disableGps() {
-        uiState = uiState.copy(gpsEnabled = false)
     }
 
     fun createLocationPermissions(): List<String> {
@@ -54,8 +44,11 @@ class TourScreenViewModel @Inject constructor(
 
     fun startLocationUpdates() {
         try {
+            if(uiState.requestingLocationUpdates) {
+               return
+            }
             locationHelper.startLocationTracking()
-            uiState = uiState.copy(isTrackingLocation = true)
+            uiState = uiState.copy(requestingLocationUpdates = true)
         }
         catch (e: Exception) {
             e.printStackTrace()
@@ -63,52 +56,80 @@ class TourScreenViewModel @Inject constructor(
         }
     }
 
-    fun checkGps() {
-        val status = locationHelper.isGpsOn()
-        if (status) {
-            enableGps()
-        }
-        else {
-            disableGps()
-        }
+    fun stopLocationUpdates() {
+        locationHelper.stopLocationTracking()
+        uiState = uiState.copy(requestingLocationUpdates = false)
+    }
+
+    fun setRequestingLocationUpdates(value: Boolean) {
+        uiState = uiState.copy(requestingLocationUpdates = value)
     }
 
     suspend fun onLocationChanged(cameraPositionState: CameraPositionState) {
-//        val distance = locationHelper.distanceInMeter(
-//            startLat = uiState.currentLocation.latitude,
-//            startLon = uiState.currentLocation.longitude,
-//            endLat = cameraPositionState.position.target.latitude,
-//            endLon = cameraPositionState.position.target.longitude
-//        )
-////        val mapCameraTriggerInMeters = 15
-//        if (distance > mapCameraTriggerInMeters) {
-//        }
+        if(!uiState.requestingLocationUpdates) {
+            return
+        }
+        val distance = locationHelper.distanceInMeter(
+            startLat = uiState.currentLocation.latitude,
+            startLon = uiState.currentLocation.longitude,
+            endLat = cameraPositionState.position.target.latitude,
+            endLon = cameraPositionState.position.target.longitude
+        )
+        if (distance <= uiState.minimalDistanceInMeters) {
+            return
+        }
+        try {
             cameraPositionState.animate(
                 CameraUpdateFactory.newCameraPosition(
-                    CameraPosition.fromLatLngZoom(this.uiState.currentLocation, 18f)
+                    CameraPosition.fromLatLngZoom(this.uiState.currentLocation, 15f)
                 ),
                 1500
             )
-    }
 
-    fun setLocationCallback() {
-        val vm = this
-        locationHelper.setOnLocationResultListener {
-            viewModelScope.launch {
-                val offset  = Random().ints()
-                vm.changeLocation(LatLng(it.latitude, it.longitude))
-//                vm.onLocationChanged(cameraPositionState)
+        }
+        catch (e: Exception) {
+            if (e is CancellationException) {
+                throw e
             }
         }
     }
 
-//    fun newLocationArrived(location: Location) {
-//        this.uiState = this.uiState.copy(newLocation = LatLng(location.latitude, location.longitude))
-//        this.uiState.newLocationArrived = true
-//    }
+    fun setLocationCallbacks(cameraPositionState: CameraPositionState) {
+        val vm = this
+        locationHelper.setOnLocationResultListener {
+            viewModelScope.launch {
+                vm.changeLocation(LatLng(it.latitude, it.longitude))
+                vm.onLocationChanged(cameraPositionState)
+            }
+        }
+        locationHelper.setonLocationAvailabilityListener { gpsEnabled ->
+            uiState = uiState.copy(gpsEnabled = gpsEnabled)
+            if (gpsEnabled) {
+                startLocationUpdates()
+                changeLocationState(LocationState.Located)
+            }
+            else {
+//                stopLocationUpdates()
+                uiState = uiState.copy(requestingLocationUpdates = false)
+                changeLocationState(LocationState.LocationOff)
+            }
+        }
+    }
 
+    fun checkPermissions(): Boolean {
+        val allowed = locationHelper.hasAllowedPermissions()
+        uiState = uiState.copy(locationPermissionAllowed = allowed)
+        return allowed
+    }
 
+    fun checkGps(): Boolean {
+        val status = locationHelper.isGpsOn()
+        uiState = uiState.copy(gpsEnabled = status)
+        return status
+    }
 
-
+    override fun onCleared() {
+        super.onCleared()
+        this.stopLocationUpdates()
+    }
 }
-
