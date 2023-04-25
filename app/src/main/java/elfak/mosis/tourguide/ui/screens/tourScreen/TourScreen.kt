@@ -3,12 +3,7 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
 import android.content.Context
-import android.location.Location
-import android.util.Log
 import android.widget.Toast
-import android.widget.Toast.makeText
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -29,7 +24,6 @@ import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
 import es.dmoral.toasty.Toasty
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -79,37 +73,31 @@ fun TourScreen(
                     coroutineScope.launch {
                         // check permissions
                         if(!viewModel.checkPermissions()) {
+                            viewModel.changeLocationState(LocationState.LocationOff)
                             // ask for permissions
+                            permissionsState.launchMultiplePermissionRequest()
                             if(permissionsState.shouldShowRationale) {
-                                permissionsState.launchMultiplePermissionRequest()
+                                // FIXME - need better understanding with rationale
+                                return@launch
                             }
                             else {
                                 showDeniedPermissionMessage(context, R.string.permission_denied_twice)
+                                return@launch
                             }
                         }
                         // check gps
-//                        if(!viewModel.checkGps()) {
-//                            // ask for gps
-//                        }else {
-//                        }
-                            viewModel.startLocationUpdates()
+                        if(!viewModel.checkGps()) {
+                            // ask for gps
+                            Toasty.error(context, R.string.location_needed).show()
+                            viewModel.changeLocationState(LocationState.LocationOff)
+                            return@launch
+                        }
                         // turn on gps tracking
-                        // move camera
+                        viewModel.startLocationUpdates()
                         // change mode to LOCATED
-
-
-//                        if (permissionsState.allPermissionsGranted) {
-//                            if (viewModel.uiState.gpsEnabled) {
-//                                locateAndRepositionCamera(viewModel, cameraPositionState)
-//                            }
-//                            else {
-//                                // TODO - launch gps request
-//                                val t = 3
-//                            }
-//                        }
-//                        else {
-//                            permissionsState.launchMultiplePermissionRequest()
-//                        }
+                        viewModel.changeLocationState(LocationState.Located)
+                        // move camera
+                        viewModel.onLocationChanged(cameraPositionState)
                     }
                 }
                 Spacer(Modifier.height(15.dp))
@@ -135,7 +123,6 @@ fun TourScreen(
     }
 }
 
-
 @Composable
 fun MainContent(
     viewModel: TourScreenViewModel,
@@ -150,13 +137,10 @@ fun MainContent(
             .padding(padding),
     ) {
 
-        // Location icon setting
-        // TODO - change logic
-        LocationButtonState(
-            viewModel = viewModel,
-            permissionsState = permissionsState,
-            cameraPositionState = cameraPositionState
-        )
+        if((cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE) && viewModel.uiState.requestingLocationUpdates) {
+            viewModel.changeLocationState(LocationState.LocationOn)
+            viewModel.setRequestingLocationUpdates(false)
+        }
 
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
@@ -168,67 +152,28 @@ fun MainContent(
             ),
             cameraPositionState = cameraPositionState,
             onMapLoaded = {
+                viewModel.setLocationCallbacks(cameraPositionState)
                 if (!viewModel.checkPermissions()) {
                     return@GoogleMap
                 }
                 if (!viewModel.checkGps()) {
                     return@GoogleMap
                 }
-//                viewModel.setLocationCallback()
-//                coroutineScope.launch {
-//                    if (viewModel.uiState.gpsEnabled) {
-//                        viewModel.onLocationChanged(cameraPositionState)
-//                    }
-//                }
-            }
+                viewModel.startLocationUpdates()
+                viewModel.changeLocationState(LocationState.Located)
+            },
 
         ) {
             if (viewModel.uiState.gpsEnabled) {
                 Marker(
                     state = MarkerState(position = viewModel.uiState.currentLocation),
-//                    title = "My address - " +
-//                            "${viewModel.uiState.currentLocation.latitude} - " +
-//                            "${viewModel.uiState.currentLocation.longitude}",
+                    title = "My address - " +
+                            "${viewModel.uiState.currentLocation.latitude} - " +
+                            "${viewModel.uiState.currentLocation.longitude}",
                 )
             }
         }
     }
-}
-
-@Composable
-fun LocationButtonState(viewModel: TourScreenViewModel, permissionsState: MultiplePermissionsState, cameraPositionState: CameraPositionState) {
-    if (permissionsState.allPermissionsGranted && viewModel.uiState.gpsEnabled) {
-        if (!cameraPositionState.isMoving) {
-            val distance = viewModel.locationHelper.distanceInMeter(
-                startLat = viewModel.uiState.currentLocation.latitude,
-                startLon = viewModel.uiState.currentLocation.longitude,
-                endLat = cameraPositionState.position.target.latitude,
-                endLon = cameraPositionState.position.target.longitude
-            )
-            if (distance <= 1) {
-                viewModel.changeLocationState(LocationState.Located)
-            }
-        }
-        else {
-            viewModel.changeLocationState(LocationState.LocationOn)
-        }
-    }
-    else {
-        viewModel.changeLocationState(LocationState.LocationOff)
-    }
-
-
-}
-
-suspend fun locateAndRepositionCamera(
-    viewModel: TourScreenViewModel,
-    cameraPositionState: CameraPositionState,
-) {
-//    if (!viewModel.uiState.isTrackingLocation) {
-//        viewModel.startLocationUpdates()
-//        delay(1000)
-//    }
-//    viewModel.onLocationChanged(cameraPositionState)
 }
 
 fun showDeniedPermissionMessage(context: Context, @StringRes message: Int) {
