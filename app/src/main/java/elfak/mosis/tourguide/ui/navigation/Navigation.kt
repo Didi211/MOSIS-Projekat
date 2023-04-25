@@ -5,7 +5,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import elfak.mosis.tourguide.ui.screens.RegisterScreen
+import elfak.mosis.tourguide.ui.screens.registerScreen.RegisterScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginViewModel
 import elfak.mosis.tourguide.ui.screens.registerScreen.RegisterViewModel
