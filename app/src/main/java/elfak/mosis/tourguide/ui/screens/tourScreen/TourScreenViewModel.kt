@@ -19,6 +19,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.business.helper.BitmapHelper
 import elfak.mosis.tourguide.business.helper.LocationHelper
 import elfak.mosis.tourguide.ui.components.maps.LocationState
+import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.util.*
@@ -139,4 +140,15 @@ class TourScreenViewModel @Inject constructor(
         super.onCleared()
         this.stopLocationUpdates()
     }
+
+    // region SEARCH DIALOG FUNCTIONS
+
+    fun changePlaceName(place: String) {
+        uiState = uiState.copy(placeName = place)
+    }
+
+    fun searchPlace() {
+        Log.i("SEARCHING FOR PLACE", uiState.placeName.trim())
+    }
+    // endregion
 }

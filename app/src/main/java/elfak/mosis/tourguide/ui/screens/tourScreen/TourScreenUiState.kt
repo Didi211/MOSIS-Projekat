@@ -11,4 +11,5 @@ data class TourScreenUiState(
     var locationPermissionAllowed: Boolean = false,
     var requestingLocationUpdates: Boolean = false, // LocationState.Located is the same as isTrackingLocation,
     val minimalDistanceInMeters: Int = 0, //between two sequential locations, for map move animation
+    val placeName: String = ""
 )

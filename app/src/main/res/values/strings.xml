@@ -15,6 +15,7 @@
     <string name="confirm_password">Confirm password</string>
     <string name="fullname">Full name</string>
     <string name="email">Email</string>
+    <string name="place_name">Place name:</string>
 
     <!--  Screen titles   -->
     <string name="home">Home</string>
@@ -38,4 +39,10 @@
     <string name="permission_not_allowed">App needs location permissions in order to function properly.</string>
     <string name="permission_denied_twice">Permissions have been denied more than twice. Please allow them in settings.</string>
     <string name="location_needed">App needs GPS enabled to find your location.</string>
+
+    <!--  search dialog  -->
+    <string name="add_checkpoint">ADD NEW CHECKPOINT</string>
+    <string name="search_in_radius">Search in radius: </string>
+    <string name="category">Category</string>
+    <string name="search_holder">Eg. Rome, Italy</string>
 </resources>
