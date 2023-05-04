@@ -13,6 +13,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import elfak.mosis.tourguide.business.helper.BitmapHelper
 import elfak.mosis.tourguide.business.helper.LocationHelper
 import javax.inject.Singleton
 
@@ -51,6 +52,9 @@ object AppModule {
         fusedLocationProviderClient: FusedLocationProviderClient
     ) : LocationHelper =  LocationHelper(context, fusedLocationProviderClient)
 
+
+    @Provides
+    fun provideBitmapHelper() : BitmapHelper = BitmapHelper()
 //    @Singleton
 //    @Provides
 //    fun provideUsersDao(appDatabase: TourGuideDatabase): UsersDatabaseDao

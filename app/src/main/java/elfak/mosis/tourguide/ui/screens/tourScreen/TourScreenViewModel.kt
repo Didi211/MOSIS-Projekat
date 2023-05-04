@@ -1,7 +1,9 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.util.Log
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,10 +11,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import elfak.mosis.tourguide.business.helper.BitmapHelper
 import elfak.mosis.tourguide.business.helper.LocationHelper
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
@@ -24,7 +28,8 @@ import javax.inject.Inject
 @SuppressLint("MissingPermission")
 
 class TourScreenViewModel @Inject constructor(
-    val locationHelper: LocationHelper
+    val locationHelper: LocationHelper,
+    val bitmapHelper: BitmapHelper
 ): ViewModel() {
 
     var uiState by mutableStateOf(TourScreenUiState())
@@ -79,9 +84,11 @@ class TourScreenViewModel @Inject constructor(
             return
         }
         try {
+            // keeping the zoom level the same if it is zoomed enough
+            val zoom = if (cameraPositionState.position.zoom < 12) 14f else cameraPositionState.position.zoom
             cameraPositionState.animate(
                 CameraUpdateFactory.newCameraPosition(
-                    CameraPosition.fromLatLngZoom(this.uiState.currentLocation, 15f)
+                    CameraPosition.fromLatLngZoom(this.uiState.currentLocation, zoom)
                 ),
                 1500
             )
