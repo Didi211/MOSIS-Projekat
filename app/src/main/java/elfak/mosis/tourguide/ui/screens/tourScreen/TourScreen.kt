@@ -190,6 +190,7 @@ fun TourScreen(
                 ) {
                 if (viewModel.uiState.gpsEnabled) {
                     Marker(
+                        icon = viewModel.bitmapHelper.bitmapDescriptorFromVector(context, R.drawable.my_location),
                         state = MarkerState(position = viewModel.uiState.currentLocation),
                         title = "My address - " +
                                 "${viewModel.uiState.currentLocation.latitude} - " +
