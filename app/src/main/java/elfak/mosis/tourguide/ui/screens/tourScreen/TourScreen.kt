@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
@@ -241,6 +242,7 @@ fun SearchField(onSearch: () -> Unit, viewModel: TourScreenViewModel) {
 
 @Composable
 private fun ListOfPlaces(viewModel: TourScreenViewModel, cameraPositionState: CameraPositionState) {
+    val focusManager = LocalFocusManager.current
 
     AnimatedVisibility(
         visible = viewModel.locationAutofill.isNotEmpty(),
@@ -264,6 +266,8 @@ private fun ListOfPlaces(viewModel: TourScreenViewModel, cameraPositionState: Ca
                             .clickable {
                                 viewModel.chooseLocation(it)
                                 viewModel.searchOnMap(cameraPositionState)
+                                viewModel.clearSearchBar()
+                                focusManager.clearFocus()
                             }
                     ) {
                         Column {
@@ -283,6 +287,7 @@ private fun ListOfPlaces(viewModel: TourScreenViewModel, cameraPositionState: Ca
         }
     }
 }
+
 
 
 private fun locateMe(

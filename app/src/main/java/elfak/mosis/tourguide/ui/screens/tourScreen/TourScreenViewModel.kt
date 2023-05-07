@@ -242,7 +242,6 @@ class TourScreenViewModel @Inject constructor(
         placesClient.fetchPlace(request)
             .addOnSuccessListener {
                 if (it != null) {
-//                    setSearchFieldVisibility(false)
                     changeSearchedLocation(it.place.latLng!!)
                     if (uiState.locationState == LocationState.Located) {
                         changeLocationState(LocationState.LocationOn)
@@ -253,6 +252,9 @@ class TourScreenViewModel @Inject constructor(
                         onLocationChanged(cameraPositionState)
                     }
                 }
+            }
+            .addOnFailureListener {
+                it.printStackTrace()
             }
     }
 
