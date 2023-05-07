@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -21,10 +22,12 @@ fun BasicInputComponent(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     inputType: InputTypes,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    inputColors: TextFieldColors = basicInputColors()
+    inputColors: TextFieldColors = basicInputColors(),
+    modifier: Modifier = Modifier
 ) {
     Column {
         OutlinedTextField(
+            modifier = modifier,
             value = text,
             label = { Text(
                 text = label,

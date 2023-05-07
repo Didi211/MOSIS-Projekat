@@ -1,13 +1,17 @@
-@file:OptIn(ExperimentalPermissionsApi::class)
+@file:OptIn(ExperimentalPermissionsApi::class, ExperimentalPermissionsApi::class,
+    ExperimentalAnimationApi::class)
 
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
 import android.content.Context
 import android.widget.Toast
 import androidx.annotation.StringRes
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,27 +23,29 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.zIndex
 import com.google.accompanist.permissions.*
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.maps.android.compose.*
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.InputTypes
 import elfak.mosis.tourguide.ui.components.BasicInputComponent
-import elfak.mosis.tourguide.ui.components.ButtonComponent
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import elfak.mosis.tourguide.ui.components.maps.MyLocationButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
-import elfak.mosis.tourguide.ui.theme.BlueBorder
 import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -49,9 +55,7 @@ import kotlinx.coroutines.launch
 fun TourScreen(
     viewModel: TourScreenViewModel,
 ) {
-    var showSearchDialog by remember {
-        mutableStateOf(false)
-    }
+
     val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
     val coroutineScope = rememberCoroutineScope()
@@ -66,7 +70,7 @@ fun TourScreen(
         }
     )
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition(viewModel.uiState.currentLocation,10f,0f,0f)
+        position = CameraPosition(viewModel.uiState.currentLocation, 10f, 0f, 0f)
     }
 
     Scaffold(
@@ -89,81 +93,64 @@ fun TourScreen(
         },
         drawerGesturesEnabled = scaffoldState.drawerState.isOpen,
         floatingActionButton = {
-            Column {
-                // my location button
-                MyLocationButton(viewModel.uiState.locationState) {
-                    coroutineScope.launch {
-                        // check permissions
-                        if(!viewModel.checkPermissions()) {
-                            viewModel.changeLocationState(LocationState.LocationOff)
-                            // ask for permissions
-                            if(!permissionAlreadyRequested || permissionsState.shouldShowRationale) {
-                                permissionsState.launchMultiplePermissionRequest()
-                                return@launch
-                            }
-                            showDeniedPermissionMessage(context, R.string.permission_denied_twice)
-                            return@launch
-                        }
-                        // check gps
-                        if(!viewModel.checkGps()) {
-                            // ask for gps
-                            Toasty.error(context, R.string.location_needed).show()
-                            viewModel.changeLocationState(LocationState.LocationOff)
-                            return@launch
-                        }
-                        // turn on gps tracking
-                        viewModel.startLocationUpdates()
-                        // change mode to LOCATED
-                        viewModel.changeLocationState(LocationState.Located)
-                        // move camera
-                        viewModel.onLocationChanged(cameraPositionState)
+            Column(
+                modifier = Modifier.padding(start = 30.dp),
+                horizontalAlignment = Alignment.End)
+            {
+                Box(contentAlignment = Alignment.BottomEnd) {
+                    ListOfPlaces(viewModel = viewModel, cameraPositionState = cameraPositionState)
+
+                    // my location button
+                    MyLocationButton(viewModel.uiState.locationState) {
+                        locateMe(viewModel,permissionAlreadyRequested, permissionsState, context, cameraPositionState)
                     }
                 }
                 Spacer(Modifier.height(15.dp))
 
                 // search button
-                TourGuideFloatingButton(
-                    contentDescription = stringResource(id = R.string.add),
-                    icon = Icons.Rounded.Search,
-                    onClick = {
-                        /* TODO - Search locations */
-                        showSearchDialog = true
+                AnimatedContent(
+                    targetState = viewModel.uiState.showSearchBar,
+//                    transitionSpec = {
+//                        fadeIn(
+//                            animationSpec = tween(400)
+//                        ) with slideOutOfContainer(
+//                            towards = AnimatedContentScope.SlideDirection.Left,
+//                            animationSpec = tween(400)
+//                        )
+//                    }
+                ) { showBar ->
+                    when(showBar) {
+                        false -> TourGuideFloatingButton(
+                            contentDescription = stringResource(id = R.string.search),
+                            icon = Icons.Rounded.Search,
+                            onClick = {
+                                viewModel.setSearchBarVisibility(true)
+                            }
+                        )
+                        true -> SearchField(
+                            onSearch = {
+                                Toasty.info(context, "Searching..").show()
+                                viewModel.searchOnMap(cameraPositionState)
+                            },
+                            viewModel = viewModel,
+                        )
                     }
-                )
+                }
             }
 
         }
     ) {
-
         /** MAIN CONTENT */
-
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it),
         ) {
-            if((cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE) && viewModel.uiState.requestingLocationUpdates) {
+            if ((cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE)
+                && (viewModel.uiState.locationState == LocationState.Located)
+            ) {
                 viewModel.changeLocationState(LocationState.LocationOn)
-                viewModel.setRequestingLocationUpdates(false)
-            }
-
-            AnimatedVisibility(visible = showSearchDialog) {
-                SearchDialog(
-                    onDismiss = {
-                        coroutineScope.launch {
-                            // simulating clearing the form behind the scenes
-                            delay(500)
-                            viewModel.changePlaceName("")
-                        }
-                        showSearchDialog = false
-                    },
-                    onSearch = {
-                        Toasty.info(context, "Searching..").show()
-                        viewModel.searchPlace()
-                    },
-                    viewModel = viewModel
-                )
             }
 
             GoogleMap(
@@ -186,91 +173,147 @@ fun TourScreen(
                     viewModel.startLocationUpdates()
                     viewModel.changeLocationState(LocationState.Located)
                 },
+                onMapClick = {
+                    viewModel.clearSearchBar()
+                }
 
-                ) {
+            ) {
                 if (viewModel.uiState.gpsEnabled) {
                     Marker(
-                        icon = viewModel.bitmapHelper.bitmapDescriptorFromVector(context, R.drawable.my_location),
-                        state = MarkerState(position = viewModel.uiState.currentLocation),
-                        title = "My address - " +
-                                "${viewModel.uiState.currentLocation.latitude} - " +
-                                "${viewModel.uiState.currentLocation.longitude}",
+                        icon = viewModel.bitmapHelper.bitmapDescriptorFromVector(context,
+                            R.drawable.my_location),
+                        state = MarkerState(position = viewModel.uiState.myLocation),
                     )
                 }
+                Marker(
+                    state = MarkerState(position = viewModel.uiState.searchedLocation),
+                    visible = viewModel.uiState.isSearching,
+                )
             }
         }
     }
 }
 
 fun showDeniedPermissionMessage(context: Context, @StringRes message: Int) {
-    Toasty.error(context,message, Toast.LENGTH_LONG).show()
+    Toasty.error(context, message, Toast.LENGTH_LONG).show()
 }
 
-@Composable fun SearchDialog(onDismiss: () -> Unit, onSearch: () -> Unit, viewModel: TourScreenViewModel) {
-    Dialog(onDismissRequest = { onDismiss() } )
-    {
-        Card(
-            shape = RoundedCornerShape(15.dp),
+@Composable
+fun SearchField(onSearch: () -> Unit, viewModel: TourScreenViewModel) {
+    val coroutineScope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
+    val context: Context = LocalContext.current
+
+    Column {
+        BasicInputComponent(
+            text = viewModel.uiState.searchValue,
+            onTextChanged = {
+                viewModel.changeSearchValue(it)
+                viewModel.textInputJob?.cancel()
+                viewModel.textInputJob = coroutineScope.launch {
+                    delay(300)
+                    viewModel.findPlacesFromInput(it)
+                }
+            },
+            label = stringResource(id = R.string.search_here) + ":",
+            inputType = InputTypes.Text,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                autoCorrect = false,
+                capitalization = KeyboardCapitalization.None,
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Search,
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    if (viewModel.locationAutofill.isEmpty()) {
+                        Toasty.info(context, R.string.place_not_selected).show()
+                        return@KeyboardActions
+                    }
+                    onSearch()
+                    viewModel.clearSearchBar()
+                    focusManager.clearFocus()
+                }
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun ListOfPlaces(viewModel: TourScreenViewModel, cameraPositionState: CameraPositionState) {
+
+    AnimatedVisibility(
+        visible = viewModel.locationAutofill.isNotEmpty(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .zIndex(999f)
+    ) {
+        Surface(shape = RoundedCornerShape(10.dp),
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            elevation = 10.dp,
-            border = BorderStroke(width = 3.dp, color = BlueBorder)
+                .height(250.dp)
+           ) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(12.dp)) {
+                items(
+                    viewModel.locationAutofill
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                            .clickable {
+                                viewModel.chooseLocation(it)
+                                viewModel.searchOnMap(cameraPositionState)
+                            }
+                    ) {
+                        Column {
+                            Text(it.address)
+                            Divider(
+                                color = Color.DarkGray,
+                                modifier = Modifier
+                                    .height(1.dp)
+                                    .fillMaxHeight()
+                                    .fillMaxWidth()
+                            )
 
-        ) {
-            Column(
-                modifier = Modifier
-                    .wrapContentHeight()
-                    .padding(10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    style = MaterialTheme.typography.subtitle1,
-                    color = MaterialTheme.colors.primary,
-                    text = stringResource(id = R.string.add_checkpoint)
-                )
-                Spacer(modifier = Modifier.height(15.dp))
-
-                BasicInputComponent(
-                    text = viewModel.uiState.placeName,
-                    onTextChanged =  { viewModel.changePlaceName(it) },
-                    label = stringResource(id = R.string.place_name),
-                    inputType = InputTypes.Text,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        autoCorrect = false,
-                        capitalization = KeyboardCapitalization.None,
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Search,
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { onSearch() }
-                    ),
-                    inputColors = searchColors()
-                )
-                Spacer(modifier = Modifier.height(35.dp))
-
-                ButtonComponent(
-                    text = stringResource(id = R.string.search),
-                    width = 180.dp,
-                    onClick = { onSearch() }
-                )
-
-
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-@Composable
-fun searchColors(): TextFieldColors {
-    val colors = MaterialTheme.colors
-    return TextFieldDefaults.outlinedTextFieldColors(
-        backgroundColor = colors.background,
-        textColor = colors.onSecondary,
-        cursorColor = colors.onSecondary,
-        focusedBorderColor = BlueBorder,
-        unfocusedBorderColor = Color.Transparent,
-        unfocusedLabelColor = colors.onPrimary,
-        focusedLabelColor = colors.primary,
-    )
+
+private fun locateMe(
+    viewModel: TourScreenViewModel,
+    permissionAlreadyRequested: Boolean,
+    permissionsState: MultiplePermissionsState,
+    context: Context,
+    cameraPositionState: CameraPositionState
+) {
+    // check permissions
+    if (!viewModel.checkPermissions()) {
+        viewModel.changeLocationState(LocationState.LocationOff)
+        // ask for permissions
+        if (!permissionAlreadyRequested || permissionsState.shouldShowRationale) {
+            permissionsState.launchMultiplePermissionRequest()
+            return
+        }
+        showDeniedPermissionMessage(context, R.string.permission_denied_twice)
+        return
+    }
+    // check gps
+    if (!viewModel.checkGps()) {
+        // ask for gps
+        Toasty.error(context, R.string.location_needed).show()
+        viewModel.changeLocationState(LocationState.LocationOff)
+        return
+    }
+    // turn on gps tracking
+    viewModel.startLocationUpdates()
+    // change mode to LOCATED
+    viewModel.changeLocationState(LocationState.Located)
+    // move camera
+    viewModel.onLocationChanged(cameraPositionState, true)
 }

@@ -55,6 +55,9 @@ class LocationHelper @Inject constructor(
 
     fun startLocationTracking() {
         try {
+            if (isRequesting) {
+                stopLocationTracking()
+            }
             val builder = LocationSettingsRequest.Builder()
                 .addLocationRequest(this.request)
             val client: SettingsClient = LocationServices.getSettingsClient(context)

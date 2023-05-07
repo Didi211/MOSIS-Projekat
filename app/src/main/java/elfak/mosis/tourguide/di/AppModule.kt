@@ -3,6 +3,8 @@ package elfak.mosis.tourguide.di
 import android.content.Context
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -55,6 +57,9 @@ object AppModule {
 
     @Provides
     fun provideBitmapHelper() : BitmapHelper = BitmapHelper()
+
+    @Provides
+    fun providePlacesClient(@ApplicationContext context: Context): PlacesClient = Places.createClient(context)
 //    @Singleton
 //    @Provides
 //    fun provideUsersDao(appDatabase: TourGuideDatabase): UsersDatabaseDao

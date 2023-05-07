@@ -1,26 +1,29 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.util.Log
-import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.android.compose.CameraPositionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.business.helper.BitmapHelper
 import elfak.mosis.tourguide.business.helper.LocationHelper
+import elfak.mosis.tourguide.data.models.AutocompleteResult
 import elfak.mosis.tourguide.ui.components.maps.LocationState
-import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
@@ -29,84 +32,55 @@ import javax.inject.Inject
 @SuppressLint("MissingPermission")
 
 class TourScreenViewModel @Inject constructor(
-    val locationHelper: LocationHelper,
-    val bitmapHelper: BitmapHelper
+    private val locationHelper: LocationHelper,
+    val bitmapHelper: BitmapHelper,
+    private val placesClient: PlacesClient
 ): ViewModel() {
 
+    val locationAutofill = mutableStateListOf<AutocompleteResult>()
+    private var chosenLocation by mutableStateOf(AutocompleteResult("",""))
     var uiState by mutableStateOf(TourScreenUiState())
         private set
 
-    fun changeLocationState(state: LocationState) {
-        uiState = uiState.copy(locationState = state)
+    private var job: Job? = null
+    var textInputJob: Job? = null
+
+    // region UISTATE METHODS
+    fun setSearchBarVisibility(value: Boolean) {
+        uiState = uiState.copy(showSearchBar = value)
     }
 
-    fun createLocationPermissions(): List<String> {
-        return locationHelper.createLocationPermissions()
+    fun setSearchFlag(isSearching: Boolean) {
+        uiState = uiState.copy(isSearching = isSearching)
+    }
+    fun changeLocationState(state: LocationState) {
+        uiState = uiState.copy(locationState = state)
     }
 
     private fun changeLocation(newLocation:LatLng) {
         uiState = uiState.copy(currentLocation = newLocation)
     }
 
-    fun startLocationUpdates() {
-        try {
-            if(uiState.requestingLocationUpdates) {
-               return
-            }
-            locationHelper.startLocationTracking()
-            uiState = uiState.copy(requestingLocationUpdates = true)
-        }
-        catch (e: Exception) {
-            e.printStackTrace()
-            Log.e("LocationERR",e.message!!)
-        }
+    private fun changeMyLocation(newLocation: LatLng) {
+        uiState = uiState.copy(myLocation = newLocation)
     }
 
-    fun stopLocationUpdates() {
-        locationHelper.stopLocationTracking()
-        uiState = uiState.copy(requestingLocationUpdates = false)
+    private fun changeSearchedLocation(newLocation: LatLng) {
+        uiState = uiState.copy(searchedLocation = newLocation)
     }
 
-    fun setRequestingLocationUpdates(value: Boolean) {
-        uiState = uiState.copy(requestingLocationUpdates = value)
+    fun changeSearchValue(value: String) {
+        uiState = uiState.copy(searchValue = value)
     }
 
-    suspend fun onLocationChanged(cameraPositionState: CameraPositionState) {
-        if(!uiState.requestingLocationUpdates) {
-            return
-        }
-        val distance = locationHelper.distanceInMeter(
-            startLat = uiState.currentLocation.latitude,
-            startLon = uiState.currentLocation.longitude,
-            endLat = cameraPositionState.position.target.latitude,
-            endLon = cameraPositionState.position.target.longitude
-        )
-        if (distance <= uiState.minimalDistanceInMeters) {
-            return
-        }
-        try {
-            // keeping the zoom level the same if it is zoomed enough
-            val zoom = if (cameraPositionState.position.zoom < 12) 14f else cameraPositionState.position.zoom
-            cameraPositionState.animate(
-                CameraUpdateFactory.newCameraPosition(
-                    CameraPosition.fromLatLngZoom(this.uiState.currentLocation, zoom)
-                ),
-                1500
-            )
+    //endregion
 
-        }
-        catch (e: Exception) {
-            if (e is CancellationException) {
-                throw e
-            }
-        }
-    }
-
+    //region LOCATION HELPER WRAPPER
     fun setLocationCallbacks(cameraPositionState: CameraPositionState) {
         val vm = this
         locationHelper.setOnLocationResultListener {
             viewModelScope.launch {
-                vm.changeLocation(LatLng(it.latitude, it.longitude))
+                vm.changeMyLocation(LatLng(it.latitude, it.longitude))
                 vm.onLocationChanged(cameraPositionState)
             }
         }
@@ -117,11 +91,32 @@ class TourScreenViewModel @Inject constructor(
                 changeLocationState(LocationState.Located)
             }
             else {
-//                stopLocationUpdates()
-                uiState = uiState.copy(requestingLocationUpdates = false)
                 changeLocationState(LocationState.LocationOff)
             }
         }
+    }
+
+    fun createLocationPermissions(): List<String> {
+        return locationHelper.createLocationPermissions()
+    }
+
+
+    fun startLocationUpdates() {
+        try {
+            if(uiState.locationState == LocationState.Located) {
+               return
+            }
+            locationHelper.startLocationTracking()
+//            uiState = uiState.copy(requestingLocationUpdates = true)
+        }
+        catch (e: Exception) {
+            e.printStackTrace()
+            Log.e("LocationERR",e.message!!)
+        }
+    }
+
+    private fun stopLocationUpdates() {
+        locationHelper.stopLocationTracking()
     }
 
     fun checkPermissions(): Boolean {
@@ -136,19 +131,142 @@ class TourScreenViewModel @Inject constructor(
         return status
     }
 
+    //endregion
+
+    //region CAMERA ANIMATION
+
+    fun onLocationChanged(cameraPositionState: CameraPositionState, mustMove: Boolean = true) {
+        if (uiState.locationState == LocationState.Located) {
+            changeLocation(uiState.myLocation)
+            // mustMove - user is requesting repositioning
+            if (!mustMove || !isMovingCameraNecessary(cameraPositionState.position.target)) {
+                return
+            }
+        }
+        else {
+            changeLocation(uiState.searchedLocation)
+        }
+        moveCamera(cameraPositionState)
+    }
+
+    private fun isMovingCameraNecessary(currentCameraPosition: LatLng ): Boolean {
+        // calculates if previous location is close to the new one so the camera is basically positioned
+        val distance = locationHelper.distanceInMeter(
+            startLat = uiState.myLocation.latitude,
+            startLon = uiState.myLocation.longitude,
+            endLat = currentCameraPosition.latitude,
+            endLon = currentCameraPosition.longitude
+        )
+        return distance > uiState.minimalDistanceInMeters
+    }
+
+    private fun moveCamera(cameraPositionState: CameraPositionState) {
+        viewModelScope.launch {
+            try {
+                // keeping the zoom level the same if it is zoomed enough
+                val zoom = if (cameraPositionState.position.zoom < 12) 14f else cameraPositionState.position.zoom
+                cameraPositionState.animate(
+                    CameraUpdateFactory.newCameraPosition(
+                        CameraPosition.fromLatLngZoom(uiState.currentLocation, zoom)
+                    ),
+                    1500
+                )
+            }
+            catch (e: Exception) {
+                if (e is CancellationException) {
+                    throw e
+                }
+            }
+        }
+    }
+
+    //endregion
+
+
     override fun onCleared() {
         super.onCleared()
         this.stopLocationUpdates()
     }
 
-    // region SEARCH DIALOG FUNCTIONS
 
-    fun changePlaceName(place: String) {
-        uiState = uiState.copy(placeName = place)
+    //region SEARCH LOCATION
+
+
+    fun findPlacesFromInput(query: String) {
+        job?.cancel()
+        locationAutofill.clear()
+        job = viewModelScope.launch {
+            val request = FindAutocompletePredictionsRequest
+                .builder()
+                .setQuery(query)
+                .build()
+
+            // call api to find places
+            try {
+                placesClient.findAutocompletePredictions(request)
+                    .addOnSuccessListener { response ->
+                        // if got any, populate location list
+                        locationAutofill += response.autocompletePredictions.map {
+                            AutocompleteResult(
+                                address = it.getFullText(null).toString(),
+                                placeId = it.placeId
+                            )
+                        }
+                    }
+                    .addOnFailureListener {
+                        it.printStackTrace()
+                        println(it.cause)
+                        println(it.message)
+                    }
+            }
+            catch(ex: Exception) {
+                Log.e("PLACE API", ex.message!!)
+            }
+        }
     }
 
-    fun searchPlace() {
-        Log.i("SEARCHING FOR PLACE", uiState.placeName.trim())
+    // choose location from given list
+    fun chooseLocation(location: AutocompleteResult) {
+        chosenLocation =  chosenLocation.copy(
+            address = location.address,
+            placeId = location.placeId
+        )
+        locationAutofill.clear()
+        changeSearchValue(location.address)
     }
-    // endregion
+
+    fun searchOnMap(cameraPositionState: CameraPositionState) {
+        val placeFields = listOf(Place.Field.LAT_LNG)
+        val request = FetchPlaceRequest.newInstance(this.chosenLocation.placeId, placeFields)
+        // find coordinates based on placeId
+        placesClient.fetchPlace(request)
+            .addOnSuccessListener {
+                if (it != null) {
+//                    setSearchFieldVisibility(false)
+                    changeSearchedLocation(it.place.latLng!!)
+                    if (uiState.locationState == LocationState.Located) {
+                        changeLocationState(LocationState.LocationOn)
+                    }
+                    setSearchFlag(true)
+                    // call animation
+                    viewModelScope.launch {
+                        onLocationChanged(cameraPositionState)
+                    }
+                }
+            }
+    }
+
+
+
+    fun clearSearchBar() {
+        changeSearchValue("")
+        locationAutofill.clear()
+        setSearchBarVisibility(false)
+
+    }
+
+    //endregion
+
+
+
 }
