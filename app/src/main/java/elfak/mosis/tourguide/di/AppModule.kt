@@ -3,6 +3,8 @@ package elfak.mosis.tourguide.di
 import android.content.Context
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -13,6 +15,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import elfak.mosis.tourguide.business.helper.BitmapHelper
 import elfak.mosis.tourguide.business.helper.LocationHelper
 import javax.inject.Singleton
 
@@ -51,6 +54,12 @@ object AppModule {
         fusedLocationProviderClient: FusedLocationProviderClient
     ) : LocationHelper =  LocationHelper(context, fusedLocationProviderClient)
 
+
+    @Provides
+    fun provideBitmapHelper() : BitmapHelper = BitmapHelper()
+
+    @Provides
+    fun providePlacesClient(@ApplicationContext context: Context): PlacesClient = Places.createClient(context)
 //    @Singleton
 //    @Provides
 //    fun provideUsersDao(appDatabase: TourGuideDatabase): UsersDatabaseDao
