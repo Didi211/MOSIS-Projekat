@@ -73,6 +73,10 @@ class TourScreenViewModel @Inject constructor(
         uiState = uiState.copy(searchValue = value)
     }
 
+    fun isLocated(): Boolean {
+        return uiState.locationState == LocationState.Located
+    }
+
     //endregion
 
     //region LOCATION HELPER WRAPPER
@@ -80,7 +84,9 @@ class TourScreenViewModel @Inject constructor(
         val vm = this
         locationHelper.setOnLocationResultListener {
             viewModelScope.launch {
+                Log.d("LOCATION", "New location: LAT: ${it.latitude}; LON: ${it.longitude}; ")
                 vm.changeMyLocation(LatLng(it.latitude, it.longitude))
+                if (!isLocated()) return@launch //skip animation
                 vm.onLocationChanged(cameraPositionState)
             }
         }
@@ -103,7 +109,7 @@ class TourScreenViewModel @Inject constructor(
 
     fun startLocationUpdates() {
         try {
-            if(uiState.locationState == LocationState.Located) {
+            if(isLocated()) {
                return
             }
             locationHelper.startLocationTracking()
@@ -136,7 +142,7 @@ class TourScreenViewModel @Inject constructor(
     //region CAMERA ANIMATION
 
     fun onLocationChanged(cameraPositionState: CameraPositionState, mustMove: Boolean = true) {
-        if (uiState.locationState == LocationState.Located) {
+        if (isLocated()) {
             changeLocation(uiState.myLocation)
             // mustMove - user is requesting repositioning
             if (!mustMove || !isMovingCameraNecessary(cameraPositionState.position.target)) {
@@ -243,7 +249,7 @@ class TourScreenViewModel @Inject constructor(
             .addOnSuccessListener {
                 if (it != null) {
                     changeSearchedLocation(it.place.latLng!!)
-                    if (uiState.locationState == LocationState.Located) {
+                    if (isLocated()) {
                         changeLocationState(LocationState.LocationOn)
                     }
                     setSearchFlag(true)
@@ -264,10 +270,26 @@ class TourScreenViewModel @Inject constructor(
         changeSearchValue("")
         locationAutofill.clear()
         setSearchBarVisibility(false)
+//        setKeyboardVisibility(false)
 
     }
 
+//    fun setKeyboardVisibility(visible: Boolean) {
+//        uiState = uiState.copy(showKeyboard = visible)
+//    }
+
     //endregion
+
+    //region TOUR DETAILS
+    fun changeTitle(title: String) {
+        uiState = uiState.copy(tourTitle = title)
+    }
+    fun changeStartLocation(start: String) {
+        uiState = uiState.copy(startLocation = start)
+    }
+    fun changeEndLocation(end: String) {
+        uiState = uiState.copy(endLocation = end)
+    }
 
 
 

@@ -20,5 +20,9 @@ data class TourScreenUiState(
 //    var requestingLocationUpdates: Boolean = false, // LocationState.Located is the same as isTrackingLocation,
     val minimalDistanceInMeters: Int = 30, //between two sequential locations, for map move animation
 
-    var showKeyboard: Boolean = false
+//    var showKeyboard: Boolean = false,
+
+    var tourTitle: String = "Title",
+    var startLocation: String = "Centar, Nis",
+    var endLocation: String = "Tvrdjava, Nis"
 )

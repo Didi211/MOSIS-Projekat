@@ -1,11 +1,8 @@
 package elfak.mosis.tourguide.ui.screens.registerScreen
 
 import android.widget.Toast
-import androidx.compose.animation.expandVertically
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -24,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.InputTypes
 import elfak.mosis.tourguide.ui.components.BasicInputComponent
-import elfak.mosis.tourguide.ui.components.ButtonComponent
+import elfak.mosis.tourguide.ui.components.buttons.ButtonComponent
 import elfak.mosis.tourguide.ui.components.LogoWithTextComponent
 import es.dmoral.toasty.Toasty
 
@@ -133,10 +130,10 @@ fun RegisterScreen(
                             keyboardType = KeyboardType.Password,
                             imeAction = ImeAction.Done,
                         ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { register(viewModel, focusManager,navigateToHome) }
-                    ),
-                        inputType = InputTypes.Password
+                        keyboardActions = KeyboardActions(
+                            onDone = { register(viewModel, focusManager,navigateToHome) }
+                        ),
+                            inputType = InputTypes.Password
                     )
 
 
