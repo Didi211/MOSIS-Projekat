@@ -37,6 +37,7 @@ class TourScreenViewModel @Inject constructor(
     private val placesClient: PlacesClient
 ): ViewModel() {
 
+    private val minimalDistanceInMeters: Int = 30 //between two sequential locations, for map move animation
     val locationAutofill = mutableStateListOf<AutocompleteResult>()
     private var chosenLocation by mutableStateOf(AutocompleteResult("",""))
     var uiState by mutableStateOf(TourScreenUiState())
@@ -44,6 +45,45 @@ class TourScreenViewModel @Inject constructor(
 
     private var job: Job? = null
     var textInputJob: Job? = null
+
+    init {
+        uiState.tourDetails.onTitleChanged = { setTitle(it) }
+        uiState.tourDetails.onSummaryChanged = { setSummary(it) }
+        uiState.tourDetails.onStartLocationChanged = { setStartLocation(it) }
+        uiState.tourDetails.onEndLocationChanged = { setEndLocation(it) }
+        uiState.tourDetails.onDistanceChanged = { setDistance(it) }
+        uiState.tourDetails.onTimeChanged = { setTime(it) }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        this.stopLocationUpdates()
+    }
+
+    //region TOUR DETAILS
+    fun setTourState(state: TourState) {
+        uiState = uiState.copy(tourState = state)
+    }
+
+    private fun setTitle(title: String) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(title = title))
+    }
+    private fun setSummary(summary: String) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(summary = summary))
+    }
+    private fun setStartLocation(startLocation: elfak.mosis.tourguide.domain.models.Place) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(startLocation = startLocation))
+    }
+    private fun setEndLocation(endLocation: elfak.mosis.tourguide.domain.models.Place) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(endLocation = endLocation))
+    }
+    private fun setDistance(distance: String) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(distance = distance))
+    }
+    private fun setTime(time: String) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(time = time))
+    }
+    //endregion
 
     // region UISTATE METHODS
     fun setSearchBarVisibility(value: Boolean) {
@@ -91,7 +131,7 @@ class TourScreenViewModel @Inject constructor(
             }
         }
         locationHelper.setonLocationAvailabilityListener { gpsEnabled ->
-            uiState = uiState.copy(gpsEnabled = gpsEnabled)
+            setGps(gpsEnabled)
             if (gpsEnabled) {
                 startLocationUpdates()
                 changeLocationState(LocationState.Located)
@@ -127,13 +167,13 @@ class TourScreenViewModel @Inject constructor(
 
     fun checkPermissions(): Boolean {
         val allowed = locationHelper.hasAllowedPermissions()
-        uiState = uiState.copy(locationPermissionAllowed = allowed)
+        setLocationPermissionStatus(allowed)
         return allowed
     }
 
     fun checkGps(): Boolean {
         val status = locationHelper.isGpsOn()
-        uiState = uiState.copy(gpsEnabled = status)
+        setGps(status)
         return status
     }
 
@@ -163,7 +203,7 @@ class TourScreenViewModel @Inject constructor(
             endLat = currentCameraPosition.latitude,
             endLon = currentCameraPosition.longitude
         )
-        return distance > uiState.minimalDistanceInMeters
+        return distance > minimalDistanceInMeters
     }
 
     private fun moveCamera(cameraPositionState: CameraPositionState) {
@@ -187,13 +227,6 @@ class TourScreenViewModel @Inject constructor(
     }
 
     //endregion
-
-
-    override fun onCleared() {
-        super.onCleared()
-        this.stopLocationUpdates()
-    }
-
 
     //region SEARCH LOCATION
 
@@ -280,17 +313,15 @@ class TourScreenViewModel @Inject constructor(
 
     //endregion
 
-    //region TOUR DETAILS
-    fun changeTitle(title: String) {
-        uiState = uiState.copy(tourTitle = title)
-    }
-    fun changeStartLocation(start: String) {
-        uiState = uiState.copy(startLocation = start)
-    }
-    fun changeEndLocation(end: String) {
-        uiState = uiState.copy(endLocation = end)
+    //region DEVICE SETTINGS
+    private fun setGps(gpsEnabled: Boolean) {
+        uiState = uiState.copy(deviceSettings = uiState.deviceSettings.copy(gpsEnabled = gpsEnabled))
     }
 
+    private fun setLocationPermissionStatus(status: Boolean) {
+        uiState = uiState.copy(deviceSettings = uiState.deviceSettings.copy(locationPermissionAllowed = status))
+    }
+    //endregion
 
 
 }

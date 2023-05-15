@@ -53,28 +53,28 @@ fun TransparentTextField(
     modifier: Modifier = Modifier,
     text: String = "",
     onTextChanged: (String) -> Unit,
+    enabled: Boolean = true,
+    singleLine: Boolean = true,
     textStyle: TextStyle = Typography.body1,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     inputType: InputTypes = InputTypes.Text,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     inputColors: TextFieldColors = transparentInputColors(),
 ) {
-    Column {
-        OutlinedTextField(
-            modifier = modifier,
-            value = text,
-            onValueChange = onTextChanged,
-            textStyle = textStyle,
-            colors = inputColors,
-            shape = RoundedCornerShape(13.dp),
-            singleLine = true,
-            keyboardOptions = keyboardOptions,
-            visualTransformation = if (inputType == InputTypes.Password) PasswordVisualTransformation() else VisualTransformation.None,
-            keyboardActions = keyboardActions,
-            enabled = false
-        )
-
-    }
+    OutlinedTextField(
+        modifier = modifier,
+        value = text,
+        onValueChange = onTextChanged,
+        textStyle = textStyle,
+        colors = inputColors,
+        shape = RoundedCornerShape(13.dp),
+        singleLine = singleLine,
+        keyboardOptions = keyboardOptions,
+        visualTransformation = if (inputType == InputTypes.Password) PasswordVisualTransformation() else VisualTransformation.None,
+        keyboardActions = keyboardActions,
+        enabled = enabled,
+        maxLines = if (singleLine) 1 else 3,
+    )
 }
 
 @Composable
@@ -97,11 +97,12 @@ fun transparentInputColors(): TextFieldColors {
     return TextFieldDefaults.outlinedTextFieldColors(
         backgroundColor = Color.Transparent,
         textColor = colors.primary,
-        cursorColor = colors.onSecondary,
+        cursorColor = colors.primary,
         focusedBorderColor = colors.primary,
-        unfocusedBorderColor = Color.Transparent,
+        unfocusedBorderColor = colors.primary,
         unfocusedLabelColor = colors.onPrimary,
         focusedLabelColor = colors.primary,
-        disabledBorderColor = Color.Transparent
+        disabledBorderColor = Color.Transparent,
+        disabledTextColor = colors.primary
     )
 }

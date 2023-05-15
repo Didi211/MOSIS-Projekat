@@ -1,5 +1,5 @@
-@file:OptIn(ExperimentalPermissionsApi::class, ExperimentalPermissionsApi::class,
-    ExperimentalAnimationApi::class, ExperimentalMaterialApi::class
+@file:OptIn(ExperimentalMaterialApi::class, ExperimentalPermissionsApi::class,
+    ExperimentalAnimationApi::class
 )
 
 package elfak.mosis.tourguide.ui.screens.tourScreen
@@ -38,7 +38,7 @@ import com.google.maps.android.compose.*
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.InputTypes
 import elfak.mosis.tourguide.ui.components.BasicInputComponent
-import elfak.mosis.tourguide.ui.components.TourDetails
+import elfak.mosis.tourguide.ui.components.bottomsheet.TourDetails
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import elfak.mosis.tourguide.ui.components.maps.MyLocationButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
@@ -48,12 +48,11 @@ import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun TourScreen(
     viewModel: TourScreenViewModel,
 ) {
-
+    val uiState = viewModel.uiState
     val context = LocalContext.current
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(BottomSheetValue.Expanded),
@@ -70,7 +69,7 @@ fun TourScreen(
         }
     )
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition(viewModel.uiState.currentLocation, 10f, 0f, 0f)
+        position = CameraPosition(uiState.currentLocation, 10f, 0f, 0f)
     }
     val focusRequester = remember { FocusRequester() }
 
@@ -79,14 +78,14 @@ fun TourScreen(
         viewModel.setSearchBarVisibility(false)
     }
 
+
     BottomSheetScaffold(
         sheetContent = { TourDetails(
-            title = viewModel.uiState.tourTitle,
-            startLocation = viewModel.uiState.startLocation,
-            endLocation = viewModel.uiState.endLocation,
-            onTitleChanged = { viewModel.changeTitle(it) },
-            onStartLocationChanged = { viewModel.changeStartLocation(it) },
-            onEndLocationChanged = { viewModel.changeEndLocation(it) }
+            state = uiState.tourState,
+            tourDetails = uiState.tourDetails,
+            onSave = { viewModel.setTourState(TourState.VIEWING) },
+            onEdit = { viewModel.setTourState(TourState.EDITING) },
+            onCancel = { viewModel.setTourState(TourState.VIEWING) }
         ) },
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
         scaffoldState = bottomSheetScaffoldState,
@@ -119,25 +118,31 @@ fun TourScreen(
                     ListOfPlaces(viewModel = viewModel, cameraPositionState = cameraPositionState)
 
                     // my location button
-                    MyLocationButton(viewModel.uiState.locationState) {
-                        locateMe(viewModel,permissionAlreadyRequested, permissionsState, context, cameraPositionState)
+                    MyLocationButton(uiState.locationState) {
+                        locateMe(
+                            viewModel,
+                            permissionAlreadyRequested,
+                            permissionsState,
+                            context,
+                            cameraPositionState
+                        )
                     }
                 }
                 Spacer(Modifier.height(15.dp))
 
                 // search button
                 AnimatedContent(
-                    targetState = viewModel.uiState.showSearchBar,
-//                    transitionSpec = {
-//                        fadeIn(
-//                            animationSpec = tween(400)
-//                        ) with slideOutOfContainer(
-//                            towards = AnimatedContentScope.SlideDirection.Left,
-//                            animationSpec = tween(400)
-//                        )
-//                    }
+                    targetState = uiState.showSearchBar,
+                    //                    transitionSpec = {
+                    //                        fadeIn(
+                    //                            animationSpec = tween(400)
+                    //                        ) with slideOutOfContainer(
+                    //                            towards = AnimatedContentScope.SlideDirection.Left,
+                    //                            animationSpec = tween(400)
+                    //                        )
+                    //                    }
                 ) { showBar ->
-                    when(showBar) {
+                    when (showBar) {
                         false -> TourGuideFloatingButton(
                             contentDescription = stringResource(id = R.string.search),
                             icon = Icons.Rounded.Search,
@@ -146,9 +151,10 @@ fun TourScreen(
                                     bottomSheetScaffoldState.bottomSheetState.collapse()
                                     viewModel.setSearchBarVisibility(true)
                                 }
-//                                viewModel.setKeyboardVisibility(true)
+                                //                                viewModel.setKeyboardVisibility(true)
                             },
                         )
+
                         true -> SearchField(
                             onSearch = {
                                 Toasty.info(context, "Searching..").show()
@@ -161,11 +167,9 @@ fun TourScreen(
                     }
                 }
             }
-
         }
     ) {
         /** MAIN CONTENT */
-
 
         Box(
             modifier = Modifier
@@ -203,23 +207,21 @@ fun TourScreen(
                 }
 
             ) {
-                if (viewModel.uiState.gpsEnabled) {
+                if (uiState.deviceSettings.gpsEnabled) {
                     Marker(
                         icon = viewModel.bitmapHelper.bitmapDescriptorFromVector(context,
                             R.drawable.my_location),
-                        state = MarkerState(position = viewModel.uiState.myLocation),
+                        state = MarkerState(position = uiState.myLocation),
                     )
                 }
                 Marker(
-                    state = MarkerState(position = viewModel.uiState.searchedLocation),
-                    visible = viewModel.uiState.isSearching,
+                    state = MarkerState(position = uiState.searchedLocation),
+                    visible = uiState.isSearching,
                 )
             }
         }
     }
 }
-
-
 
 
 fun showDeniedPermissionMessage(context: Context, @StringRes message: Int) {

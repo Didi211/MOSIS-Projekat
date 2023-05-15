@@ -3,6 +3,8 @@
     <string name="logo_description">Tour Guide Logo</string>
     <string name="travelers_description">Travelers image</string>
     <string name="check">Checkmark</string>
+    <string name="cancel">Cancel</string>
+    <string name="edit">Edit</string>
 
 
     <!--  titles  -->

@@ -1,11 +1,13 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
 import com.google.android.gms.maps.model.LatLng
+import elfak.mosis.tourguide.domain.models.DeviceSettings
+import elfak.mosis.tourguide.domain.models.TourDetails
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 
 data class TourScreenUiState(
     var locationState: LocationState = LocationState.LocationOff,
-    var gpsEnabled: Boolean = false,
+
 
     val defaultLocation: LatLng = LatLng(43.32472, 21.90333),
     var currentLocation: LatLng = defaultLocation,
@@ -16,13 +18,16 @@ data class TourScreenUiState(
     var searchValue: String = "",
     var showSearchBar: Boolean = false,
 
-    var locationPermissionAllowed: Boolean = false,
-//    var requestingLocationUpdates: Boolean = false, // LocationState.Located is the same as isTrackingLocation,
-    val minimalDistanceInMeters: Int = 30, //between two sequential locations, for map move animation
+
 
 //    var showKeyboard: Boolean = false,
 
-    var tourTitle: String = "Title",
-    var startLocation: String = "Centar, Nis",
-    var endLocation: String = "Tvrdjava, Nis"
+    val tourDetails: TourDetails = TourDetails(),
+    val tourState: TourState = TourState.VIEWING,
+
+    val deviceSettings: DeviceSettings = DeviceSettings()
+
 )
+
+
+
