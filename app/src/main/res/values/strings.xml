@@ -20,6 +20,8 @@
     <string name="fullname">Full name</string>
     <string name="email">Email</string>
     <string name="search_here">Search here</string>
+    <string name="start_location">Start location</string>
+    <string name="end_location">End location</string>
 
     <!--  Screen titles   -->
     <string name="home">Home</string>

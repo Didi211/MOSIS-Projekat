@@ -15,8 +15,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
 import com.google.android.libraries.places.api.net.PlacesClient
-import com.google.maps.android.compose.CameraPositionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.business.helper.BitmapHelper
 import elfak.mosis.tourguide.business.helper.LocationHelper
@@ -24,6 +24,7 @@ import elfak.mosis.tourguide.data.models.AutocompleteResult
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
@@ -36,12 +37,12 @@ class TourScreenViewModel @Inject constructor(
     val bitmapHelper: BitmapHelper,
     private val placesClient: PlacesClient
 ): ViewModel() {
-
-    private val minimalDistanceInMeters: Int = 30 //between two sequential locations, for map move animation
-    val locationAutofill = mutableStateListOf<AutocompleteResult>()
-    private var chosenLocation by mutableStateOf(AutocompleteResult("",""))
     var uiState by mutableStateOf(TourScreenUiState())
         private set
+
+    private val minimalDistanceInMeters: Int = 30 //between two sequential locations, for map move animation
+    private var chosenLocation by mutableStateOf(AutocompleteResult("",""))
+    val locationAutofill = mutableStateListOf<AutocompleteResult>()
 
     private var job: Job? = null
     var textInputJob: Job? = null
@@ -120,14 +121,14 @@ class TourScreenViewModel @Inject constructor(
     //endregion
 
     //region LOCATION HELPER WRAPPER
-    fun setLocationCallbacks(cameraPositionState: CameraPositionState) {
+    fun setLocationCallbacks() {
         val vm = this
         locationHelper.setOnLocationResultListener {
             viewModelScope.launch {
                 Log.d("LOCATION", "New location: LAT: ${it.latitude}; LON: ${it.longitude}; ")
                 vm.changeMyLocation(LatLng(it.latitude, it.longitude))
                 if (!isLocated()) return@launch //skip animation
-                vm.onLocationChanged(cameraPositionState)
+                vm.onLocationChanged()
             }
         }
         locationHelper.setonLocationAvailabilityListener { gpsEnabled ->
@@ -181,18 +182,18 @@ class TourScreenViewModel @Inject constructor(
 
     //region CAMERA ANIMATION
 
-    fun onLocationChanged(cameraPositionState: CameraPositionState, mustMove: Boolean = true) {
+    fun onLocationChanged(mustMove: Boolean = true) {
         if (isLocated()) {
             changeLocation(uiState.myLocation)
             // mustMove - user is requesting repositioning
-            if (!mustMove || !isMovingCameraNecessary(cameraPositionState.position.target)) {
+            if (!mustMove || !isMovingCameraNecessary(uiState.cameraPositionState.position.target)) {
                 return
             }
         }
         else {
             changeLocation(uiState.searchedLocation)
         }
-        moveCamera(cameraPositionState)
+        moveCamera()
     }
 
     private fun isMovingCameraNecessary(currentCameraPosition: LatLng ): Boolean {
@@ -206,12 +207,12 @@ class TourScreenViewModel @Inject constructor(
         return distance > minimalDistanceInMeters
     }
 
-    private fun moveCamera(cameraPositionState: CameraPositionState) {
+    private fun moveCamera() {
         viewModelScope.launch {
             try {
                 // keeping the zoom level the same if it is zoomed enough
-                val zoom = if (cameraPositionState.position.zoom < 12) 14f else cameraPositionState.position.zoom
-                cameraPositionState.animate(
+                val zoom = if (uiState.cameraPositionState.position.zoom < 12) 14f else uiState.cameraPositionState.position.zoom
+                uiState.cameraPositionState.animate(
                     CameraUpdateFactory.newCameraPosition(
                         CameraPosition.fromLatLngZoom(uiState.currentLocation, zoom)
                     ),
@@ -229,38 +230,48 @@ class TourScreenViewModel @Inject constructor(
     //endregion
 
     //region SEARCH LOCATION
-
+    fun onSearchPlaceCLick(place: AutocompleteResult) {
+        chooseLocation(place)
+        searchOnMap()
+        clearSearchBar()
+    }
 
     fun findPlacesFromInput(query: String) {
-        job?.cancel()
-        locationAutofill.clear()
-        job = viewModelScope.launch {
-            val request = FindAutocompletePredictionsRequest
-                .builder()
-                .setQuery(query)
-                .build()
+        textInputJob?.cancel()
+        textInputJob = viewModelScope.launch {
+            job?.cancel()
+            locationAutofill.clear()
+            job = viewModelScope.launch {
+                launchSearchRequest(query)
+            }
+        }
+    }
 
-            // call api to find places
-            try {
-                placesClient.findAutocompletePredictions(request)
-                    .addOnSuccessListener { response ->
-                        // if got any, populate location list
-                        locationAutofill += response.autocompletePredictions.map {
-                            AutocompleteResult(
-                                address = it.getFullText(null).toString(),
-                                placeId = it.placeId
-                            )
-                        }
-                    }
-                    .addOnFailureListener {
-                        it.printStackTrace()
-                        println(it.cause)
-                        println(it.message)
-                    }
-            }
-            catch(ex: Exception) {
-                Log.e("PLACE API", ex.message!!)
-            }
+    private fun launchSearchRequest(query: String) {
+        val request = FindAutocompletePredictionsRequest
+            .builder()
+            .setQuery(query)
+            .build()
+
+        // call api to find places
+        try {
+            placesClient.findAutocompletePredictions(request)
+                .addOnSuccessListener { response ->
+                    onSearchSuccess(response)
+                }
+        }
+        catch(ex: Exception) {
+            Log.e("PLACE API", ex.message!!)
+        }
+    }
+
+    private fun onSearchSuccess(response: FindAutocompletePredictionsResponse) {
+        // if got any, populate location list
+        locationAutofill += response.autocompletePredictions.map {
+            AutocompleteResult(
+                address = it.getFullText(null).toString(),
+                placeId = it.placeId
+            )
         }
     }
 
@@ -274,7 +285,7 @@ class TourScreenViewModel @Inject constructor(
         changeSearchValue(location.address)
     }
 
-    fun searchOnMap(cameraPositionState: CameraPositionState) {
+    fun searchOnMap() {
         val placeFields = listOf(Place.Field.LAT_LNG)
         val request = FetchPlaceRequest.newInstance(this.chosenLocation.placeId, placeFields)
         // find coordinates based on placeId
@@ -288,7 +299,7 @@ class TourScreenViewModel @Inject constructor(
                     setSearchFlag(true)
                     // call animation
                     viewModelScope.launch {
-                        onLocationChanged(cameraPositionState)
+                        onLocationChanged()
                     }
                 }
             }

@@ -1,6 +1,7 @@
 package elfak.mosis.tourguide.ui.components.bottomsheet
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +41,7 @@ import elfak.mosis.tourguide.ui.components.TransparentTextField
 import elfak.mosis.tourguide.ui.components.buttons.CancelButton
 import elfak.mosis.tourguide.ui.components.buttons.EditButton
 import elfak.mosis.tourguide.ui.components.buttons.SaveButton
+import elfak.mosis.tourguide.ui.components.dialogs.SearchLocationDialog
 import elfak.mosis.tourguide.ui.screens.tourScreen.TourState
 import elfak.mosis.tourguide.ui.theme.DragHandle
 import elfak.mosis.tourguide.ui.theme.Typography
@@ -57,7 +64,14 @@ fun TourDetails(
 
 @Composable
 fun TourDetailsCreateMode(tourDetails: TourDetails, onSave: () -> Unit, onCancel: () -> Unit) {
-    TourDetailsContainer(tourDetails = tourDetails.clear()) {
+    var openDialog by remember { mutableStateOf(false) }
+    if (openDialog) {
+        SearchLocationDialog(
+            onDismiss = { openDialog = false },
+            onPlaceClick = { }
+        )
+    }
+    TourDetailsContainer(tourDetails = tourDetails.clear(), chooseLocation = { openDialog = true }) {
         SaveButton(onSave)
         Spacer(Modifier.width(10.dp))
         CancelButton(onCancel)
@@ -71,7 +85,14 @@ fun TourDetailsViewMode(tourDetails: TourDetails, onEdit: () -> Unit) {
 }
 @Composable
 fun TourDetailsEditMode(tourDetails: TourDetails, onSave: () -> Unit, onCancel: () -> Unit) {
-    TourDetailsContainer(tourDetails = tourDetails) {
+    var openDialog by remember { mutableStateOf(false) }
+    if (openDialog) {
+        SearchLocationDialog(
+            onDismiss = { openDialog = false },
+            onPlaceClick = { },
+        )
+    }
+    TourDetailsContainer(tourDetails = tourDetails, chooseLocation = { openDialog = true }) {
         SaveButton(onSave)
         Spacer(Modifier.width(10.dp))
         CancelButton(onCancel)
@@ -82,8 +103,10 @@ fun TourDetailsEditMode(tourDetails: TourDetails, onSave: () -> Unit, onCancel: 
 fun TourDetailsContainer(
     tourDetails: TourDetails,
     enabledInputs: Boolean = true,
+    chooseLocation: () -> Unit = { },
     buttons: @Composable () -> Unit,
 ) {
+
     Column(
         modifier = Modifier
             .padding(top = 5.dp, start = 15.dp, end = 15.dp)
@@ -134,9 +157,11 @@ fun TourDetailsContainer(
                     // Start Location
                     Text("From:", color = MaterialTheme.colors.primary)
                     TransparentTextField(
-                        modifier = Modifier.widthIn(max = 280.dp),
+                        modifier = Modifier
+                            .widthIn(max = 280.dp)
+                            .clickable { chooseLocation() },
                         text = tourDetails.startLocation.address,
-                        enabled = enabledInputs,
+                        enabled = false,
                         onTextChanged = {
                             tourDetails.onStartLocationChanged(Place("",it, LatLng(0.0,0.0)))
                         },
@@ -146,9 +171,11 @@ fun TourDetailsContainer(
                     // End Location
                     Text("To:", color = MaterialTheme.colors.primary)
                     TransparentTextField(
-                        modifier = Modifier.widthIn(max = 280.dp),
+                        modifier = Modifier
+                            .widthIn(max = 280.dp)
+                            .clickable { chooseLocation() },
                         text = tourDetails.endLocation.address,
-                        enabled = enabledInputs,
+                        enabled = false,
                         onTextChanged = {
                             tourDetails.onEndLocationChanged(Place("",it, LatLng(0.0,0.0)))
                         },

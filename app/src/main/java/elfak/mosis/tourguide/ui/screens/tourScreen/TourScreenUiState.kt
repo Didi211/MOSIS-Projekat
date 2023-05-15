@@ -1,12 +1,16 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.CameraPositionState
 import elfak.mosis.tourguide.domain.models.DeviceSettings
 import elfak.mosis.tourguide.domain.models.TourDetails
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 
 data class TourScreenUiState(
     var locationState: LocationState = LocationState.LocationOff,
+
+
 
 
     val defaultLocation: LatLng = LatLng(43.32472, 21.90333),
@@ -18,16 +22,18 @@ data class TourScreenUiState(
     var searchValue: String = "",
     var showSearchBar: Boolean = false,
 
-
+    var cameraPositionState: CameraPositionState = CameraPositionState(
+        position = CameraPosition(currentLocation,  10f, 0f, 0f)
+    ),
 
 //    var showKeyboard: Boolean = false,
 
     val tourDetails: TourDetails = TourDetails(),
     val tourState: TourState = TourState.VIEWING,
 
-    val deviceSettings: DeviceSettings = DeviceSettings()
+    val deviceSettings: DeviceSettings = DeviceSettings(),
 
-)
+    )
 
 
 
