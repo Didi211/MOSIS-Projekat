@@ -30,9 +30,10 @@ class AuthRepository @Inject constructor(
         val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
 
         val user = UserModel(username, fullname, email)
-        val result1 = firebaseStore.collection("Users").add(user).addOnSuccessListener { documentReference ->
-            Log.d(TAG, "DocumentSnapshot written with ID: ${documentReference.id}")
-        }
+        val result1 = firebaseStore.collection("Users").add(user)
+            .addOnSuccessListener { documentReference ->
+                Log.d(TAG, "DocumentSnapshot written with ID: ${documentReference.id}")
+            }
             .addOnFailureListener { e ->
                 Log.w(TAG, "Error adding document", e)
             }

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.data.respository.AuthRepository
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginUiState
+import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -43,6 +44,9 @@ class RegisterViewModel  @Inject constructor(
         viewModelScope.launch {
             // to launch coroutine - async function that does not block main thread
             try {
+                if (uiState.password != uiState.confirm_password) {
+                    throw Exception("Passwords doesn't match.")
+                }
                 val result = authRepository.register(uiState.username, uiState.password, uiState.email, uiState.fullname)
                 // TODO - send user id on home screen or save it locally as currentUser
                 onSuccess()

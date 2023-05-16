@@ -1,6 +1,5 @@
 package elfak.mosis.tourguide.ui.navigation
 
-import android.provider.ContactsContract.Profile
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -12,6 +11,7 @@ import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreenViewModel
 import elfak.mosis.tourguide.ui.screens.notificationScreen.NotificationScreen
 import elfak.mosis.tourguide.ui.screens.profileScreen.ProfileScreen
+import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreenViewModel
 
 fun NavGraphBuilder.mainGraph(navController: NavController) {
     navigation(startDestination = Screen.HomeScreen.route, route = Screen.Main.route) {
@@ -31,13 +31,17 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             )
         }
         composable(Screen.TourScreen.route) {
+            val viewModel = hiltViewModel<TourScreenViewModel>()
             TourScreen(
-                navigateToWelcome = {
-                    navController.navigate(Screen.WelcomeScreen.route) {
-                        popUpTo(Screen.Main.route) { inclusive = true }
-                    }
-                }
+                viewModel = viewModel,
             )
+//            TourScreen(
+//                navigateToWelcome = {
+//                    navController.navigate(Screen.WelcomeScreen.route) {
+//                        popUpTo(Screen.Main.route) { inclusive = true }
+//                    }
+//                }
+//            )
         }
         composable(Screen.NotificationScreen.route){
             NotificationScreen(
@@ -55,5 +59,4 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             )
         }
     }
-
 }

@@ -1,33 +1,42 @@
 {
   "project_info": {
-    "project_number": "627524189825",
-    "project_id": "tourguide-28b4f",
-    "storage_bucket": "tourguide-28b4f.appspot.com"
+    "project_number": "673476541562",
+    "firebase_url": "https://tour-guide-375011-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "tour-guide-375011",
+    "storage_bucket": "tour-guide-375011.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:627524189825:android:8ab9a901f687f8dc651780",
+        "mobilesdk_app_id": "1:673476541562:android:4b24b7071d96a784980fc3",
         "android_client_info": {
           "package_name": "elfak.mosis.tourguide"
         }
       },
       "oauth_client": [
         {
-          "client_id": "627524189825-qop9rlttcj5ncfgl6mbhlc6g37ojo87i.apps.googleusercontent.com",
+          "client_id": "673476541562-0gv3sp8tqf85gl33jn58nsivjoe39joi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "elfak.mosis.tourguide",
+            "certificate_hash": "b7079782589bd9d2fcc4f01f4135ecff4ebac5c6"
+          }
+        },
+        {
+          "client_id": "673476541562-e9d58v4neftfu4hps6v4qctqk9ge56jt.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDGfG0OxR9PaHKk2dyj-C_3Hw9UKiw66ug"
+          "current_key": "AIzaSyD8tjzWxdY3yCDAk3ujIcfTPofW4Zdz4PY"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "627524189825-qop9rlttcj5ncfgl6mbhlc6g37ojo87i.apps.googleusercontent.com",
+              "client_id": "673476541562-e9d58v4neftfu4hps6v4qctqk9ge56jt.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
