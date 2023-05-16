@@ -25,7 +25,6 @@ import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
 @Composable
 fun HomeScreen(
     viewModel: HomeScreenViewModel,
-    navigateToWelcome: () -> Unit,
     navigateToTour: () -> Unit,
     navController: NavController
 ) {
@@ -45,8 +44,6 @@ fun HomeScreen(
         // menu content
         drawerContent = {
             TourGuideNavigationDrawer(
-                coroutineScope = coroutineScope,
-                scaffoldState = scaffoldState,
                 navController = navController,
                 menuViewModel = menuViewModel
             )
@@ -61,8 +58,6 @@ fun HomeScreen(
         }
     ) {
         MainContent(
-            viewModel = viewModel,
-            navigateToWelcome =  navigateToWelcome,
             padding = it
         )
 
@@ -71,8 +66,6 @@ fun HomeScreen(
 
 @Composable
 private fun MainContent(
-    viewModel: HomeScreenViewModel,
-    navigateToWelcome: () -> Unit,
     padding: PaddingValues
 ) {
 

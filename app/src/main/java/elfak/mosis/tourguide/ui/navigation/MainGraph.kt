@@ -19,11 +19,6 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             val viewModel = hiltViewModel<HomeScreenViewModel>()
             HomeScreen(
                 viewModel = viewModel,
-                navigateToWelcome = {
-                    navController.navigate(Screen.WelcomeScreen.route) {
-                        popUpTo(Screen.Main.route) { inclusive = true }
-                    }
-                },
                 navigateToTour = {
                     navController.navigate(Screen.TourScreen.route)
                 },
@@ -34,6 +29,7 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             val viewModel = hiltViewModel<TourScreenViewModel>()
             TourScreen(
                 viewModel = viewModel,
+                navController = navController
             )
 //            TourScreen(
 //                navigateToWelcome = {
