@@ -3,10 +3,10 @@ package elfak.mosis.tourguide.domain.models
 import com.google.android.gms.maps.model.LatLng
 
 data class TourDetails(
-    var title: String = "Title",
+    var title: String = "",
     var onTitleChanged: (String) -> Unit = { },
 
-    var summary: String = "Summary",
+    var summary: String = "",
     var onSummaryChanged: (String) -> Unit = { },
 
     var startLocation: Place = Place("","Start location",LatLng(0.0,0.0)),
@@ -15,12 +15,16 @@ data class TourDetails(
     var endLocation: Place = Place("","End location",LatLng(0.0,0.0)),
     var onEndLocationChanged: (Place) -> Unit = { },
 
-    var distance: String = "15km",
+    var distance: String = "",
     var onDistanceChanged: (String) -> Unit = { },
 
-    var time: String = "90min",
+    var time: String = "",
     var onTimeChanged: (String) -> Unit = { },
+
+    var bothLocationsSet:Boolean = false,
+    var onBothLocationsSet: (Boolean) -> Unit = { }
 ) {
+
     fun clear(): TourDetails {
         return this.copy(
             title = "",
@@ -29,9 +33,12 @@ data class TourDetails(
             endLocation = endLocation.clear(),
             distance = "",
             time = "",
+            bothLocationsSet = false
         )
     }
+
 }
+
 
 
 

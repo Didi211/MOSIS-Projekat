@@ -8,6 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -60,6 +61,7 @@ fun TransparentTextField(
     inputType: InputTypes = InputTypes.Text,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     inputColors: TextFieldColors = transparentInputColors(),
+    placeholder: String = "",
 ) {
     OutlinedTextField(
         modifier = modifier,
@@ -74,6 +76,7 @@ fun TransparentTextField(
         keyboardActions = keyboardActions,
         enabled = enabled,
         maxLines = if (singleLine) 1 else 3,
+        placeholder = { Text(placeholder) }
     )
 }
 

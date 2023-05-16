@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -46,7 +47,9 @@ import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Polyline
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.domain.models.Place
 import elfak.mosis.tourguide.ui.components.bottomsheet.TourDetails
 import elfak.mosis.tourguide.ui.components.maps.*
 import elfak.mosis.tourguide.ui.components.scaffold.*
@@ -57,7 +60,7 @@ import kotlinx.coroutines.launch
 fun TourScreen(
     viewModel: TourScreenViewModel,
 ) {
-    val uiState = viewModel.uiState
+
     val context = LocalContext.current
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberBottomSheetState(BottomSheetValue.Expanded),
@@ -82,8 +85,8 @@ fun TourScreen(
     }
 
     // testing how to prepare data for certain state
-    LaunchedEffect(uiState.tourState) {
-        when(uiState.tourState) {
+    LaunchedEffect(viewModel.uiState.tourState) {
+        when(viewModel.uiState.tourState) {
             TourState.VIEWING -> viewModel.setDistance("15km")
             TourState.EDITING -> viewModel.setDistance("40km")
             TourState.CREATING -> viewModel.resetTourDetails()
@@ -93,15 +96,16 @@ fun TourScreen(
     BottomSheetScaffold(
         sheetContent = {
             TourDetails(
-            state = uiState.tourState,
-            tourDetails = uiState.tourDetails,
-            onSave = { viewModel.setTourState(TourState.VIEWING) },
-            onEdit = { viewModel.setTourState(TourState.EDITING) },
-            onCancel = { viewModel.setTourState(TourState.VIEWING) },
-            placesList = viewModel.locationAutofillDialog,
-            searchForPlaces = { query ->
-                viewModel.findPlacesFromInput(query, true)
-            }
+                state = viewModel.uiState.tourState,
+                tourDetails = viewModel.uiState.tourDetails,
+                onSave = { viewModel.setTourState(TourState.VIEWING) },
+                onEdit = { viewModel.setTourState(TourState.EDITING) },
+                onCancel = { viewModel.setTourState(TourState.VIEWING) },
+                placesList = viewModel.locationAutofillDialog,
+                searchForPlaces = { query ->
+                    viewModel.findPlacesFromInput(query, true)
+                },
+
         ) },
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
         scaffoldState = bottomSheetScaffoldState,
@@ -140,7 +144,8 @@ fun TourScreen(
                     )
 
                     // my location button
-                    MyLocationButton(uiState.locationState) {
+                    MyLocationButton(viewModel.uiState.locationState) {
+                        coroutineScope.launch { bottomSheetScaffoldState.bottomSheetState.collapse() }
                         locateMe(
                             viewModel,
                             permissionAlreadyRequested,
@@ -153,7 +158,7 @@ fun TourScreen(
 
                 // search button
                 AnimatedContent(
-                    targetState = uiState.showSearchBar,
+                    targetState = viewModel.uiState.showSearchBar,
                 ) { showBar ->
                     when (showBar) {
                         false -> TourGuideFloatingButton(
@@ -171,7 +176,7 @@ fun TourScreen(
                             onSearch = {
                                 viewModel.searchOnMap()
                             },
-                            text = uiState.searchValue,
+                            text = viewModel.uiState.searchValue,
                             onTextChanged = {
                                 viewModel.changeSearchValue(it)
                                 viewModel.findPlacesFromInput(it)
@@ -190,7 +195,7 @@ fun TourScreen(
                 .fillMaxSize()
                 .padding(it),
         ) {
-            if ((uiState.cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE)
+            if ((viewModel.uiState.cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE)
                 && (viewModel.isLocated())
             ) {
                 viewModel.changeLocationState(LocationState.LocationOn)
@@ -204,7 +209,7 @@ fun TourScreen(
                 properties = MapProperties(
                     mapType = MapType.NORMAL,
                 ),
-                cameraPositionState = uiState.cameraPositionState,
+                cameraPositionState = viewModel.uiState.cameraPositionState,
                 onMapLoaded = {
                     viewModel.setLocationCallbacks()
                     if (!viewModel.checkPermissions()) {
@@ -221,17 +226,29 @@ fun TourScreen(
                 }
 
             ) {
-                if (uiState.deviceSettings.gpsEnabled) {
-                    Marker(
-                        icon = viewModel.bitmapHelper.bitmapDescriptorFromVector(context,
-                            R.drawable.my_location),
-                        state = MarkerState(position = uiState.myLocation),
-                    )
-                }
+                // my location
                 Marker(
-                    state = MarkerState(position = uiState.searchedLocation),
-                    visible = uiState.isSearching,
+                    icon = viewModel.bitmapHelper.bitmapDescriptorFromVector(
+                        context,
+                        R.drawable.my_location
+                    ),
+                    state = MarkerState(position = viewModel.uiState.myLocation),
+                    visible = viewModel.uiState.deviceSettings.gpsEnabled
                 )
+                // point of interest
+                Marker(
+                    state = MarkerState(position = viewModel.uiState.searchedLocation),
+                    visible = viewModel.uiState.isSearching,
+                )
+                // route
+                if(viewModel.uiState.tourDetails.bothLocationsSet) {
+                    Polyline(
+                        points = listOf(
+                            viewModel.uiState.tourDetails.startLocation.location,
+                            viewModel.uiState.tourDetails.endLocation.location
+                        )
+                    )
+                 }
             }
         }
     }

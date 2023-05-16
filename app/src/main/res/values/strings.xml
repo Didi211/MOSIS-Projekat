@@ -22,6 +22,8 @@
     <string name="search_here">Search here</string>
     <string name="start_location">Start location</string>
     <string name="end_location">End location</string>
+    <string name="title">Title</string>
+    <string name="summary">Summary</string>
 
     <!--  Screen titles   -->
     <string name="home">Home</string>

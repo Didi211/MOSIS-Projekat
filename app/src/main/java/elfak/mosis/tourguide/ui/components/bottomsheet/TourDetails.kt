@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -31,9 +32,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
-import elfak.mosis.tourguide.data.models.AutocompleteResult
+import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.domain.models.Place
 import elfak.mosis.tourguide.domain.models.TourDetails
 import elfak.mosis.tourguide.ui.components.TransparentTextField
@@ -53,8 +57,8 @@ fun TourDetails(
     onSave: () -> Unit = { },
     onEdit: () -> Unit = { },
     onCancel: () -> Unit = { },
-    placesList: MutableList<AutocompleteResult>,
-    searchForPlaces: (String) -> Unit = { }
+    placesList: MutableList<PlaceAutocompleteResult>,
+    searchForPlaces: (String) -> Unit = { },
 ) {
     // this can be moved inside sheetContent on TourScreen
     when(state) {
@@ -69,11 +73,20 @@ fun TourDetailsEditMode(
     tourDetails: TourDetails,
     onSave: () -> Unit,
     onCancel: () -> Unit,
-    placesList: MutableList<AutocompleteResult>,
+    placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
 ) {
     var locationInput by remember { mutableStateOf("") }
     var openDialog by remember { mutableStateOf(false) }
+
+    // this could be route data class
+    var startLocationSet by remember {
+        mutableStateOf( tourDetails.startLocation.id.isNotBlank() )
+    }
+    var endLocationSet by remember {
+        mutableStateOf( tourDetails.endLocation.id.isNotBlank() )
+    }
+
     if (openDialog) {
         SearchLocationDialog(
             onDismiss = {
@@ -82,10 +95,15 @@ fun TourDetailsEditMode(
             },
             onPlaceClick = { place ->
                 if (locationInput == "Start") {
-                    tourDetails.startLocation = Place(place.placeId, place.address)
+                    tourDetails.onStartLocationChanged(Place(place.placeId, place.address))
+                    startLocationSet = true
                 }
                 else {
-                    tourDetails.endLocation = Place(place.placeId, place.address)
+                    tourDetails.onEndLocationChanged(Place(place.placeId, place.address))
+                    endLocationSet = true
+                }
+                if(startLocationSet && endLocationSet) {
+                    tourDetails.onBothLocationsSet(true)
                 }
                 openDialog = false
                 placesList.clear()
@@ -143,9 +161,11 @@ fun TourDetailsContainer(
                         .fillMaxWidth()
                         .padding(top = 0.dp, bottom = 0.dp),
                     text = tourDetails.title,
+                    placeholder = stringResource(id = R.string.title),
                     onTextChanged = tourDetails.onTitleChanged,
                     textStyle = Typography.h1,
-                    enabled = enabledInputs
+                    enabled = enabledInputs,
+                    keyboardOptions = KeyboardOptions().copy(imeAction = ImeAction.Next)
                 )
             }
             // summary
@@ -156,10 +176,11 @@ fun TourDetailsContainer(
                         .fillMaxWidth()
                         .padding(top = 0.dp, bottom = 0.dp),
                     text = tourDetails.summary,
+                    placeholder = stringResource(id = R.string.summary),
                     onTextChanged = tourDetails.onSummaryChanged,
                     textStyle = Typography.body1,
                     enabled = enabledInputs,
-                    singleLine = false
+                    singleLine = false,
                 )
             }
             // inputs
@@ -175,6 +196,7 @@ fun TourDetailsContainer(
                                 .widthIn(max = 280.dp)
                                 .clickable { chooseLocation("Start") },
                             text = tourDetails.startLocation.address,
+                            placeholder = stringResource(id = R.string.start_location),
                             enabled = false,
                             onTextChanged = {
                                 tourDetails.onStartLocationChanged(Place("",it, LatLng(0.0,0.0)))
@@ -196,6 +218,7 @@ fun TourDetailsContainer(
                                 .widthIn(max = 280.dp)
                                 .clickable { chooseLocation("End") },
                             text = tourDetails.endLocation.address,
+                            placeholder = stringResource(id = R.string.end_location),
                             enabled = false,
                             onTextChanged = {
                                 tourDetails.onEndLocationChanged(Place("",it, LatLng(0.0,0.0)))
@@ -213,11 +236,11 @@ fun TourDetailsContainer(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
-                    if(tourDetails.distance != "") {
+                    if(tourDetails.distance.isNotBlank()) {
                         TextWithIcon(text = tourDetails.distance, icon = Icons.Filled.Hiking)
                         Spacer(Modifier.width(10.dp))
                     }
-                    if(tourDetails.time != "") {
+                    if(tourDetails.time.isNotBlank()) {
                         TextWithIcon(text = tourDetails.time, icon = Icons.Filled.Schedule)
                     }
                 }

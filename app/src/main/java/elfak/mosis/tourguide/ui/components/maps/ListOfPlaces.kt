@@ -20,12 +20,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import elfak.mosis.tourguide.data.models.AutocompleteResult
+import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 
 @Composable
 fun ListOfPlaces(
-    placesList: MutableList<AutocompleteResult>,
-    onPlaceClick: (AutocompleteResult) -> Unit,
+    placesList: MutableList<PlaceAutocompleteResult>,
+    onPlaceClick: (PlaceAutocompleteResult) -> Unit,
 ) {
     AnimatedVisibility(
         visible = placesList.isNotEmpty(),

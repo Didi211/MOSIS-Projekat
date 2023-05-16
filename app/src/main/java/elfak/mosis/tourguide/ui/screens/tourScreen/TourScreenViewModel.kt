@@ -20,11 +20,14 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.business.helper.BitmapHelper
 import elfak.mosis.tourguide.business.helper.LocationHelper
-import elfak.mosis.tourguide.data.models.AutocompleteResult
+import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.util.*
 import javax.inject.Inject
 
@@ -39,10 +42,11 @@ class TourScreenViewModel @Inject constructor(
     var uiState by mutableStateOf(TourScreenUiState())
         private set
 
+    private val invalidLocation = LatLng(0.0,0.0)
     private val minimalDistanceInMeters: Int = 30 //between two sequential locations, for map move animation
-    private var chosenLocation by mutableStateOf(AutocompleteResult("",""))
-    val locationAutofill = mutableStateListOf<AutocompleteResult>()
-    val locationAutofillDialog = mutableStateListOf<AutocompleteResult>()
+    private var chosenLocation by mutableStateOf(PlaceAutocompleteResult("",""))
+    val locationAutofill = mutableStateListOf<PlaceAutocompleteResult>()
+    val locationAutofillDialog = mutableStateListOf<PlaceAutocompleteResult>()
 
     private var job: Job? = null
     var textInputJob: Job? = null
@@ -53,6 +57,10 @@ class TourScreenViewModel @Inject constructor(
         uiState.tourDetails.onEndLocationChanged = { setEndLocation(it) }
         uiState.tourDetails.onDistanceChanged = { setDistance(it) }
         uiState.tourDetails.onTimeChanged = { setTime(it) }
+        uiState.tourDetails.onBothLocationsSet = {
+            setBothLocationsSet(it)
+            viewModelScope.launch { setLocationsLatLng() }
+        }
     }
 
     override fun onCleared() {
@@ -82,6 +90,9 @@ class TourScreenViewModel @Inject constructor(
     }
     fun setTime(time: String) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(time = time))
+    }
+    fun setBothLocationsSet(value: Boolean) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(bothLocationsSet = value))
     }
     fun resetTourDetails() {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.clear())
@@ -124,13 +135,12 @@ class TourScreenViewModel @Inject constructor(
 
     //region LOCATION HELPER WRAPPER
     fun setLocationCallbacks() {
-        val vm = this
         locationHelper.setOnLocationResultListener {
             viewModelScope.launch {
                 Log.d("LOCATION", "New location: LAT: ${it.latitude}; LON: ${it.longitude}; ")
-                vm.changeMyLocation(LatLng(it.latitude, it.longitude))
+                changeMyLocation(LatLng(it.latitude, it.longitude))
                 if (!isLocated()) return@launch //skip animation
-                vm.onLocationChanged()
+                onLocationChanged()
             }
         }
         locationHelper.setonLocationAvailabilityListener { gpsEnabled ->
@@ -232,7 +242,7 @@ class TourScreenViewModel @Inject constructor(
     //endregion
 
     //region SEARCH LOCATION
-    fun onSearchPlaceCLick(place: AutocompleteResult) {
+    fun onSearchPlaceCLick(place: PlaceAutocompleteResult) {
         chooseLocation(place)
         searchOnMap()
         clearSearchBar()
@@ -241,6 +251,7 @@ class TourScreenViewModel @Inject constructor(
     fun findPlacesFromInput(query: String, showInDialog: Boolean = false) {
         textInputJob?.cancel()
         textInputJob = viewModelScope.launch {
+            delay(300)
             job?.cancel()
             if(showInDialog) {
                 locationAutofillDialog.clear()
@@ -280,7 +291,7 @@ class TourScreenViewModel @Inject constructor(
     private fun onSearchSuccess(response: FindAutocompletePredictionsResponse) {
         // if got any, populate location list
         locationAutofill += response.autocompletePredictions.map {
-            AutocompleteResult(
+            PlaceAutocompleteResult(
                 address = it.getFullText(null).toString(),
                 placeId = it.placeId
             )
@@ -289,7 +300,7 @@ class TourScreenViewModel @Inject constructor(
     private fun onDialogSearchSuccess(response: FindAutocompletePredictionsResponse) {
         // if got any, populate location list
         locationAutofillDialog += response.autocompletePredictions.map {
-            AutocompleteResult(
+            PlaceAutocompleteResult(
                 address = it.getFullText(null).toString(),
                 placeId = it.placeId
             )
@@ -297,7 +308,7 @@ class TourScreenViewModel @Inject constructor(
     }
 
     // choose location from given list
-    fun chooseLocation(location: AutocompleteResult) {
+    fun chooseLocation(location: PlaceAutocompleteResult) {
         chosenLocation =  chosenLocation.copy(
             address = location.address,
             placeId = location.placeId
@@ -327,6 +338,54 @@ class TourScreenViewModel @Inject constructor(
             .addOnFailureListener {
                 it.printStackTrace()
             }
+    }
+
+    suspend fun setLocationsLatLng() {
+        var startLocationLatLng = LatLng(0.0,0.0)
+        var endLocationLatLng = LatLng(0.0,0.0)
+        val job = listOf(
+            viewModelScope.launch {
+                val result = findLocationLatLng(uiState.tourDetails.startLocation.id) ?: return@launch
+                startLocationLatLng = result
+            },
+            viewModelScope.launch {
+                val result = findLocationLatLng(uiState.tourDetails.endLocation.id) ?: return@launch
+                endLocationLatLng = result
+            }
+        )
+        job.joinAll()
+
+        if (startLocationLatLng == invalidLocation) return
+        if (endLocationLatLng == invalidLocation) return
+
+        var place = elfak.mosis.tourguide.domain.models.Place(
+            uiState.tourDetails.startLocation.id,
+            uiState.tourDetails.startLocation.address,
+            startLocationLatLng
+        )
+        setStartLocation(place)
+        place = elfak.mosis.tourguide.domain.models.Place(
+            uiState.tourDetails.endLocation.id,
+            uiState.tourDetails.endLocation.address,
+            endLocationLatLng
+        )
+        setEndLocation(place)
+    }
+
+    private suspend fun findLocationLatLng(placeId: String): LatLng? {
+        var placeLatLng: LatLng? = null
+        viewModelScope.launch {
+            val placeFields = listOf(Place.Field.LAT_LNG)
+            val request = FetchPlaceRequest.newInstance(placeId, placeFields)
+            try {
+                val response = placesClient.fetchPlace(request).await() ?: return@launch
+                placeLatLng = response.place.latLng!!
+            }
+            catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }.join()
+        return placeLatLng
     }
 
 

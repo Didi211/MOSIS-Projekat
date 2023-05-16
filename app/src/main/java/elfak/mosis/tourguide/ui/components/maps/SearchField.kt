@@ -40,10 +40,7 @@ fun SearchField(
         keyboardActions = KeyboardActions(
             onSearch = {
                 onSearch()
-//                viewModel.clearSearchBar()
-//                focusManager.clearFocus()
             }
         ),
-
-        )
+    )
 }

@@ -17,15 +17,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import elfak.mosis.tourguide.R
-import elfak.mosis.tourguide.data.models.AutocompleteResult
+import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.ui.components.maps.ListOfPlaces
 import elfak.mosis.tourguide.ui.components.maps.SearchField
 
 @Composable
 fun SearchLocationDialog(
     onDismiss: () -> Unit,
-    placesList: MutableList<AutocompleteResult>,
-    onPlaceClick: (AutocompleteResult) -> Unit,
+    placesList: MutableList<PlaceAutocompleteResult>,
+    onPlaceClick: (PlaceAutocompleteResult) -> Unit,
     searchForPlaces: (String) -> Unit = { }
 ) {
     var text by remember { mutableStateOf("")}
