@@ -22,19 +22,14 @@ data class TourDetails(
     var onTimeChanged: (String) -> Unit = { },
 ) {
     fun clear(): TourDetails {
-        title = ""
-        summary = ""
-        startLocation.clear()
-        endLocation.clear()
-        distance = ""
-        time = ""
-        onTitleChanged = { }
-        onSummaryChanged = { }
-        onStartLocationChanged = { }
-        onEndLocationChanged = { }
-        onDistanceChanged = { }
-        onTimeChanged = { }
-        return this
+        return this.copy(
+            title = "",
+            summary = "",
+            startLocation = startLocation.clear(),
+            endLocation = endLocation.clear(),
+            distance = "",
+            time = "",
+        )
     }
 }
 

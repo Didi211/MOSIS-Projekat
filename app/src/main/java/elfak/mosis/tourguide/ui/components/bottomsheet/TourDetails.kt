@@ -7,15 +7,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -23,18 +22,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
+import elfak.mosis.tourguide.data.models.AutocompleteResult
 import elfak.mosis.tourguide.domain.models.Place
 import elfak.mosis.tourguide.domain.models.TourDetails
 import elfak.mosis.tourguide.ui.components.TransparentTextField
@@ -54,24 +53,53 @@ fun TourDetails(
     onSave: () -> Unit = { },
     onEdit: () -> Unit = { },
     onCancel: () -> Unit = { },
+    placesList: MutableList<AutocompleteResult>,
+    searchForPlaces: (String) -> Unit = { }
 ) {
+    // this can be moved inside sheetContent on TourScreen
     when(state) {
-        TourState.CREATING -> TourDetailsCreateMode(tourDetails, onSave, onCancel)
+        TourState.CREATING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces)
         TourState.VIEWING -> TourDetailsViewMode(tourDetails, onEdit)
-        TourState.EDITING -> TourDetailsEditMode(tourDetails, onSave, onCancel)
+        TourState.EDITING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces)
     }
 }
 
 @Composable
-fun TourDetailsCreateMode(tourDetails: TourDetails, onSave: () -> Unit, onCancel: () -> Unit) {
+fun TourDetailsEditMode(
+    tourDetails: TourDetails,
+    onSave: () -> Unit,
+    onCancel: () -> Unit,
+    placesList: MutableList<AutocompleteResult>,
+    searchForPlaces: (String) -> Unit = { },
+) {
+    var locationInput by remember { mutableStateOf("") }
     var openDialog by remember { mutableStateOf(false) }
     if (openDialog) {
         SearchLocationDialog(
-            onDismiss = { openDialog = false },
-            onPlaceClick = { }
+            onDismiss = {
+                openDialog = false
+                placesList.clear()
+            },
+            onPlaceClick = { place ->
+                if (locationInput == "Start") {
+                    tourDetails.startLocation = Place(place.placeId, place.address)
+                }
+                else {
+                    tourDetails.endLocation = Place(place.placeId, place.address)
+                }
+                openDialog = false
+                placesList.clear()
+            },
+            placesList = placesList,
+            searchForPlaces = searchForPlaces
         )
     }
-    TourDetailsContainer(tourDetails = tourDetails.clear(), chooseLocation = { openDialog = true }) {
+    TourDetailsContainer(
+        tourDetails = tourDetails,
+        chooseLocation = {
+            locationInput = it
+            openDialog = true
+        }) {
         SaveButton(onSave)
         Spacer(Modifier.width(10.dp))
         CancelButton(onCancel)
@@ -83,27 +111,12 @@ fun TourDetailsViewMode(tourDetails: TourDetails, onEdit: () -> Unit) {
         EditButton(onEdit)
     }
 }
-@Composable
-fun TourDetailsEditMode(tourDetails: TourDetails, onSave: () -> Unit, onCancel: () -> Unit) {
-    var openDialog by remember { mutableStateOf(false) }
-    if (openDialog) {
-        SearchLocationDialog(
-            onDismiss = { openDialog = false },
-            onPlaceClick = { },
-        )
-    }
-    TourDetailsContainer(tourDetails = tourDetails, chooseLocation = { openDialog = true }) {
-        SaveButton(onSave)
-        Spacer(Modifier.width(10.dp))
-        CancelButton(onCancel)
-    }
-}
 
 @Composable
 fun TourDetailsContainer(
     tourDetails: TourDetails,
     enabledInputs: Boolean = true,
-    chooseLocation: () -> Unit = { },
+    chooseLocation: (String) -> Unit = { },
     buttons: @Composable () -> Unit,
 ) {
 
@@ -156,30 +169,43 @@ fun TourDetailsContainer(
                 InputRowContainer {
                     // Start Location
                     Text("From:", color = MaterialTheme.colors.primary)
-                    TransparentTextField(
-                        modifier = Modifier
-                            .widthIn(max = 280.dp)
-                            .clickable { chooseLocation() },
-                        text = tourDetails.startLocation.address,
-                        enabled = false,
-                        onTextChanged = {
-                            tourDetails.onStartLocationChanged(Place("",it, LatLng(0.0,0.0)))
-                        },
-                    )
+                    Column {
+                        TransparentTextField(
+                            modifier = Modifier
+                                .widthIn(max = 280.dp)
+                                .clickable { chooseLocation("Start") },
+                            text = tourDetails.startLocation.address,
+                            enabled = false,
+                            onTextChanged = {
+                                tourDetails.onStartLocationChanged(Place("",it, LatLng(0.0,0.0)))
+                            },
+                        )
+                        Divider(
+                            color = Color.DarkGray,
+                            modifier = Modifier.widthIn(max = 280.dp)
+                        )
+                    }
+
                 }
                 InputRowContainer {
                     // End Location
                     Text("To:", color = MaterialTheme.colors.primary)
-                    TransparentTextField(
-                        modifier = Modifier
-                            .widthIn(max = 280.dp)
-                            .clickable { chooseLocation() },
-                        text = tourDetails.endLocation.address,
-                        enabled = false,
-                        onTextChanged = {
-                            tourDetails.onEndLocationChanged(Place("",it, LatLng(0.0,0.0)))
-                        },
-                    )
+                    Column {
+                        TransparentTextField(
+                            modifier = Modifier
+                                .widthIn(max = 280.dp)
+                                .clickable { chooseLocation("End") },
+                            text = tourDetails.endLocation.address,
+                            enabled = false,
+                            onTextChanged = {
+                                tourDetails.onEndLocationChanged(Place("",it, LatLng(0.0,0.0)))
+                            },
+                        )
+                        Divider(
+                            color = Color.DarkGray,
+                            modifier = Modifier.widthIn(max = 280.dp)
+                        )
+                    }
                 }
 
                 Row(

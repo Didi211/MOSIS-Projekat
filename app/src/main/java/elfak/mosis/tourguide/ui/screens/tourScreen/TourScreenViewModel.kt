@@ -24,7 +24,6 @@ import elfak.mosis.tourguide.data.models.AutocompleteResult
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
@@ -43,10 +42,10 @@ class TourScreenViewModel @Inject constructor(
     private val minimalDistanceInMeters: Int = 30 //between two sequential locations, for map move animation
     private var chosenLocation by mutableStateOf(AutocompleteResult("",""))
     val locationAutofill = mutableStateListOf<AutocompleteResult>()
+    val locationAutofillDialog = mutableStateListOf<AutocompleteResult>()
 
     private var job: Job? = null
     var textInputJob: Job? = null
-
     init {
         uiState.tourDetails.onTitleChanged = { setTitle(it) }
         uiState.tourDetails.onSummaryChanged = { setSummary(it) }
@@ -78,11 +77,14 @@ class TourScreenViewModel @Inject constructor(
     private fun setEndLocation(endLocation: elfak.mosis.tourguide.domain.models.Place) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(endLocation = endLocation))
     }
-    private fun setDistance(distance: String) {
+    fun setDistance(distance: String) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(distance = distance))
     }
-    private fun setTime(time: String) {
+    fun setTime(time: String) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(time = time))
+    }
+    fun resetTourDetails() {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.clear())
     }
     //endregion
 
@@ -236,18 +238,23 @@ class TourScreenViewModel @Inject constructor(
         clearSearchBar()
     }
 
-    fun findPlacesFromInput(query: String) {
+    fun findPlacesFromInput(query: String, showInDialog: Boolean = false) {
         textInputJob?.cancel()
         textInputJob = viewModelScope.launch {
             job?.cancel()
-            locationAutofill.clear()
+            if(showInDialog) {
+                locationAutofillDialog.clear()
+            }
+            else {
+                locationAutofill.clear()
+            }
             job = viewModelScope.launch {
-                launchSearchRequest(query)
+                launchSearchRequest(query, showInDialog)
             }
         }
     }
 
-    private fun launchSearchRequest(query: String) {
+    private fun launchSearchRequest(query: String, showInDialog: Boolean) {
         val request = FindAutocompletePredictionsRequest
             .builder()
             .setQuery(query)
@@ -257,7 +264,12 @@ class TourScreenViewModel @Inject constructor(
         try {
             placesClient.findAutocompletePredictions(request)
                 .addOnSuccessListener { response ->
-                    onSearchSuccess(response)
+                    if (showInDialog) {
+                        onDialogSearchSuccess(response)
+                    }
+                    else {
+                        onSearchSuccess(response)
+                    }
                 }
         }
         catch(ex: Exception) {
@@ -268,6 +280,15 @@ class TourScreenViewModel @Inject constructor(
     private fun onSearchSuccess(response: FindAutocompletePredictionsResponse) {
         // if got any, populate location list
         locationAutofill += response.autocompletePredictions.map {
+            AutocompleteResult(
+                address = it.getFullText(null).toString(),
+                placeId = it.placeId
+            )
+        }
+    }
+    private fun onDialogSearchSuccess(response: FindAutocompletePredictionsResponse) {
+        // if got any, populate location list
+        locationAutofillDialog += response.autocompletePredictions.map {
             AutocompleteResult(
                 address = it.getFullText(null).toString(),
                 placeId = it.placeId

@@ -8,10 +8,12 @@ data class Place(
     var address: String = "",
     var location: LatLng = LatLng(0.0,0.0)
 ) {
-    fun clear() {
-        id = ""
-        address = ""
-        location = LatLng(0.0,0.0)
+    fun clear(): Place {
+        return this.copy(
+            id = "",
+            address = "",
+            location = LatLng(0.0,0.0)
+        )
     }
 }
 

@@ -16,22 +16,17 @@ import androidx.compose.material.Divider
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import elfak.mosis.tourguide.data.models.AutocompleteResult
 
 @Composable
 fun ListOfPlaces(
-    placesList: List<AutocompleteResult>,
+    placesList: MutableList<AutocompleteResult>,
     onPlaceClick: (AutocompleteResult) -> Unit,
 ) {
-    val focusManager = LocalFocusManager.current
-
     AnimatedVisibility(
         visible = placesList.isNotEmpty(),
         modifier = Modifier
@@ -48,7 +43,6 @@ fun ListOfPlaces(
 //                    viewModel.locationAutofill
                     placesList
                 ) {
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

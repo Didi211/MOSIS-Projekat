@@ -24,6 +24,7 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -80,14 +81,27 @@ fun TourScreen(
         viewModel.setSearchBarVisibility(false)
     }
 
+    // testing how to prepare data for certain state
+    LaunchedEffect(uiState.tourState) {
+        when(uiState.tourState) {
+            TourState.VIEWING -> viewModel.setDistance("15km")
+            TourState.EDITING -> viewModel.setDistance("40km")
+            TourState.CREATING -> viewModel.resetTourDetails()
+        }
+    }
 
     BottomSheetScaffold(
-        sheetContent = { TourDetails(
+        sheetContent = {
+            TourDetails(
             state = uiState.tourState,
             tourDetails = uiState.tourDetails,
             onSave = { viewModel.setTourState(TourState.VIEWING) },
             onEdit = { viewModel.setTourState(TourState.EDITING) },
-            onCancel = { viewModel.setTourState(TourState.VIEWING) }
+            onCancel = { viewModel.setTourState(TourState.VIEWING) },
+            placesList = viewModel.locationAutofillDialog,
+            searchForPlaces = { query ->
+                viewModel.findPlacesFromInput(query, true)
+            }
         ) },
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
         scaffoldState = bottomSheetScaffoldState,

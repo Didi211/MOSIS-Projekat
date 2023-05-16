@@ -29,7 +29,7 @@ data class TourScreenUiState(
 //    var showKeyboard: Boolean = false,
 
     val tourDetails: TourDetails = TourDetails(),
-    val tourState: TourState = TourState.VIEWING,
+    val tourState: TourState = TourState.CREATING,
 
     val deviceSettings: DeviceSettings = DeviceSettings(),
 

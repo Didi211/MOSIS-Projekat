@@ -1,7 +1,9 @@
 package elfak.mosis.tourguide.ui.components.dialogs
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -19,25 +21,12 @@ import elfak.mosis.tourguide.data.models.AutocompleteResult
 import elfak.mosis.tourguide.ui.components.maps.ListOfPlaces
 import elfak.mosis.tourguide.ui.components.maps.SearchField
 
-private fun mockList(): List<AutocompleteResult> {
-    return listOf(
-        AutocompleteResult(
-            "place1", "id1"
-        ),
-        AutocompleteResult(
-            "place2", "id2"
-        ),
-        AutocompleteResult(
-            "place3", "id3"
-        ),
-    )
-}
-
 @Composable
 fun SearchLocationDialog(
     onDismiss: () -> Unit,
-    placesList: List<AutocompleteResult> = mockList(),
+    placesList: MutableList<AutocompleteResult>,
     onPlaceClick: (AutocompleteResult) -> Unit,
+    searchForPlaces: (String) -> Unit = { }
 ) {
     var text by remember { mutableStateOf("")}
     Dialog(
@@ -45,8 +34,10 @@ fun SearchLocationDialog(
     ) {
         Column(
             modifier = Modifier
+                .height(350.dp)
                 .background(Color.White, RoundedCornerShape(10.dp))
-                .padding(10.dp)
+                .padding(10.dp),
+            verticalArrangement = Arrangement.Bottom
         ) {
             ListOfPlaces(
                 placesList = placesList,
@@ -55,9 +46,14 @@ fun SearchLocationDialog(
             SearchField(
                 onSearch = { },
                 text = text,
-                onTextChanged = { text = it },
+                onTextChanged = {
+                    text = it
+                    searchForPlaces(it)
+                },
                 label = stringResource(id = R.string.search_here)
             )
         }
     }
 }
+
+
