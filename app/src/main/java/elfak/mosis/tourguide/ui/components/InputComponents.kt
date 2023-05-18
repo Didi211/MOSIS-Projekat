@@ -62,6 +62,7 @@ fun TransparentTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     inputColors: TextFieldColors = transparentInputColors(),
     placeholder: String = "",
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     OutlinedTextField(
         modifier = modifier,
@@ -76,7 +77,8 @@ fun TransparentTextField(
         keyboardActions = keyboardActions,
         enabled = enabled,
         maxLines = if (singleLine) 1 else 3,
-        placeholder = { Text(placeholder) }
+        placeholder = { Text(placeholder) },
+        trailingIcon = trailingIcon
     )
 }
 

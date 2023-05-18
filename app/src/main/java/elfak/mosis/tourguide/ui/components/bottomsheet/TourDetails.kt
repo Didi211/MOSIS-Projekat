@@ -20,6 +20,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.runtime.Composable
@@ -45,6 +46,7 @@ import elfak.mosis.tourguide.ui.components.buttons.CancelButton
 import elfak.mosis.tourguide.ui.components.buttons.EditButton
 import elfak.mosis.tourguide.ui.components.buttons.SaveButton
 import elfak.mosis.tourguide.ui.components.dialogs.SearchLocationDialog
+import elfak.mosis.tourguide.ui.components.icons.CancelIcon
 import elfak.mosis.tourguide.ui.screens.tourScreen.TourState
 import elfak.mosis.tourguide.ui.theme.DragHandle
 import elfak.mosis.tourguide.ui.theme.Typography
@@ -201,6 +203,17 @@ fun TourDetailsContainer(
                             onTextChanged = {
                                 tourDetails.onStartLocationChanged(Place("",it, LatLng(0.0,0.0)))
                             },
+                            trailingIcon = {
+                                if(tourDetails.startLocation.id.isBlank()) return@TransparentTextField
+                                CancelIcon(onClick = {
+                                    onCancelIconClick(
+                                        tourDetails = tourDetails,
+                                        clearInput = {
+                                            tourDetails.onStartLocationChanged(Place())
+                                        }
+                                    )
+                                })
+                            }
                         )
                         Divider(
                             color = Color.DarkGray,
@@ -223,6 +236,17 @@ fun TourDetailsContainer(
                             onTextChanged = {
                                 tourDetails.onEndLocationChanged(Place("",it, LatLng(0.0,0.0)))
                             },
+                            trailingIcon = {
+                                if(tourDetails.endLocation.id.isBlank()) return@TransparentTextField
+                                CancelIcon(onClick = {
+                                    onCancelIconClick(
+                                        tourDetails = tourDetails,
+                                        clearInput = {
+                                            tourDetails.onEndLocationChanged(Place())
+                                        }
+                                    )
+                                })
+                            }
                         )
                         Divider(
                             color = Color.DarkGray,
@@ -254,7 +278,12 @@ fun TourDetailsContainer(
 
 
 
-
+private fun onCancelIconClick(tourDetails: TourDetails, clearInput: () -> Unit) {
+    clearInput()
+    tourDetails.onBothLocationsSet(false)
+    tourDetails.onTimeChanged("")
+    tourDetails.onDistanceChanged("")
+}
 
 
 

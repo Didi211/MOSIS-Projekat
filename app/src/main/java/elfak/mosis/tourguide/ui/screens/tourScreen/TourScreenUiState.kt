@@ -22,7 +22,6 @@ data class TourScreenUiState(
     var cameraPositionState: CameraPositionState = CameraPositionState(
         position = CameraPosition(currentLocation,  10f, 0f, 0f)
     ),
-
     var routeChanged: Boolean = false,
 
     val tourDetails: TourDetails = TourDetails(),

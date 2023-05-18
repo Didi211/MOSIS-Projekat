@@ -74,7 +74,8 @@ class TourScreenViewModel @Inject constructor(
                     if(origin == destination) return@launch
                     val result = routesApiWrapper.getRoute(origin, destination)
                     // null checking
-                    val route = result!!.routes[0]
+                    if(result == null || result.routes == null) return@launch
+                    val route = result.routes[0]
                     decodePolyline(route.polyline.encodedPolyline)
                     changeLocationState(LocationState.LocationOn)
                     setRouteChanged(true)
