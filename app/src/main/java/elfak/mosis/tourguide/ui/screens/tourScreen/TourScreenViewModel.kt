@@ -12,15 +12,19 @@ import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
 import com.google.android.libraries.places.api.net.PlacesClient
 import dagger.hilt.android.lifecycle.HiltViewModel
-import elfak.mosis.tourguide.business.helper.BitmapHelper
-import elfak.mosis.tourguide.business.helper.LocationHelper
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
+import elfak.mosis.tourguide.domain.api.RoutesApiWrapper
+import elfak.mosis.tourguide.domain.helper.BitmapHelper
+import elfak.mosis.tourguide.domain.helper.LocationHelper
+import elfak.mosis.tourguide.domain.helper.UnitConvertor
+import elfak.mosis.tourguide.domain.models.google.Viewport
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -37,7 +41,9 @@ import javax.inject.Inject
 class TourScreenViewModel @Inject constructor(
     private val locationHelper: LocationHelper,
     val bitmapHelper: BitmapHelper,
-    private val placesClient: PlacesClient
+    private val placesClient: PlacesClient,
+    private val routesApiWrapper: RoutesApiWrapper,
+    private val convertor: UnitConvertor
 ): ViewModel() {
     var uiState by mutableStateOf(TourScreenUiState())
         private set
@@ -59,7 +65,25 @@ class TourScreenViewModel @Inject constructor(
         uiState.tourDetails.onTimeChanged = { setTime(it) }
         uiState.tourDetails.onBothLocationsSet = {
             setBothLocationsSet(it)
-            viewModelScope.launch { setLocationsLatLng() }
+            if (it) {
+                viewModelScope.launch {
+                    setLocationsLatLng()
+                    val origin = uiState.tourDetails.startLocation.id
+                    val destination = uiState.tourDetails.endLocation.id
+                    // TODO -  handle errors
+                    if(origin == destination) return@launch
+                    val result = routesApiWrapper.getRoute(origin, destination)
+                    // null checking
+                    val route = result!!.routes[0]
+                    decodePolyline(route.polyline.encodedPolyline)
+                    changeLocationState(LocationState.LocationOn)
+                    setRouteChanged(true)
+                    moveCameraForRoute(route.viewport)
+                    formatDistance(route.distanceMeters)
+                    formatTime(route.duration)
+
+                }
+            }
         }
     }
 
@@ -97,9 +121,46 @@ class TourScreenViewModel @Inject constructor(
     fun resetTourDetails() {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.clear())
     }
+
+    private fun formatDistance(distance: Int) {
+        if(distance > 1000) {
+            val distanceKm = convertor.metersToKilometers(distance)
+            setDistance("$distanceKm km")
+        }
+        else {
+            setDistance("$distance m")
+        }
+    }
+    private fun formatTime(time: String) {
+        val timeExtracted = convertor.extractIntTimeFromString(time)
+        if (timeExtracted < 3600) {
+            val timeConverted = convertor.secondsToMinutes(timeExtracted)
+            setTime("$timeConverted min")
+        }
+        else if(timeExtracted == 3600) {
+            setTime("1 hr")
+        }
+        else {
+            val timeConverted = convertor.secondsToMinutesAndHours(timeExtracted)
+            setTime("${timeConverted.first} hr ${timeConverted.second} min")
+        }
+    }
+
+    private fun decodePolyline(encodedPolyline: String) {
+        val decodedPolyline = locationHelper.decodePolyline(encodedPolyline)
+        val pointsLatLng: List<LatLng> = decodedPolyline.map { LatLng(it.first, it.second) }
+        setPolylinePoints(pointsLatLng)
+    }
+    private fun setPolylinePoints(polylinePoints: List<LatLng>) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(polylinePoints = polylinePoints))
+    }
+
     //endregion
 
     // region UISTATE METHODS
+    fun setRouteChanged(value: Boolean) {
+        uiState = uiState.copy(routeChanged = value)
+    }
     fun setSearchBarVisibility(value: Boolean) {
         uiState = uiState.copy(showSearchBar = value)
     }
@@ -128,6 +189,7 @@ class TourScreenViewModel @Inject constructor(
     }
 
     fun isLocated(): Boolean {
+        //used for detecting if the device's location is being tracked
         return uiState.locationState == LocationState.Located
     }
 
@@ -137,7 +199,6 @@ class TourScreenViewModel @Inject constructor(
     fun setLocationCallbacks() {
         locationHelper.setOnLocationResultListener {
             viewModelScope.launch {
-                Log.d("LOCATION", "New location: LAT: ${it.latitude}; LON: ${it.longitude}; ")
                 changeMyLocation(LatLng(it.latitude, it.longitude))
                 if (!isLocated()) return@launch //skip animation
                 onLocationChanged()
@@ -166,7 +227,6 @@ class TourScreenViewModel @Inject constructor(
                return
             }
             locationHelper.startLocationTracking()
-//            uiState = uiState.copy(requestingLocationUpdates = true)
         }
         catch (e: Exception) {
             e.printStackTrace()
@@ -238,6 +298,23 @@ class TourScreenViewModel @Inject constructor(
             }
         }
     }
+    private fun moveCameraForRoute(viewport: Viewport) {
+        viewModelScope.launch {
+            try {
+                val southwest = LatLng(viewport.low.latitude, viewport.low.longitude)
+                val northeast = LatLng(viewport.high.latitude, viewport.high.longitude)
+                val bounds = LatLngBounds(southwest, northeast)
+                uiState.cameraPositionState.animate(
+                    CameraUpdateFactory.newLatLngBounds(bounds,50),1500
+                )
+            }
+            catch (e: Exception) {
+                if (e is CancellationException) {
+                    throw e
+                }
+            }
+        }
+    }
 
     //endregion
 
@@ -270,7 +347,6 @@ class TourScreenViewModel @Inject constructor(
             .builder()
             .setQuery(query)
             .build()
-
         // call api to find places
         try {
             placesClient.findAutocompletePredictions(request)
@@ -308,7 +384,7 @@ class TourScreenViewModel @Inject constructor(
     }
 
     // choose location from given list
-    fun chooseLocation(location: PlaceAutocompleteResult) {
+    private fun chooseLocation(location: PlaceAutocompleteResult) {
         chosenLocation =  chosenLocation.copy(
             address = location.address,
             placeId = location.placeId
@@ -340,7 +416,7 @@ class TourScreenViewModel @Inject constructor(
             }
     }
 
-    suspend fun setLocationsLatLng() {
+    private suspend fun setLocationsLatLng() {
         var startLocationLatLng = LatLng(0.0,0.0)
         var endLocationLatLng = LatLng(0.0,0.0)
         val job = listOf(
@@ -374,17 +450,16 @@ class TourScreenViewModel @Inject constructor(
 
     private suspend fun findLocationLatLng(placeId: String): LatLng? {
         var placeLatLng: LatLng? = null
-        viewModelScope.launch {
-            val placeFields = listOf(Place.Field.LAT_LNG)
-            val request = FetchPlaceRequest.newInstance(placeId, placeFields)
-            try {
-                val response = placesClient.fetchPlace(request).await() ?: return@launch
-                placeLatLng = response.place.latLng!!
-            }
-            catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }.join()
+
+        val placeFields = listOf(Place.Field.LAT_LNG)
+        val request = FetchPlaceRequest.newInstance(placeId, placeFields)
+        try {
+            val response = placesClient.fetchPlace(request).await() ?: return null
+            placeLatLng = response.place.latLng!!
+        }
+        catch (e: Exception) {
+            e.printStackTrace()
+        }
         return placeLatLng
     }
 
@@ -397,10 +472,6 @@ class TourScreenViewModel @Inject constructor(
 //        setKeyboardVisibility(false)
 
     }
-
-//    fun setKeyboardVisibility(visible: Boolean) {
-//        uiState = uiState.copy(showKeyboard = visible)
-//    }
 
     //endregion
 

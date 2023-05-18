@@ -1,4 +1,4 @@
-package elfak.mosis.tourguide.business.helper
+package elfak.mosis.tourguide.domain.helper
 
 import android.content.Context
 import android.graphics.Bitmap

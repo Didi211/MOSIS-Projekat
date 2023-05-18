@@ -27,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -40,6 +39,9 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.maps.model.Dash
+import com.google.android.gms.maps.model.Dot
+import com.google.android.gms.maps.model.Gap
 import com.google.maps.android.compose.CameraMoveStartedReason
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
@@ -49,10 +51,14 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import elfak.mosis.tourguide.R
-import elfak.mosis.tourguide.domain.models.Place
 import elfak.mosis.tourguide.ui.components.bottomsheet.TourDetails
-import elfak.mosis.tourguide.ui.components.maps.*
-import elfak.mosis.tourguide.ui.components.scaffold.*
+import elfak.mosis.tourguide.ui.components.maps.ListOfPlaces
+import elfak.mosis.tourguide.ui.components.maps.LocationState
+import elfak.mosis.tourguide.ui.components.maps.MyLocationButton
+import elfak.mosis.tourguide.ui.components.maps.SearchField
+import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
+import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
+import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
 import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.launch
 
@@ -84,14 +90,6 @@ fun TourScreen(
         viewModel.setSearchBarVisibility(false)
     }
 
-    // testing how to prepare data for certain state
-    LaunchedEffect(viewModel.uiState.tourState) {
-        when(viewModel.uiState.tourState) {
-            TourState.VIEWING -> viewModel.setDistance("15km")
-            TourState.EDITING -> viewModel.setDistance("40km")
-            TourState.CREATING -> viewModel.resetTourDetails()
-        }
-    }
 
     BottomSheetScaffold(
         sheetContent = {
@@ -189,7 +187,6 @@ fun TourScreen(
         }
     ) {
         /** MAIN CONTENT */
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -242,11 +239,14 @@ fun TourScreen(
                 )
                 // route
                 if(viewModel.uiState.tourDetails.bothLocationsSet) {
+                    LaunchedEffect(viewModel.uiState.routeChanged) {
+                        bottomSheetScaffoldState.bottomSheetState.collapse()
+                        viewModel.setRouteChanged(false)
+                    }
+                    val pattern = listOf(Dot(), Gap(20f), Dash(30f), Gap(20f))
                     Polyline(
-                        points = listOf(
-                            viewModel.uiState.tourDetails.startLocation.location,
-                            viewModel.uiState.tourDetails.endLocation.location
-                        )
+                        points = viewModel.uiState.tourDetails.polylinePoints,
+                        pattern = pattern
                     )
                  }
             }
@@ -258,11 +258,6 @@ fun TourScreen(
 fun showDeniedPermissionMessage(context: Context, @StringRes message: Int) {
     Toasty.error(context, message, Toast.LENGTH_LONG).show()
 }
-
-
-
-
-
 
 
 private fun locateMe(

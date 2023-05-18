@@ -22,7 +22,9 @@ data class TourDetails(
     var onTimeChanged: (String) -> Unit = { },
 
     var bothLocationsSet:Boolean = false,
-    var onBothLocationsSet: (Boolean) -> Unit = { }
+    var onBothLocationsSet: (Boolean) -> Unit = { },
+
+    var polylinePoints: List<LatLng> = emptyList()
 ) {
 
     fun clear(): TourDetails {
@@ -33,7 +35,8 @@ data class TourDetails(
             endLocation = endLocation.clear(),
             distance = "",
             time = "",
-            bothLocationsSet = false
+            bothLocationsSet = false,
+            polylinePoints = emptyList()
         )
     }
 

@@ -23,7 +23,7 @@ data class TourScreenUiState(
         position = CameraPosition(currentLocation,  10f, 0f, 0f)
     ),
 
-//    var showKeyboard: Boolean = false,
+    var routeChanged: Boolean = false,
 
     val tourDetails: TourDetails = TourDetails(),
     val tourState: TourState = TourState.CREATING,
