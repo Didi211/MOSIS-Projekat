@@ -9,5 +9,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="status_bar">#FF255D57</color>
     <color name="background">#FFBEDEE2</color>
+    <color name="drag_handle">#FF8DACA9</color>
 
 </resources>
