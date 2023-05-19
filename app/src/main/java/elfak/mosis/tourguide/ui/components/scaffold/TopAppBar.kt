@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterialApi::class)
+
 package elfak.mosis.tourguide.ui.components.scaffold
 
 import androidx.compose.material.*
@@ -14,7 +16,7 @@ fun TourGuideTopAppBar(
     icon: ImageVector = Icons.Rounded.Menu,
     coroutineScope: CoroutineScope,
     scaffoldState: ScaffoldState,
-    onIconClick: () -> Unit = { openMenu(coroutineScope, scaffoldState) }
+    onIconClick: () -> Unit = {  }
 ) {
     TopAppBar(
         title = {
@@ -27,7 +29,9 @@ fun TourGuideTopAppBar(
                         onIconClick()
                     }
                     else {
-                        openMenu(coroutineScope, scaffoldState)
+                        coroutineScope.launch {
+                            scaffoldState.drawerState.open()
+                        }
                     }
                 }
             ) {
@@ -40,8 +44,37 @@ fun TourGuideTopAppBar(
     )
 }
 
-private fun openMenu(coroutineScope: CoroutineScope, scaffoldState: ScaffoldState) {
-    coroutineScope.launch {
-        scaffoldState.drawerState.open()
-    }
+@Composable
+fun TourGuideTopAppBar(
+    title: String,
+    icon: ImageVector = Icons.Rounded.Menu,
+    coroutineScope: CoroutineScope,
+    scaffoldState: BottomSheetScaffoldState,
+    onIconClick: () -> Unit = {  }
+) {
+    TopAppBar(
+        title = {
+            Text(text = title)
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = {
+                    if (icon != Icons.Rounded.Menu) {
+                        onIconClick()
+                    }
+                    else {
+                        coroutineScope.launch {
+                            scaffoldState.drawerState.open()
+                        }
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = "navigation"
+                )
+            }
+        }
+    )
 }
+

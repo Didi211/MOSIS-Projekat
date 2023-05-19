@@ -2,6 +2,10 @@
     <!--  image descriptions  -->
     <string name="logo_description">Tour Guide Logo</string>
     <string name="travelers_description">Travelers image</string>
+    <string name="check">Checkmark</string>
+    <string name="cancel">Cancel</string>
+    <string name="edit">Edit</string>
+
 
     <!--  titles  -->
     <string name="app_name">Tour Guide</string>
@@ -16,6 +20,10 @@
     <string name="fullname">Full name</string>
     <string name="email">Email</string>
     <string name="search_here">Search here</string>
+    <string name="origin">Origin</string>
+    <string name="destination">Destination</string>
+    <string name="title">Title</string>
+    <string name="summary">Summary</string>
 
     <!--  Screen titles   -->
     <string name="home">Home</string>

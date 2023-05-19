@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import elfak.mosis.tourguide.R
-import elfak.mosis.tourguide.ui.components.ButtonComponent
+import elfak.mosis.tourguide.ui.components.buttons.ButtonComponent
 import elfak.mosis.tourguide.ui.components.LogoComponent
 import elfak.mosis.tourguide.ui.components.TravelersImage
 
