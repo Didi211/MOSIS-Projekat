@@ -15,11 +15,10 @@ import javax.inject.Singleton
 interface GoogleRoutesApi {
     // Define other API endpoints here
 
-    @POST("directions/v2:computeRoutes")
-    suspend fun getRoute(@HeaderMap map: Map<String, String>,@Body routeRequest: RouteRequest): RouteResponse
+    @POST("api/routes/get")
+    suspend fun getRouteAPI(@Body routeRequest: RouteRequest): RouteResponse
 
-
-    @GET("fact")
+    @GET("api/routes/test")
     suspend fun testApi(): Any
 
 //    @GET("computeRoutes")

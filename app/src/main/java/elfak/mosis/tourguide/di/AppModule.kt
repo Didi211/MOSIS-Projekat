@@ -60,8 +60,6 @@ object AppModule {
     ) : LocationHelper =  LocationHelper(context, fusedLocationProviderClient)
 
 
-    @Provides
-    fun provideBitmapHelper() : BitmapHelper = BitmapHelper()
 
     @Provides
     fun providePlacesClient(@ApplicationContext context: Context): PlacesClient = Places.createClient(context)

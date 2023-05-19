@@ -12,4 +12,5 @@ val Orange = Color(0xFFFFBE59)
 val OrangeBorderFocused = Color(0xFFFFA212)
 val LightRed = Color(0xFFFF6F6F)
 val DragHandle = Color(0xFF8DACA9)
-
+val RouteBlue = Color(0xFF0e9cee)
+val RouteBorderBlue = Color(0xFF1866d2)

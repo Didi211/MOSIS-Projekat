@@ -21,7 +21,6 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.domain.api.RoutesApiWrapper
-import elfak.mosis.tourguide.domain.helper.BitmapHelper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
 import elfak.mosis.tourguide.domain.models.google.Viewport
@@ -40,7 +39,6 @@ import javax.inject.Inject
 
 class TourScreenViewModel @Inject constructor(
     private val locationHelper: LocationHelper,
-    val bitmapHelper: BitmapHelper,
     private val placesClient: PlacesClient,
     private val routesApiWrapper: RoutesApiWrapper,
     private val convertor: UnitConvertor
@@ -48,19 +46,20 @@ class TourScreenViewModel @Inject constructor(
     var uiState by mutableStateOf(TourScreenUiState())
         private set
 
-    private val invalidLocation = LatLng(0.0,0.0)
-    private val minimalDistanceInMeters: Int = 30 //between two sequential locations, for map move animation
     private var chosenLocation by mutableStateOf(PlaceAutocompleteResult("",""))
     val locationAutofill = mutableStateListOf<PlaceAutocompleteResult>()
     val locationAutofillDialog = mutableStateListOf<PlaceAutocompleteResult>()
 
     private var job: Job? = null
-    var textInputJob: Job? = null
+    private var textInputJob: Job? = null
     init {
+        viewModelScope.launch {
+            routesApiWrapper.testApi()
+        }
         uiState.tourDetails.onTitleChanged = { setTitle(it) }
         uiState.tourDetails.onSummaryChanged = { setSummary(it) }
-        uiState.tourDetails.onStartLocationChanged = { setStartLocation(it) }
-        uiState.tourDetails.onEndLocationChanged = { setEndLocation(it) }
+        uiState.tourDetails.onOriginChanged = { setOrigin(it) }
+        uiState.tourDetails.onDestinationChanged = { setDestination(it) }
         uiState.tourDetails.onDistanceChanged = { setDistance(it) }
         uiState.tourDetails.onTimeChanged = { setTime(it) }
         uiState.tourDetails.onBothLocationsSet = {
@@ -68,16 +67,18 @@ class TourScreenViewModel @Inject constructor(
             if (it) {
                 viewModelScope.launch {
                     setLocationsLatLng()
-                    val origin = uiState.tourDetails.startLocation.id
-                    val destination = uiState.tourDetails.endLocation.id
+                    val origin = uiState.tourDetails.origin.id
+                    val destination = uiState.tourDetails.destination.id
                     // TODO -  handle errors
-                    if(origin == destination) return@launch
+                    if(origin == destination) return@launch // notify user that it is the same location
                     val result = routesApiWrapper.getRoute(origin, destination)
-                    // null checking
+                    // null checking if error has happened
                     if(result == null || result.routes == null) return@launch
                     val route = result.routes[0]
                     decodePolyline(route.polyline.encodedPolyline)
-                    changeLocationState(LocationState.LocationOn)
+                    if (isLocated()) {
+                        changeLocationState(LocationState.LocationOn)
+                    }
                     setRouteChanged(true)
                     moveCameraForRoute(route.viewport)
                     formatDistance(route.distanceMeters)
@@ -104,11 +105,11 @@ class TourScreenViewModel @Inject constructor(
     private fun setSummary(summary: String) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(summary = summary))
     }
-    private fun setStartLocation(startLocation: elfak.mosis.tourguide.domain.models.Place) {
-        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(startLocation = startLocation))
+    private fun setOrigin(origin: elfak.mosis.tourguide.domain.models.Place) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(origin = origin))
     }
-    private fun setEndLocation(endLocation: elfak.mosis.tourguide.domain.models.Place) {
-        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(endLocation = endLocation))
+    private fun setDestination(destination: elfak.mosis.tourguide.domain.models.Place) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(destination = destination))
     }
     fun setDistance(distance: String) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(distance = distance))
@@ -277,6 +278,7 @@ class TourScreenViewModel @Inject constructor(
             endLat = currentCameraPosition.latitude,
             endLon = currentCameraPosition.longitude
         )
+        val minimalDistanceInMeters = 30 //between two sequential locations, for map move animation
         return distance > minimalDistanceInMeters
     }
 
@@ -331,6 +333,7 @@ class TourScreenViewModel @Inject constructor(
         textInputJob = viewModelScope.launch {
             delay(300)
             job?.cancel()
+            if (query.length < 3) return@launch
             if(showInDialog) {
                 locationAutofillDialog.clear()
             }
@@ -420,13 +423,15 @@ class TourScreenViewModel @Inject constructor(
     private suspend fun setLocationsLatLng() {
         var startLocationLatLng = LatLng(0.0,0.0)
         var endLocationLatLng = LatLng(0.0,0.0)
+        val invalidLocation = LatLng(0.0,0.0)
+
         val job = listOf(
             viewModelScope.launch {
-                val result = findLocationLatLng(uiState.tourDetails.startLocation.id) ?: return@launch
+                val result = findLocationLatLng(uiState.tourDetails.origin.id) ?: return@launch
                 startLocationLatLng = result
             },
             viewModelScope.launch {
-                val result = findLocationLatLng(uiState.tourDetails.endLocation.id) ?: return@launch
+                val result = findLocationLatLng(uiState.tourDetails.destination.id) ?: return@launch
                 endLocationLatLng = result
             }
         )
@@ -436,17 +441,17 @@ class TourScreenViewModel @Inject constructor(
         if (endLocationLatLng == invalidLocation) return
 
         var place = elfak.mosis.tourguide.domain.models.Place(
-            uiState.tourDetails.startLocation.id,
-            uiState.tourDetails.startLocation.address,
+            uiState.tourDetails.origin.id,
+            uiState.tourDetails.origin.address,
             startLocationLatLng
         )
-        setStartLocation(place)
+        setOrigin(place)
         place = elfak.mosis.tourguide.domain.models.Place(
-            uiState.tourDetails.endLocation.id,
-            uiState.tourDetails.endLocation.address,
+            uiState.tourDetails.destination.id,
+            uiState.tourDetails.destination.address,
             endLocationLatLng
         )
-        setEndLocation(place)
+        setDestination(place)
     }
 
     private suspend fun findLocationLatLng(placeId: String): LatLng? {

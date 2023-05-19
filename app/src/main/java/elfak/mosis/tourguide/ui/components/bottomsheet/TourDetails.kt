@@ -20,7 +20,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.runtime.Composable
@@ -82,11 +81,11 @@ fun TourDetailsEditMode(
     var openDialog by remember { mutableStateOf(false) }
 
     // this could be route data class
-    var startLocationSet by remember {
-        mutableStateOf( tourDetails.startLocation.id.isNotBlank() )
+    var originSet by remember {
+        mutableStateOf( tourDetails.origin.id.isNotBlank() )
     }
-    var endLocationSet by remember {
-        mutableStateOf( tourDetails.endLocation.id.isNotBlank() )
+    var destinationSet by remember {
+        mutableStateOf( tourDetails.destination.id.isNotBlank() )
     }
 
     if (openDialog) {
@@ -97,14 +96,14 @@ fun TourDetailsEditMode(
             },
             onPlaceClick = { place ->
                 if (locationInput == "Start") {
-                    tourDetails.onStartLocationChanged(Place(place.placeId, place.address))
-                    startLocationSet = true
+                    tourDetails.onOriginChanged(Place(place.placeId, place.address))
+                    originSet = true
                 }
                 else {
-                    tourDetails.onEndLocationChanged(Place(place.placeId, place.address))
-                    endLocationSet = true
+                    tourDetails.onDestinationChanged(Place(place.placeId, place.address))
+                    destinationSet = true
                 }
-                if(startLocationSet && endLocationSet) {
+                if(originSet && destinationSet) {
                     tourDetails.onBothLocationsSet(true)
                 }
                 openDialog = false
@@ -197,19 +196,19 @@ fun TourDetailsContainer(
                             modifier = Modifier
                                 .widthIn(max = 280.dp)
                                 .clickable { chooseLocation("Start") },
-                            text = tourDetails.startLocation.address,
-                            placeholder = stringResource(id = R.string.start_location),
+                            text = tourDetails.origin.address,
+                            placeholder = stringResource(id = R.string.origin),
                             enabled = false,
                             onTextChanged = {
-                                tourDetails.onStartLocationChanged(Place("",it, LatLng(0.0,0.0)))
+                                tourDetails.onOriginChanged(Place("",it, LatLng(0.0,0.0)))
                             },
                             trailingIcon = {
-                                if(tourDetails.startLocation.id.isBlank()) return@TransparentTextField
+                                if(tourDetails.origin.id.isBlank()) return@TransparentTextField
                                 CancelIcon(onClick = {
                                     onCancelIconClick(
                                         tourDetails = tourDetails,
                                         clearInput = {
-                                            tourDetails.onStartLocationChanged(Place())
+                                            tourDetails.onOriginChanged(Place())
                                         }
                                     )
                                 })
@@ -230,19 +229,19 @@ fun TourDetailsContainer(
                             modifier = Modifier
                                 .widthIn(max = 280.dp)
                                 .clickable { chooseLocation("End") },
-                            text = tourDetails.endLocation.address,
-                            placeholder = stringResource(id = R.string.end_location),
+                            text = tourDetails.destination.address,
+                            placeholder = stringResource(id = R.string.destination),
                             enabled = false,
                             onTextChanged = {
-                                tourDetails.onEndLocationChanged(Place("",it, LatLng(0.0,0.0)))
+                                tourDetails.onDestinationChanged(Place("",it, LatLng(0.0,0.0)))
                             },
                             trailingIcon = {
-                                if(tourDetails.endLocation.id.isBlank()) return@TransparentTextField
+                                if(tourDetails.destination.id.isBlank()) return@TransparentTextField
                                 CancelIcon(onClick = {
                                     onCancelIconClick(
                                         tourDetails = tourDetails,
                                         clearInput = {
-                                            tourDetails.onEndLocationChanged(Place())
+                                            tourDetails.onDestinationChanged(Place())
                                         }
                                     )
                                 })

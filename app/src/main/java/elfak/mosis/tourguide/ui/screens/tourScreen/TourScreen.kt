@@ -32,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -39,9 +40,8 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.android.gms.maps.model.Dash
-import com.google.android.gms.maps.model.Dot
-import com.google.android.gms.maps.model.Gap
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.RoundCap
 import com.google.maps.android.compose.CameraMoveStartedReason
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
@@ -51,6 +51,7 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.domain.helper.BitmapHelper
 import elfak.mosis.tourguide.ui.components.bottomsheet.TourDetails
 import elfak.mosis.tourguide.ui.components.maps.ListOfPlaces
 import elfak.mosis.tourguide.ui.components.maps.LocationState
@@ -59,6 +60,8 @@ import elfak.mosis.tourguide.ui.components.maps.SearchField
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
+import elfak.mosis.tourguide.ui.theme.RouteBlue
+import elfak.mosis.tourguide.ui.theme.RouteBorderBlue
 import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.launch
 
@@ -225,7 +228,7 @@ fun TourScreen(
             ) {
                 // my location
                 Marker(
-                    icon = viewModel.bitmapHelper.bitmapDescriptorFromVector(
+                    icon = BitmapHelper.bitmapDescriptorFromVector(
                         context,
                         R.drawable.my_location
                     ),
@@ -243,10 +246,27 @@ fun TourScreen(
                         bottomSheetScaffoldState.bottomSheetState.collapse()
                         viewModel.setRouteChanged(false)
                     }
-                    val pattern = listOf(Dot(), Gap(20f), Dash(30f), Gap(20f))
+//                    val pattern = listOf(Dot(), Gap(10f)) // pattern for walking mode
+                    //border of the route
                     Polyline(
                         points = viewModel.uiState.tourDetails.polylinePoints,
-                        pattern = pattern
+//                        pattern = pattern
+                        color = RouteBorderBlue,
+                        width = 25f,
+                        startCap = RoundCap(),
+                        endCap = RoundCap()
+                    )
+                    //route
+                    Polyline(
+                        points = viewModel.uiState.tourDetails.polylinePoints,
+//                        pattern = pattern
+                        color = RouteBlue,
+                        width = 15f,
+                        startCap = RoundCap(),
+                        endCap = RoundCap()
+                    )
+                    Marker(
+                        state = MarkerState(position = viewModel.uiState.tourDetails.destination.location),
                     )
                  }
             }

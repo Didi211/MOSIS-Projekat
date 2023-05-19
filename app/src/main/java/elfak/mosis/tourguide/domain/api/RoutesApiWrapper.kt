@@ -12,7 +12,6 @@ import javax.inject.Singleton
 class RoutesApiWrapper @Inject constructor(
     private val apiService: GoogleRoutesApi
 ) {
-    var headers: MutableMap<String, String> = mutableMapOf("X-Goog-Api-Key" to BuildConfig.MAPS_API_KEY)
 
     suspend fun getRoute(origin: String, destination: String): RouteResponse? {
         return try {
@@ -20,17 +19,7 @@ class RoutesApiWrapper @Inject constructor(
                 origin = Waypoint(origin),
                 destination = Waypoint(destination)
             )
-
-            // this could be added as categories
-            val fields = listOf(
-                "routes.duration",
-                "routes.distanceMeters",
-                "routes.polyline.encodedPolyline",
-                "routes.viewport"
-            ).joinToString(",")
-            headers["X-Goog-FieldMask"] = fields
-
-            apiService.getRoute(headers, request)
+            apiService.getRouteAPI(request)
 
         } catch (ex: Exception) {
             ex.printStackTrace()

@@ -9,11 +9,11 @@ data class TourDetails(
     var summary: String = "",
     var onSummaryChanged: (String) -> Unit = { },
 
-    var startLocation: Place = Place("","Start location",LatLng(0.0,0.0)),
-    var onStartLocationChanged: (Place) -> Unit = { },
+    var origin: Place = Place("","Start location",LatLng(0.0,0.0)),
+    var onOriginChanged: (Place) -> Unit = { },
 
-    var endLocation: Place = Place("","End location",LatLng(0.0,0.0)),
-    var onEndLocationChanged: (Place) -> Unit = { },
+    var destination: Place = Place("","End location",LatLng(0.0,0.0)),
+    var onDestinationChanged: (Place) -> Unit = { },
 
     var distance: String = "",
     var onDistanceChanged: (String) -> Unit = { },
@@ -31,8 +31,8 @@ data class TourDetails(
         return this.copy(
             title = "",
             summary = "",
-            startLocation = startLocation.clear(),
-            endLocation = endLocation.clear(),
+            origin = origin.clear(),
+            destination = destination.clear(),
             distance = "",
             time = "",
             bothLocationsSet = false,

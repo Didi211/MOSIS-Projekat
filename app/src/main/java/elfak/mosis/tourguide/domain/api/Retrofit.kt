@@ -7,14 +7,11 @@ import javax.inject.Singleton
 @Singleton
 class RetrofitClient() {
     companion object {
-        //https://routes.googleapis.com/directions/v2:computeRoutes
-        private const val GOOGLE_API_BASE_URL = "https://routes.googleapis.com/"
-//        private const val GOOGLE_API_BASE_URL = "https://catfact.ninja/"
-        private const val GOOGLE_API_VERSION = "v2"
+        private const val TOUR_GUIDE_API = "https://tour-guide-api-uc2wu.ondigitalocean.app/"
 
         fun googleRoutesApiClient(): Retrofit  {
             return Retrofit.Builder()
-                .baseUrl(GOOGLE_API_BASE_URL)
+                .baseUrl(TOUR_GUIDE_API)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
         }
