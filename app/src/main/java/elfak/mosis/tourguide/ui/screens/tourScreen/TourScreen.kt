@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalPermissionsApi::class, ExperimentalPermissionsApi::class,
-    ExperimentalAnimationApi::class)
+    ExperimentalAnimationApi::class, ExperimentalMaterialApi::class
+)
 
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
@@ -7,14 +8,8 @@ import android.content.Context
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
@@ -22,33 +17,29 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.google.accompanist.permissions.*
-import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.RoundCap
 import com.google.maps.android.compose.*
 import elfak.mosis.tourguide.R
-import elfak.mosis.tourguide.ui.InputTypes
-import elfak.mosis.tourguide.ui.components.BasicInputComponent
+import elfak.mosis.tourguide.domain.helper.BitmapHelper
+import elfak.mosis.tourguide.ui.components.bottomsheet.TourDetails
+import elfak.mosis.tourguide.ui.components.maps.ListOfPlaces
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import elfak.mosis.tourguide.ui.components.maps.MyLocationButton
+import elfak.mosis.tourguide.ui.components.maps.SearchField
+import elfak.mosis.tourguide.ui.components.scaffold.MenuViewModel
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
+import elfak.mosis.tourguide.ui.theme.RouteBlue
+import elfak.mosis.tourguide.ui.theme.RouteBorderBlue
 import es.dmoral.toasty.Toasty
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -110,9 +101,8 @@ fun TourScreen(
         // menu content
         drawerContent = {
             TourGuideNavigationDrawer(
-                coroutineScope = coroutineScope,
-                scaffoldState = bottomSheetScaffoldState
-                // menuItems
+                navController = navController,
+                menuViewModel = menuViewModel
             )
         },
         drawerGesturesEnabled = bottomSheetScaffoldState.drawerState.isOpen,

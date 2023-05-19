@@ -73,7 +73,7 @@ class TourScreenViewModel @Inject constructor(
                     if(origin == destination) return@launch // notify user that it is the same location
                     val result = routesApiWrapper.getRoute(origin, destination)
                     // null checking if error has happened
-                    if(result == null || result.routes == null) return@launch
+                    if(result?.routes == null) return@launch
                     val route = result.routes[0]
                     decodePolyline(route.polyline.encodedPolyline)
                     if (isLocated()) {
@@ -475,8 +475,6 @@ class TourScreenViewModel @Inject constructor(
         changeSearchValue("")
         locationAutofill.clear()
         setSearchBarVisibility(false)
-//        setKeyboardVisibility(false)
-
     }
 
     //endregion

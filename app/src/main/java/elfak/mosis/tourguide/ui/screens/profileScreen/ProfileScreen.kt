@@ -27,7 +27,7 @@ fun ProfileScreen(navController: NavController){
         // top navigation bar with menu button
         topBar = {
             TourGuideTopAppBar(
-                title = stringResource(id = R.string.home),
+                title = stringResource(id = R.string.profile),
                 scaffoldState = scaffoldState,
                 coroutineScope = coroutineScope
             )

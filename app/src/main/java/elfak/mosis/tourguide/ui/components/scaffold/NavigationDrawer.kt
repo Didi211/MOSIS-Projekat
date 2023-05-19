@@ -2,22 +2,12 @@
 
 package elfak.mosis.tourguide.ui.components.scaffold
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.BottomSheetScaffoldState
-import androidx.compose.material.Button
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ScaffoldState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.colors
@@ -31,6 +21,8 @@ import androidx.compose.material.icons.rounded.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -194,34 +186,32 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
 
 }
 
-@Composable
-fun TourGuideNavigationDrawer(
-    coroutineScope: CoroutineScope,
-    scaffoldState: BottomSheetScaffoldState,
-    // content
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // text
-        Text(text = "Your UI Here")
-
-        // gap between text and button
-        Spacer(modifier = Modifier.height(height = 32.dp))
-
-        // button
-        Button(onClick = {
-            // close the drawer
-            coroutineScope.launch {
-                scaffoldState.drawerState.close()
-            }
-        }) {
-            Text(text = "Close Drawer")
-        }
-    }
-}
+//@Composable
+//fun TourGuideNavigationDrawer(
+//    // content
+//) {
+//    Column(
+//        modifier = Modifier.fillMaxSize(),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        // text
+//        Text(text = "Your UI Here")
+//
+//        // gap between text and button
+//        Spacer(modifier = Modifier.height(height = 32.dp))
+//
+//        // button
+//        Button(onClick = {
+//            // close the drawer
+//            coroutineScope.launch {
+//                scaffoldState.drawerState.close()
+//            }
+//        }) {
+//            Text(text = "Close Drawer")
+//        }
+//    }
+//}
 
 data class MenuData(
     val menuIcon: ImageVector,

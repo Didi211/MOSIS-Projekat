@@ -33,13 +33,6 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
                 viewModel = viewModel,
                 navController = navController
             )
-//            TourScreen(
-//                navigateToWelcome = {
-//                    navController.navigate(Screen.WelcomeScreen.route) {
-//                        popUpTo(Screen.Main.route) { inclusive = true }
-//                    }
-//                }
-//            )
         }
         composable(Screen.NotificationScreen.route){
             NotificationScreen(
