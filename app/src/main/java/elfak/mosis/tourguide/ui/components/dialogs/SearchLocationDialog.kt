@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -29,6 +30,7 @@ fun SearchLocationDialog(
     searchForPlaces: (String) -> Unit = { }
 ) {
     var text by remember { mutableStateOf("")}
+    val focusManager = LocalFocusManager.current
     Dialog(
         onDismissRequest = onDismiss
     ) {
@@ -41,7 +43,10 @@ fun SearchLocationDialog(
         ) {
             ListOfPlaces(
                 placesList = placesList,
-                onPlaceClick = onPlaceClick,
+                onPlaceClick = { place ->
+                    onPlaceClick(place)
+                    focusManager.clearFocus()
+                },
             )
             SearchField(
                 onSearch = { },

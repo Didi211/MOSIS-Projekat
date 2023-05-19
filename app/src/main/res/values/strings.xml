@@ -54,4 +54,5 @@
     <string name="category">Category</string>
     <string name="search_holder">Eg. Rome, Italy</string>
     <string name="place_not_selected">Nothing was selected.</string>
+    <string name="profile">Profile</string>
 </resources>
