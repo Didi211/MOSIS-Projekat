@@ -20,6 +20,7 @@ import elfak.mosis.tourguide.domain.api.RetrofitClient
 import elfak.mosis.tourguide.domain.api.RoutesApiWrapper
 import elfak.mosis.tourguide.domain.helper.BitmapHelper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
+import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
 import retrofit2.Retrofit
 import javax.inject.Singleton
@@ -60,6 +61,8 @@ object AppModule {
     ) : LocationHelper =  LocationHelper(context, fusedLocationProviderClient)
 
 
+    @Provides
+    fun provideSessionTokenSingleton(): SessionTokenSingleton = SessionTokenSingleton()
 
     @Provides
     fun providePlacesClient(@ApplicationContext context: Context): PlacesClient = Places.createClient(context)

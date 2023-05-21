@@ -22,6 +22,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.domain.api.RoutesApiWrapper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
+import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
 import elfak.mosis.tourguide.domain.models.google.Viewport
 import elfak.mosis.tourguide.ui.components.maps.LocationState
@@ -41,7 +42,8 @@ class TourScreenViewModel @Inject constructor(
     private val locationHelper: LocationHelper,
     private val placesClient: PlacesClient,
     private val routesApiWrapper: RoutesApiWrapper,
-    private val convertor: UnitConvertor
+    private val convertor: UnitConvertor,
+    private val sessionTokenSingleton: SessionTokenSingleton,
 ): ViewModel() {
     var uiState by mutableStateOf(TourScreenUiState())
         private set
@@ -329,11 +331,11 @@ class TourScreenViewModel @Inject constructor(
     }
 
     fun findPlacesFromInput(query: String, showInDialog: Boolean = false) {
+        if (query.length < 3) return
         textInputJob?.cancel()
         textInputJob = viewModelScope.launch {
-            delay(300)
+            delay(500)
             job?.cancel()
-            if (query.length < 3) return@launch
             if(showInDialog) {
                 locationAutofillDialog.clear()
             }
@@ -350,6 +352,7 @@ class TourScreenViewModel @Inject constructor(
         val request = FindAutocompletePredictionsRequest
             .builder()
             .setQuery(query)
+            .setSessionToken(sessionTokenSingleton.token)
             .build()
         // call api to find places
         try {
@@ -399,7 +402,9 @@ class TourScreenViewModel @Inject constructor(
 
     fun searchOnMap() {
         val placeFields = listOf(Place.Field.LAT_LNG)
-        val request = FetchPlaceRequest.newInstance(this.chosenLocation.placeId, placeFields)
+        val request = FetchPlaceRequest.builder(this.chosenLocation.placeId, placeFields)
+            .setSessionToken(sessionTokenSingleton.token)
+            .build()
         // find coordinates based on placeId
         placesClient.fetchPlace(request)
             .addOnSuccessListener {
@@ -413,6 +418,7 @@ class TourScreenViewModel @Inject constructor(
                     viewModelScope.launch {
                         onLocationChanged()
                     }
+                    sessionTokenSingleton.invalidateToken()
                 }
             }
             .addOnFailureListener {
