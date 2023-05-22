@@ -11,16 +11,19 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddLocation
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 
 @Composable
 fun ButtonComponent(text: String, width: Dp, onClick: () -> Unit) {
@@ -55,6 +58,25 @@ fun SaveButton(onClick: () -> Unit = { }) {
                 .size(30.dp),
             tint = MaterialTheme.colors.onPrimary
         )
+    }
+}
+
+@Composable
+fun AddToTourButton(onClick: () -> Unit = { }) {
+    Button(
+        modifier = Modifier.width(100.dp),
+        shape = RoundedCornerShape(30.dp),
+        contentPadding = PaddingValues(top = 10.dp, start = 4.dp, end = 10.dp, bottom = 10.dp),
+        onClick = onClick
+    ) {
+        Icon(
+            Icons.Filled.AddLocation,
+            stringResource(id = R.string.add),
+            modifier = Modifier
+                .size(30.dp),
+            tint = MaterialTheme.colors.onPrimary
+        )
+        Text(stringResource(id = R.string.add))
     }
 }
 @Composable
@@ -93,4 +115,3 @@ fun EditButton(onClick: () -> Unit = { }) {
         )
     }
 }
-

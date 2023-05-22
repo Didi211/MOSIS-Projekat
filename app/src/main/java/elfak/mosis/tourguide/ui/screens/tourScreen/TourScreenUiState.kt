@@ -3,6 +3,7 @@ package elfak.mosis.tourguide.ui.screens.tourScreen
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
+import elfak.mosis.tourguide.data.models.PlaceDetails
 import elfak.mosis.tourguide.domain.models.DeviceSettings
 import elfak.mosis.tourguide.domain.models.TourDetails
 import elfak.mosis.tourguide.ui.components.maps.LocationState
@@ -26,6 +27,8 @@ data class TourScreenUiState(
 
     val tourDetails: TourDetails = TourDetails(),
     val tourState: TourState = TourState.CREATING,
+
+    val placeDetails: PlaceDetails = PlaceDetails(),
 
     val deviceSettings: DeviceSettings = DeviceSettings(),
 

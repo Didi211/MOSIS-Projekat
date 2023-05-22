@@ -28,6 +28,7 @@ import com.google.android.gms.maps.model.RoundCap
 import com.google.maps.android.compose.*
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.helper.BitmapHelper
+import elfak.mosis.tourguide.ui.components.bottomsheet.PlaceDetails
 import elfak.mosis.tourguide.ui.components.bottomsheet.TourDetails
 import elfak.mosis.tourguide.ui.components.maps.ListOfPlaces
 import elfak.mosis.tourguide.ui.components.maps.LocationState
@@ -79,18 +80,36 @@ fun TourScreen(
 
     BottomSheetScaffold(
         sheetContent = {
-            TourDetails(
-                state = viewModel.uiState.tourState,
-                tourDetails = viewModel.uiState.tourDetails,
-                onSave = { viewModel.setTourState(TourState.VIEWING) },
-                onEdit = { viewModel.setTourState(TourState.EDITING) },
-                onCancel = { viewModel.setTourState(TourState.VIEWING) },
-                placesList = viewModel.locationAutofillDialog,
-                searchForPlaces = { query ->
-                    viewModel.findPlacesFromInput(query, true)
-                },
+            AnimatedContent(targetState = viewModel.uiState.tourScreenState) { state ->
+                when (state) {
+                    TourScreenState.TOUR_DETAILS -> TourDetails(
+                        state = viewModel.uiState.tourState,
+                        tourDetails = viewModel.uiState.tourDetails,
+                        onSave = { viewModel.setTourState(TourState.VIEWING) },
+                        onEdit = { viewModel.setTourState(TourState.EDITING) },
+                        onCancel = { viewModel.setTourState(TourState.VIEWING) },
+                        placesList = viewModel.locationAutofillDialog,
+                        searchForPlaces = { query ->
+                            viewModel.findPlacesFromInput(query, true)
+                        },
+                    )
+                    TourScreenState.PLACE_DETAILS -> PlaceDetails(
+                        placeDetails = viewModel.uiState.placeDetails,
+                        onCancel = {
+                            viewModel.setTourScreenState(TourScreenState.TOUR_DETAILS)
+                            viewModel.setSearchFlag(false)
+                        },
+                        onAddToTour = { place ->
+                            viewModel.setDestination(place)
+                            viewModel.setTourScreenState(TourScreenState.TOUR_DETAILS)
+                            viewModel.setSearchFlag(false)
 
-        ) },
+                        }
+                    )
+
+                }
+            }
+        },
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
         scaffoldState = bottomSheetScaffoldState,
 //        sheetBackgroundColor = MaterialTheme.colors.background,

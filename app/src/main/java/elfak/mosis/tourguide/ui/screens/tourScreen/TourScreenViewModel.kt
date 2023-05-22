@@ -1,6 +1,5 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
-import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -8,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -20,10 +18,12 @@ import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRe
 import com.google.android.libraries.places.api.net.PlacesClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
+import elfak.mosis.tourguide.data.models.PlaceDetails
 import elfak.mosis.tourguide.domain.api.RoutesApiWrapper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
+import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Viewport
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
@@ -32,12 +32,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
-@SuppressLint("MissingPermission")
-
 class TourScreenViewModel @Inject constructor(
     private val locationHelper: LocationHelper,
     private val placesClient: PlacesClient,
@@ -48,7 +45,7 @@ class TourScreenViewModel @Inject constructor(
     var uiState by mutableStateOf(TourScreenUiState())
         private set
 
-    private var chosenLocation by mutableStateOf(PlaceAutocompleteResult("",""))
+//    private var chosenLocation by mutableStateOf(PlaceAutocompleteResult("",""))
     val locationAutofill = mutableStateListOf<PlaceAutocompleteResult>()
     val locationAutofillDialog = mutableStateListOf<PlaceAutocompleteResult>()
 
@@ -72,19 +69,29 @@ class TourScreenViewModel @Inject constructor(
                     val origin = uiState.tourDetails.origin.id
                     val destination = uiState.tourDetails.destination.id
                     // TODO -  handle errors
-                    if(origin == destination) return@launch // notify user that it is the same location
-                    val result = routesApiWrapper.getRoute(origin, destination)
-                    // null checking if error has happened
-                    if(result?.routes == null) return@launch
-                    val route = result.routes[0]
-                    decodePolyline(route.polyline.encodedPolyline)
-                    if (isLocated()) {
-                        changeLocationState(LocationState.LocationOn)
+                    var result: RouteResponse? = null
+                    try {
+                        if(origin == destination) {
+                            throw Exception("Origin and destination can't be the same for creating a tour!")
+                        }
+                        result = routesApiWrapper.getRoute(origin, destination)
+                        // null checking if error has happened
+                        if(result?.routes == null) {
+                            throw Exception("Couldn't find route.")
+                        }
+                        val route = result.routes[0]
+                        decodePolyline(route.polyline.encodedPolyline)
+                        if (isLocated()) {
+                            changeLocationState(LocationState.LocationOn)
+                        }
+                        setRouteChanged(true)
+                        moveCameraWithBounds(route.viewport)
+                        setDistance(convertor.formatDistance(route.distanceMeters))
+                        setTime(convertor.formatTime(route.duration))
                     }
-                    setRouteChanged(true)
-                    moveCameraForRoute(route.viewport)
-                    formatDistance(route.distanceMeters)
-                    formatTime(route.duration)
+                    catch(ex: Exception) {
+                        uiState = uiState.copy(hasErrors = true, errorMessage = ex.message ?: "Error occurred")
+                    }
 
                 }
             }
@@ -107,10 +114,10 @@ class TourScreenViewModel @Inject constructor(
     private fun setSummary(summary: String) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(summary = summary))
     }
-    private fun setOrigin(origin: elfak.mosis.tourguide.domain.models.Place) {
+    fun setOrigin(origin: elfak.mosis.tourguide.domain.models.Place) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(origin = origin))
     }
-    private fun setDestination(destination: elfak.mosis.tourguide.domain.models.Place) {
+    fun setDestination(destination: elfak.mosis.tourguide.domain.models.Place) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(destination = destination))
     }
     fun setDistance(distance: String) {
@@ -126,29 +133,7 @@ class TourScreenViewModel @Inject constructor(
         uiState = uiState.copy(tourDetails = uiState.tourDetails.clear())
     }
 
-    private fun formatDistance(distance: Int) {
-        if(distance > 1000) {
-            val distanceKm = convertor.metersToKilometers(distance)
-            setDistance("$distanceKm km")
-        }
-        else {
-            setDistance("$distance m")
-        }
-    }
-    private fun formatTime(time: String) {
-        val timeExtracted = convertor.extractIntTimeFromString(time)
-        if (timeExtracted < 3600) {
-            val timeConverted = convertor.secondsToMinutes(timeExtracted)
-            setTime("$timeConverted min")
-        }
-        else if(timeExtracted == 3600) {
-            setTime("1 hr")
-        }
-        else {
-            val timeConverted = convertor.secondsToMinutesAndHours(timeExtracted)
-            setTime("${timeConverted.first} hr ${timeConverted.second} min")
-        }
-    }
+
 
     private fun decodePolyline(encodedPolyline: String) {
         val decodedPolyline = locationHelper.decodePolyline(encodedPolyline)
@@ -197,6 +182,10 @@ class TourScreenViewModel @Inject constructor(
         return uiState.locationState == LocationState.Located
     }
 
+    fun clearErrorMessage() {
+        uiState = uiState.copy(hasErrors = false)
+    }
+
     //endregion
 
     //region LOCATION HELPER WRAPPER
@@ -220,9 +209,7 @@ class TourScreenViewModel @Inject constructor(
         }
     }
 
-    fun createLocationPermissions(): List<String> {
-        return locationHelper.createLocationPermissions()
-    }
+
 
 
     fun startLocationUpdates() {
@@ -248,11 +235,7 @@ class TourScreenViewModel @Inject constructor(
         return allowed
     }
 
-    fun checkGps(): Boolean {
-        val status = locationHelper.isGpsOn()
-        setGps(status)
-        return status
-    }
+
 
     //endregion
 
@@ -287,6 +270,14 @@ class TourScreenViewModel @Inject constructor(
     private fun moveCamera() {
         viewModelScope.launch {
             try {
+//                if(uiState.placeDetails.viewport != null) {
+//                    val bounds = uiState.placeDetails.viewport!!
+//                    uiState.cameraPositionState.animate(
+//                        CameraUpdateFactory.newLatLngBounds(bounds,50),1500
+//                    )
+//                    return@launch
+//                }
+
                 // keeping the zoom level the same if it is zoomed enough
                 val zoom = if (uiState.cameraPositionState.position.zoom < 12) 14f else uiState.cameraPositionState.position.zoom
                 uiState.cameraPositionState.animate(
@@ -303,14 +294,14 @@ class TourScreenViewModel @Inject constructor(
             }
         }
     }
-    private fun moveCameraForRoute(viewport: Viewport) {
+    private fun moveCameraWithBounds(viewport: Viewport) {
         viewModelScope.launch {
             try {
                 val southwest = LatLng(viewport.low.latitude, viewport.low.longitude)
                 val northeast = LatLng(viewport.high.latitude, viewport.high.longitude)
                 val bounds = LatLngBounds(southwest, northeast)
                 uiState.cameraPositionState.animate(
-                    CameraUpdateFactory.newLatLngBounds(bounds,50),1500
+                    CameraUpdateFactory.newLatLngBounds(bounds,150),1500
                 )
             }
             catch (e: Exception) {
@@ -325,9 +316,14 @@ class TourScreenViewModel @Inject constructor(
 
     //region SEARCH LOCATION
     fun onSearchPlaceCLick(place: PlaceAutocompleteResult) {
-        chooseLocation(place)
-        searchOnMap()
+        changeSearchValue(place.address)
+        searchOnMap(place.placeId)
+        setTourScreenState(TourScreenState.PLACE_DETAILS)
         clearSearchBar()
+    }
+
+    fun setTourScreenState(state: TourScreenState) {
+        uiState = uiState.copy(tourScreenState = state)
     }
 
     fun findPlacesFromInput(query: String, showInDialog: Boolean = false) {
@@ -391,18 +387,20 @@ class TourScreenViewModel @Inject constructor(
     }
 
     // choose location from given list
-    private fun chooseLocation(location: PlaceAutocompleteResult) {
-        chosenLocation =  chosenLocation.copy(
-            address = location.address,
-            placeId = location.placeId
-        )
-        locationAutofill.clear()
-        changeSearchValue(location.address)
-    }
 
-    fun searchOnMap() {
-        val placeFields = listOf(Place.Field.LAT_LNG)
-        val request = FetchPlaceRequest.builder(this.chosenLocation.placeId, placeFields)
+
+    fun searchOnMap(placeId: String? = null) {
+        if (placeId == null) return
+        val placeFields = listOf(
+            Place.Field.LAT_LNG,
+            Place.Field.ADDRESS,
+            Place.Field.NAME,
+            Place.Field.TYPES,
+            Place.Field.RATING,
+            Place.Field.ICON_URL,
+            Place.Field.VIEWPORT
+        )
+        val request = FetchPlaceRequest.builder(placeId, placeFields)
             .setSessionToken(sessionTokenSingleton.token)
             .build()
         // find coordinates based on placeId
@@ -410,13 +408,15 @@ class TourScreenViewModel @Inject constructor(
             .addOnSuccessListener {
                 if (it != null) {
                     changeSearchedLocation(it.place.latLng!!)
+                    changePlaceDetails(placeId, it.place)
                     if (isLocated()) {
                         changeLocationState(LocationState.LocationOn)
                     }
                     setSearchFlag(true)
                     // call animation
                     viewModelScope.launch {
-                        onLocationChanged()
+//                        onLocationChanged()
+                        moveCameraWithBounds(Viewport(it.place.viewport!!.southwest, it.place.viewport!!.northeast))
                     }
                     sessionTokenSingleton.invalidateToken()
                 }
@@ -425,6 +425,8 @@ class TourScreenViewModel @Inject constructor(
                 it.printStackTrace()
             }
     }
+
+
 
     private suspend fun setLocationsLatLng() {
         var startLocationLatLng = LatLng(0.0,0.0)
@@ -493,7 +495,22 @@ class TourScreenViewModel @Inject constructor(
     private fun setLocationPermissionStatus(status: Boolean) {
         uiState = uiState.copy(deviceSettings = uiState.deviceSettings.copy(locationPermissionAllowed = status))
     }
+    fun createLocationPermissions(): List<String> {
+        return locationHelper.createLocationPermissions()
+    }
+    fun checkGps(): Boolean {
+        val status = locationHelper.isGpsOn()
+        setGps(status)
+        return status
+    }
     //endregion
 
+    //region PlaceDetails
+    private fun changePlaceDetails(id: String, place: Place) {
+        uiState = uiState.copy(placeDetails = PlaceDetails.convert(place))
+        uiState = uiState.copy(placeDetails = uiState.placeDetails.copy(id = id))
+    }
+
+    //endregion
 
 }

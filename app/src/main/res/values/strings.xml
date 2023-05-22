@@ -47,12 +47,13 @@
     <string name="permission_not_allowed">App needs location permissions in order to function properly.</string>
     <string name="permission_denied_twice">Permissions have been denied more than twice. Please allow them in settings.</string>
     <string name="location_needed">App needs GPS enabled to find your location.</string>
-
+    <string name="my_location">My location</string>
     <!--  search box  -->
     <string name="add_checkpoint">ADD NEW CHECKPOINT</string>
     <string name="search_in_radius">Search in radius: </string>
     <string name="category">Category</string>
     <string name="search_holder">Eg. Rome, Italy</string>
+    <string name="search_holder2">Eg. Paris, France</string>
     <string name="place_not_selected">Nothing was selected.</string>
     <string name="profile">Profile</string>
 </resources>
