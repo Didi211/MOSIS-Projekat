@@ -20,7 +20,7 @@ data class TourScreenUiState(
     var showSearchBar: Boolean = false,
 
     var cameraPositionState: CameraPositionState = CameraPositionState(
-        position = CameraPosition(currentLocation,  10f, 0f, 0f)
+        position = CameraPosition(currentLocation, 10f, 0f, 0f)
     ),
     var routeChanged: Boolean = false,
 
@@ -29,6 +29,10 @@ data class TourScreenUiState(
 
     val deviceSettings: DeviceSettings = DeviceSettings(),
 
+    val tourScreenState: TourScreenState = TourScreenState.TOUR_DETAILS,
+
+    var hasErrors: Boolean = false,
+    var errorMessage: String = ""
     )
 
 

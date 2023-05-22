@@ -1,5 +1,5 @@
-@file:OptIn(ExperimentalPermissionsApi::class, ExperimentalPermissionsApi::class,
-    ExperimentalAnimationApi::class, ExperimentalMaterialApi::class
+@file:OptIn(ExperimentalMaterialApi::class, ExperimentalPermissionsApi::class,
+    ExperimentalAnimationApi::class
 )
 
 package elfak.mosis.tourguide.ui.screens.tourScreen
@@ -42,7 +42,6 @@ import elfak.mosis.tourguide.ui.theme.RouteBorderBlue
 import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun TourScreen(
     viewModel: TourScreenViewModel,
@@ -51,7 +50,7 @@ fun TourScreen(
     val menuViewModel = hiltViewModel<MenuViewModel>()
     val context = LocalContext.current
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(BottomSheetValue.Expanded),
+        bottomSheetState = rememberBottomSheetState(BottomSheetValue.Collapsed),
     )
     val coroutineScope = rememberCoroutineScope()
     var permissionAlreadyRequested by rememberSaveable {
@@ -70,6 +69,11 @@ fun TourScreen(
 
     if(bottomSheetScaffoldState.bottomSheetState.isExpanded) {
         viewModel.setSearchBarVisibility(false)
+    }
+
+    if (viewModel.uiState.hasErrors) {
+        Toasty.error(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_LONG, true).show()
+        viewModel.clearErrorMessage()
     }
 
 
@@ -287,5 +291,5 @@ private fun locateMe(
     // change mode to LOCATED
     viewModel.changeLocationState(LocationState.Located)
     // move camera
-    viewModel.onLocationChanged(true)
+    viewModel.onLocationChanged()
 }

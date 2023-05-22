@@ -9,10 +9,10 @@ data class TourDetails(
     var summary: String = "",
     var onSummaryChanged: (String) -> Unit = { },
 
-    var origin: Place = Place("","Start location",LatLng(0.0,0.0)),
+    var origin: Place = Place("","",LatLng(0.0,0.0)),
     var onOriginChanged: (Place) -> Unit = { },
 
-    var destination: Place = Place("","End location",LatLng(0.0,0.0)),
+    var destination: Place = Place("","",LatLng(0.0,0.0)),
     var onDestinationChanged: (Place) -> Unit = { },
 
     var distance: String = "",

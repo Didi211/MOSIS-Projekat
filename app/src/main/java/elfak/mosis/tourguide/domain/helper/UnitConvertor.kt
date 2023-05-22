@@ -24,4 +24,27 @@ class UnitConvertor {
         val intTimeString = patternString.filter { it.isDigit() }
         return intTimeString.toInt()
     }
+
+    fun formatDistance(distance: Int) : String {
+        if(distance > 1000) {
+            val distanceKm = metersToKilometers(distance)
+            return "$distanceKm km"
+        }
+        return "$distance m"
+    }
+    fun formatTime(time: String): String {
+        val timeExtracted = extractIntTimeFromString(time)
+        if (timeExtracted < 3600) {
+            val timeConverted = secondsToMinutes(timeExtracted)
+            return "$timeConverted min"
+        }
+        if(timeExtracted == 3600) {
+            return "1 hr"
+        }
+        val timeConverted = secondsToMinutesAndHours(timeExtracted)
+        return "${timeConverted.first} hr ${timeConverted.second} min"
+
+    }
+
+
 }
