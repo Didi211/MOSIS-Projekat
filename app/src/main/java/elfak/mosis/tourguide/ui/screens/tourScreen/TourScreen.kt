@@ -103,6 +103,9 @@ fun TourScreen(
                             viewModel.setDestination(place)
                             viewModel.setTourScreenState(TourScreenState.TOUR_DETAILS)
                             viewModel.setSearchFlag(false)
+                            if(viewModel.uiState.tourDetails.origin.id.isNotBlank()) {
+                                viewModel.uiState.tourDetails.onBothLocationsSet(true)
+                            }
 
                         }
                     )
@@ -223,10 +226,14 @@ fun TourScreen(
                     viewModel.startLocationUpdates()
                     viewModel.changeLocationState(LocationState.Located)
                 },
-                onMapClick = {
+                onMapClick = { latlng ->
                     viewModel.clearSearchBar()
-                }
-
+                    viewModel.findLocationId(latlng)
+                },
+                onPOIClick = { poi ->
+                    viewModel.clearSearchBar()
+                    viewModel.getPOIDetails(poi.placeId)
+                },
             ) {
                 // my location
                 Marker(

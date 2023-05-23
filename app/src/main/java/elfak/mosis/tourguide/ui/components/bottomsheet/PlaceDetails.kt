@@ -99,12 +99,14 @@ fun PlaceDetailsContainer(
                 }
             }
             if(placeDetails.rating != null) {
-                Row(Modifier.padding(vertical = 10.dp)) {
+                Row(Modifier.padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     RatingBar(
                         value = placeDetails.rating.toFloat(),
                         onValueChange = { },
                         onRatingChanged = { }
                     )
+                    Spacer(Modifier.width(5.dp))
+                    Text(text = "(${placeDetails.rating})")
                 }
             }
         }

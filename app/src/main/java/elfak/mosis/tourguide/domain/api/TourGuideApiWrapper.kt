@@ -1,6 +1,8 @@
 package elfak.mosis.tourguide.domain.api
 
 import android.util.Log
+import com.google.android.gms.maps.model.LatLng
+import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteRequest
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Waypoint
@@ -34,6 +36,17 @@ class TourGuideApiWrapper @Inject constructor(
         catch (ex: Exception) {
             ex.printStackTrace()
         }
+    }
+
+    suspend fun getPlaceId(latLng: PlaceLatLng): Waypoint? {
+        return try {
+            apiService.getPlaceId(latLng)
+        }
+        catch (ex: Exception) {
+            ex.printStackTrace()
+            null
+        }
+
     }
 
 }

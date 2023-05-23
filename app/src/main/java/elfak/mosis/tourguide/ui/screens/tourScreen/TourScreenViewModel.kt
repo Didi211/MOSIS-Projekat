@@ -23,6 +23,7 @@ import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
+import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Viewport
 import elfak.mosis.tourguide.ui.components.maps.LocationState
@@ -65,27 +66,30 @@ class TourScreenViewModel @Inject constructor(
             setBothLocationsSet(it)
             if (it) {
                 viewModelScope.launch {
-                    setLocationsLatLng()
-                    val origin = uiState.tourDetails.origin.id
-                    val destination = uiState.tourDetails.destination.id
-                    // TODO -  handle errors
-                    var result: RouteResponse? = null
                     try {
-                        if(origin == destination) {
+                        if (uiState.tourDetails.origin.id != uiState.tourDetails.destination.id) {
+                            setLocationsLatLng()
+                        }
+                        val originId = uiState.tourDetails.origin.id
+                        val destinationId = uiState.tourDetails.destination.id
+                        if(originId == destinationId) {
                             throw Exception("Origin and destination can't be the same for creating a tour!")
                         }
-                        result = tourGuideApiWrapper.getRoute(origin, destination)
+
+                        var result: RouteResponse? = tourGuideApiWrapper.getRoute(originId, destinationId)
                         // null checking if error has happened
                         if(result?.routes == null) {
                             throw Exception("Couldn't find route.")
                         }
+
                         val route = result.routes[0]
                         decodePolyline(route.polyline.encodedPolyline)
                         if (isLocated()) {
                             changeLocationState(LocationState.LocationOn)
                         }
-                        setRouteChanged(true)
                         moveCameraWithBounds(route.viewport)
+
+                        setRouteChanged(true)
                         setDistance(convertor.formatDistance(route.distanceMeters))
                         setTime(convertor.formatTime(route.duration))
                     }
@@ -305,6 +309,45 @@ class TourScreenViewModel @Inject constructor(
     //endregion
 
     //region SEARCH LOCATION
+    fun findLocationId(latLng: LatLng) {
+        //get id
+        viewModelScope.launch {
+            val place = tourGuideApiWrapper.getPlaceId(PlaceLatLng.toLatLng(latLng)) ?: return@launch
+            //get details
+            getPOIDetails(place.placeId)
+            //show details
+        }
+    }
+    fun getPOIDetails(placeId: String) {
+        val placeFields = listOf(
+            Place.Field.LAT_LNG,
+            Place.Field.ADDRESS,
+            Place.Field.ADDRESS_COMPONENTS,
+            Place.Field.NAME,
+            Place.Field.TYPES,
+            Place.Field.RATING,
+            Place.Field.ICON_URL,
+            Place.Field.VIEWPORT
+        )
+        val request = FetchPlaceRequest.builder(placeId, placeFields)
+            .setSessionToken(sessionTokenSingleton.token)
+            .build()
+        // find coordinates based on placeId
+        placesClient.fetchPlace(request)
+            .addOnSuccessListener {
+                if (it != null) {
+                    changePlaceDetails(placeId, it.place)
+                    changeSearchedLocation(it.place.latLng!!)
+                    setSearchFlag(true)
+                    setTourScreenState(TourScreenState.PLACE_DETAILS)
+                    sessionTokenSingleton.invalidateToken()
+                }
+            }
+            .addOnFailureListener {
+                it.printStackTrace()
+            }
+    }
+
     fun onSearchPlaceCLick(place: PlaceAutocompleteResult) {
         changeSearchValue(place.address)
         searchOnMap(place.placeId)
@@ -375,6 +418,7 @@ class TourScreenViewModel @Inject constructor(
             )
         }
     }
+
 
 
     fun searchOnMap(placeId: String? = null) {
