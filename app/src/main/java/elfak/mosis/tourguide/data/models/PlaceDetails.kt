@@ -27,8 +27,7 @@ data class PlaceDetails(
 }
 
 private fun formatType(type: String): String {
-    val newType = if (type == "LOCALITY") "CITY" else type
-    return newType
+    return type
         .replace('_',' ')
         .lowercase()
         .replaceFirstChar { it.uppercase() }

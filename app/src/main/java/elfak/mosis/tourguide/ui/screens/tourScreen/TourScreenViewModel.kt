@@ -19,7 +19,7 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.data.models.PlaceDetails
-import elfak.mosis.tourguide.domain.api.RoutesApiWrapper
+import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
@@ -38,7 +38,7 @@ import javax.inject.Inject
 class TourScreenViewModel @Inject constructor(
     private val locationHelper: LocationHelper,
     private val placesClient: PlacesClient,
-    private val routesApiWrapper: RoutesApiWrapper,
+    private val tourGuideApiWrapper: TourGuideApiWrapper,
     private val convertor: UnitConvertor,
     private val sessionTokenSingleton: SessionTokenSingleton,
 ): ViewModel() {
@@ -53,7 +53,7 @@ class TourScreenViewModel @Inject constructor(
     private var textInputJob: Job? = null
     init {
         viewModelScope.launch {
-            routesApiWrapper.testApi()
+            tourGuideApiWrapper.testApi()
         }
         uiState.tourDetails.onTitleChanged = { setTitle(it) }
         uiState.tourDetails.onSummaryChanged = { setSummary(it) }
@@ -74,7 +74,7 @@ class TourScreenViewModel @Inject constructor(
                         if(origin == destination) {
                             throw Exception("Origin and destination can't be the same for creating a tour!")
                         }
-                        result = routesApiWrapper.getRoute(origin, destination)
+                        result = tourGuideApiWrapper.getRoute(origin, destination)
                         // null checking if error has happened
                         if(result?.routes == null) {
                             throw Exception("Couldn't find route.")
@@ -188,7 +188,7 @@ class TourScreenViewModel @Inject constructor(
 
     //endregion
 
-    //region LOCATION HELPER WRAPPER
+    //region LOCATION HELPER
     fun setLocationCallbacks() {
         locationHelper.setOnLocationResultListener {
             viewModelScope.launch {
@@ -209,9 +209,6 @@ class TourScreenViewModel @Inject constructor(
         }
     }
 
-
-
-
     fun startLocationUpdates() {
         try {
             if(isLocated()) {
@@ -228,13 +225,6 @@ class TourScreenViewModel @Inject constructor(
     private fun stopLocationUpdates() {
         locationHelper.stopLocationTracking()
     }
-
-    fun checkPermissions(): Boolean {
-        val allowed = locationHelper.hasAllowedPermissions()
-        setLocationPermissionStatus(allowed)
-        return allowed
-    }
-
 
 
     //endregion
@@ -386,8 +376,6 @@ class TourScreenViewModel @Inject constructor(
         }
     }
 
-    // choose location from given list
-
 
     fun searchOnMap(placeId: String? = null) {
         if (placeId == null) return
@@ -502,6 +490,12 @@ class TourScreenViewModel @Inject constructor(
         val status = locationHelper.isGpsOn()
         setGps(status)
         return status
+    }
+
+    fun checkPermissions(): Boolean {
+        val allowed = locationHelper.hasAllowedPermissions()
+        setLocationPermissionStatus(allowed)
+        return allowed
     }
     //endregion
 

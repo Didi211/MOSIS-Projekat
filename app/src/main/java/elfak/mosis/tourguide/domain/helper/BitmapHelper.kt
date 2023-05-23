@@ -8,7 +8,6 @@ import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import javax.inject.Singleton
 
-@Singleton
  class BitmapHelper {
 
     companion object {
