@@ -111,6 +111,7 @@ fun TourDetailsEditMode(
         )
     }
     TourDetailsContainer(
+        tourState = TourState.EDITING,
         tourDetails = tourDetails,
         chooseLocation = {
             locationInput = it
@@ -123,13 +124,14 @@ fun TourDetailsEditMode(
 }
 @Composable
 fun TourDetailsViewMode(tourDetails: TourDetails, onEdit: () -> Unit) {
-    TourDetailsContainer(tourDetails = tourDetails, enabledInputs = false) {
+    TourDetailsContainer(tourState = TourState.VIEWING, tourDetails = tourDetails, enabledInputs = false) {
         EditButton(onEdit)
     }
 }
 
 @Composable
 fun TourDetailsContainer(
+    tourState: TourState,
     tourDetails: TourDetails,
     enabledInputs: Boolean = true,
     chooseLocation: (String) -> Unit = { },
@@ -200,15 +202,16 @@ fun TourDetailsContainer(
                                 tourDetails.onOriginChanged(Place("",it, LatLng(0.0,0.0)))
                             },
                             trailingIcon = {
-                                if(tourDetails.origin.id.isBlank()) return@TransparentTextField
-                                CancelIcon(onClick = {
-                                    onCancelIconClick(
-                                        tourDetails = tourDetails,
-                                        clearInput = {
-                                            tourDetails.onOriginChanged(Place())
-                                        }
-                                    )
-                                })
+                                if(tourState != TourState.VIEWING && tourDetails.origin.id.isNotBlank()) {
+                                    CancelIcon(onClick = {
+                                        onCancelIconClick(
+                                            tourDetails = tourDetails,
+                                            clearInput = {
+                                                tourDetails.onOriginChanged(Place())
+                                            }
+                                        )
+                                    })
+                                }
                             }
                         )
                         Divider(
@@ -234,15 +237,16 @@ fun TourDetailsContainer(
                                 tourDetails.onDestinationChanged(Place("",it, LatLng(0.0,0.0)))
                             },
                             trailingIcon = {
-                                if(tourDetails.destination.id.isBlank()) return@TransparentTextField
-                                CancelIcon(onClick = {
-                                    onCancelIconClick(
-                                        tourDetails = tourDetails,
-                                        clearInput = {
-                                            tourDetails.onDestinationChanged(Place())
-                                        }
-                                    )
-                                })
+                                if(tourState != TourState.VIEWING && tourDetails.destination.id.isNotBlank()) {
+                                    CancelIcon(onClick = {
+                                        onCancelIconClick(
+                                            tourDetails = tourDetails,
+                                            clearInput = {
+                                                tourDetails.onDestinationChanged(Place())
+                                            }
+                                        )
+                                    })
+                                }
                             }
                         )
                         Divider(
