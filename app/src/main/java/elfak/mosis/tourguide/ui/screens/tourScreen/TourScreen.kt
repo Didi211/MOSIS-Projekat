@@ -1,5 +1,5 @@
-@file:OptIn(ExperimentalPermissionsApi::class, ExperimentalPermissionsApi::class,
-    ExperimentalAnimationApi::class, ExperimentalMaterialApi::class
+@file:OptIn(ExperimentalMaterialApi::class, ExperimentalPermissionsApi::class,
+    ExperimentalAnimationApi::class
 )
 
 package elfak.mosis.tourguide.ui.screens.tourScreen
@@ -28,6 +28,7 @@ import com.google.android.gms.maps.model.RoundCap
 import com.google.maps.android.compose.*
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.helper.BitmapHelper
+import elfak.mosis.tourguide.ui.components.bottomsheet.PlaceDetails
 import elfak.mosis.tourguide.ui.components.bottomsheet.TourDetails
 import elfak.mosis.tourguide.ui.components.maps.ListOfPlaces
 import elfak.mosis.tourguide.ui.components.maps.LocationState
@@ -42,7 +43,6 @@ import elfak.mosis.tourguide.ui.theme.RouteBorderBlue
 import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun TourScreen(
     viewModel: TourScreenViewModel,
@@ -51,7 +51,7 @@ fun TourScreen(
     val menuViewModel = hiltViewModel<MenuViewModel>()
     val context = LocalContext.current
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(BottomSheetValue.Expanded),
+        bottomSheetState = rememberBottomSheetState(BottomSheetValue.Collapsed),
     )
     val coroutineScope = rememberCoroutineScope()
     var permissionAlreadyRequested by rememberSaveable {
@@ -72,21 +72,47 @@ fun TourScreen(
         viewModel.setSearchBarVisibility(false)
     }
 
+    if (viewModel.uiState.hasErrors) {
+        Toasty.error(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_LONG, true).show()
+        viewModel.clearErrorMessage()
+    }
+
 
     BottomSheetScaffold(
         sheetContent = {
-            TourDetails(
-                state = viewModel.uiState.tourState,
-                tourDetails = viewModel.uiState.tourDetails,
-                onSave = { viewModel.setTourState(TourState.VIEWING) },
-                onEdit = { viewModel.setTourState(TourState.EDITING) },
-                onCancel = { viewModel.setTourState(TourState.VIEWING) },
-                placesList = viewModel.locationAutofillDialog,
-                searchForPlaces = { query ->
-                    viewModel.findPlacesFromInput(query, true)
-                },
+            AnimatedContent(targetState = viewModel.uiState.tourScreenState) { state ->
+                when (state) {
+                    TourScreenState.TOUR_DETAILS -> TourDetails(
+                        state = viewModel.uiState.tourState,
+                        tourDetails = viewModel.uiState.tourDetails,
+                        onSave = { viewModel.setTourState(TourState.VIEWING) },
+                        onEdit = { viewModel.setTourState(TourState.EDITING) },
+                        onCancel = { viewModel.setTourState(TourState.VIEWING) },
+                        placesList = viewModel.locationAutofillDialog,
+                        searchForPlaces = { query ->
+                            viewModel.findPlacesFromInput(query, true)
+                        },
+                    )
+                    TourScreenState.PLACE_DETAILS -> PlaceDetails(
+                        placeDetails = viewModel.uiState.placeDetails,
+                        onCancel = {
+                            viewModel.setTourScreenState(TourScreenState.TOUR_DETAILS)
+                            viewModel.setSearchFlag(false)
+                        },
+                        onAddToTour = { place ->
+                            viewModel.setDestination(place)
+                            viewModel.setTourScreenState(TourScreenState.TOUR_DETAILS)
+                            viewModel.setSearchFlag(false)
+                            if(viewModel.uiState.tourDetails.origin.id.isNotBlank()) {
+                                viewModel.uiState.tourDetails.onBothLocationsSet(true)
+                            }
 
-        ) },
+                        }
+                    )
+
+                }
+            }
+        },
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
         scaffoldState = bottomSheetScaffoldState,
 //        sheetBackgroundColor = MaterialTheme.colors.background,
@@ -200,10 +226,14 @@ fun TourScreen(
                     viewModel.startLocationUpdates()
                     viewModel.changeLocationState(LocationState.Located)
                 },
-                onMapClick = {
+                onMapClick = { latlng ->
                     viewModel.clearSearchBar()
-                }
-
+                    viewModel.findLocationId(latlng)
+                },
+                onPOIClick = { poi ->
+                    viewModel.clearSearchBar()
+                    viewModel.getPOIDetails(poi.placeId)
+                },
             ) {
                 // my location
                 Marker(
@@ -287,5 +317,5 @@ private fun locateMe(
     // change mode to LOCATED
     viewModel.changeLocationState(LocationState.Located)
     // move camera
-    viewModel.onLocationChanged(true)
+    viewModel.onLocationChanged()
 }

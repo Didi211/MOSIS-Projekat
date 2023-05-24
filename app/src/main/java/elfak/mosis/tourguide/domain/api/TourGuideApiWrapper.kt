@@ -1,7 +1,8 @@
 package elfak.mosis.tourguide.domain.api
 
 import android.util.Log
-import elfak.mosis.tourguide.BuildConfig
+import com.google.android.gms.maps.model.LatLng
+import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteRequest
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Waypoint
@@ -9,8 +10,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class RoutesApiWrapper @Inject constructor(
-    private val apiService: GoogleRoutesApi
+class TourGuideApiWrapper @Inject constructor(
+    private val apiService: TourGuideApi
 ) {
 
     suspend fun getRoute(origin: String, destination: String): RouteResponse? {
@@ -19,7 +20,7 @@ class RoutesApiWrapper @Inject constructor(
                 origin = Waypoint(origin),
                 destination = Waypoint(destination)
             )
-            apiService.getRouteAPI(request)
+            apiService.getRoute(request)
 
         } catch (ex: Exception) {
             ex.printStackTrace()
@@ -35,6 +36,17 @@ class RoutesApiWrapper @Inject constructor(
         catch (ex: Exception) {
             ex.printStackTrace()
         }
+    }
+
+    suspend fun getPlaceId(latLng: PlaceLatLng): Waypoint? {
+        return try {
+            apiService.getPlaceId(latLng)
+        }
+        catch (ex: Exception) {
+            ex.printStackTrace()
+            null
+        }
+
     }
 
 }

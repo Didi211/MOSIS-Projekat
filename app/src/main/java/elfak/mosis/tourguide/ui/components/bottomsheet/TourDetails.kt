@@ -1,6 +1,5 @@
 package elfak.mosis.tourguide.ui.components.bottomsheet
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
@@ -29,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -41,13 +38,13 @@ import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.domain.models.Place
 import elfak.mosis.tourguide.domain.models.TourDetails
 import elfak.mosis.tourguide.ui.components.TransparentTextField
+import elfak.mosis.tourguide.ui.components.buttons.ButtonRowContainer
 import elfak.mosis.tourguide.ui.components.buttons.CancelButton
 import elfak.mosis.tourguide.ui.components.buttons.EditButton
 import elfak.mosis.tourguide.ui.components.buttons.SaveButton
 import elfak.mosis.tourguide.ui.components.dialogs.SearchLocationDialog
 import elfak.mosis.tourguide.ui.components.icons.CancelIcon
 import elfak.mosis.tourguide.ui.screens.tourScreen.TourState
-import elfak.mosis.tourguide.ui.theme.DragHandle
 import elfak.mosis.tourguide.ui.theme.Typography
 
 
@@ -114,6 +111,7 @@ fun TourDetailsEditMode(
         )
     }
     TourDetailsContainer(
+        tourState = TourState.EDITING,
         tourDetails = tourDetails,
         chooseLocation = {
             locationInput = it
@@ -126,19 +124,19 @@ fun TourDetailsEditMode(
 }
 @Composable
 fun TourDetailsViewMode(tourDetails: TourDetails, onEdit: () -> Unit) {
-    TourDetailsContainer(tourDetails = tourDetails, enabledInputs = false) {
+    TourDetailsContainer(tourState = TourState.VIEWING, tourDetails = tourDetails, enabledInputs = false) {
         EditButton(onEdit)
     }
 }
 
 @Composable
 fun TourDetailsContainer(
+    tourState: TourState,
     tourDetails: TourDetails,
     enabledInputs: Boolean = true,
     chooseLocation: (String) -> Unit = { },
     buttons: @Composable () -> Unit,
 ) {
-
     Column(
         modifier = Modifier
             .padding(top = 5.dp, start = 15.dp, end = 15.dp)
@@ -192,26 +190,28 @@ fun TourDetailsContainer(
                     // Start Location
                     Text("From:", color = MaterialTheme.colors.primary)
                     Column {
+
                         TransparentTextField(
                             modifier = Modifier
                                 .widthIn(max = 280.dp)
                                 .clickable { chooseLocation("Start") },
                             text = tourDetails.origin.address,
-                            placeholder = stringResource(id = R.string.origin),
+                            placeholder = stringResource(id = R.string.search_holder2),
                             enabled = false,
                             onTextChanged = {
                                 tourDetails.onOriginChanged(Place("",it, LatLng(0.0,0.0)))
                             },
                             trailingIcon = {
-                                if(tourDetails.origin.id.isBlank()) return@TransparentTextField
-                                CancelIcon(onClick = {
-                                    onCancelIconClick(
-                                        tourDetails = tourDetails,
-                                        clearInput = {
-                                            tourDetails.onOriginChanged(Place())
-                                        }
-                                    )
-                                })
+                                if(tourState != TourState.VIEWING && tourDetails.origin.id.isNotBlank()) {
+                                    CancelIcon(onClick = {
+                                        onCancelIconClick(
+                                            tourDetails = tourDetails,
+                                            clearInput = {
+                                                tourDetails.onOriginChanged(Place())
+                                            }
+                                        )
+                                    })
+                                }
                             }
                         )
                         Divider(
@@ -225,26 +225,28 @@ fun TourDetailsContainer(
                     // End Location
                     Text("To:", color = MaterialTheme.colors.primary)
                     Column {
+
                         TransparentTextField(
                             modifier = Modifier
                                 .widthIn(max = 280.dp)
                                 .clickable { chooseLocation("End") },
                             text = tourDetails.destination.address,
-                            placeholder = stringResource(id = R.string.destination),
+                            placeholder = stringResource(id = R.string.search_holder),
                             enabled = false,
                             onTextChanged = {
                                 tourDetails.onDestinationChanged(Place("",it, LatLng(0.0,0.0)))
                             },
                             trailingIcon = {
-                                if(tourDetails.destination.id.isBlank()) return@TransparentTextField
-                                CancelIcon(onClick = {
-                                    onCancelIconClick(
-                                        tourDetails = tourDetails,
-                                        clearInput = {
-                                            tourDetails.onDestinationChanged(Place())
-                                        }
-                                    )
-                                })
+                                if(tourState != TourState.VIEWING && tourDetails.destination.id.isNotBlank()) {
+                                    CancelIcon(onClick = {
+                                        onCancelIconClick(
+                                            tourDetails = tourDetails,
+                                            clearInput = {
+                                                tourDetails.onDestinationChanged(Place())
+                                            }
+                                        )
+                                    })
+                                }
                             }
                         )
                         Divider(
@@ -315,26 +317,4 @@ fun InputRowContainer(content: @Composable RowScope.() -> Unit) {
 
 
 
-@Composable
-fun ButtonRowContainer(content: @Composable RowScope.() -> Unit) {
-    Row(
-        modifier = Modifier
-            .padding(top = 15.dp, bottom = 15.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.End,
 
-    ) {
-        content()
-    }
-}
-
-@Composable
-fun Handlebar() {
-    Spacer(
-        modifier = Modifier
-            .height(7.dp)
-            .width(50.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(DragHandle),
-    )
-}

@@ -15,11 +15,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import elfak.mosis.tourguide.domain.api.GoogleRoutesApi
 import elfak.mosis.tourguide.domain.api.RetrofitClient
-import elfak.mosis.tourguide.domain.api.RoutesApiWrapper
-import elfak.mosis.tourguide.domain.helper.BitmapHelper
+import elfak.mosis.tourguide.domain.api.TourGuideApi
+import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
+import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
 import retrofit2.Retrofit
 import javax.inject.Singleton
@@ -60,6 +60,8 @@ object AppModule {
     ) : LocationHelper =  LocationHelper(context, fusedLocationProviderClient)
 
 
+    @Provides
+    fun provideSessionTokenSingleton(): SessionTokenSingleton = SessionTokenSingleton()
 
     @Provides
     fun providePlacesClient(@ApplicationContext context: Context): PlacesClient = Places.createClient(context)
@@ -70,11 +72,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGoogleRoutesApi(retrofit: Retrofit): GoogleRoutesApi = retrofit.create(GoogleRoutesApi::class.java)
+    fun provideTourGuideApi(retrofit: Retrofit): TourGuideApi = retrofit.create(TourGuideApi::class.java)
 
     @Singleton
     @Provides
-    fun provideWrapper(googleRoutesApi: GoogleRoutesApi) = RoutesApiWrapper(googleRoutesApi)
+    fun provideWrapper(tourGuideApi: TourGuideApi) = TourGuideApiWrapper(tourGuideApi)
 
     @Provides
     fun provideUnitConvertor(): UnitConvertor = UnitConvertor()
