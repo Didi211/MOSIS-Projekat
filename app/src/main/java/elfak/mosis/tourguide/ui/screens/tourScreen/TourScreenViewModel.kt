@@ -23,9 +23,11 @@ import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
+import elfak.mosis.tourguide.domain.models.TourDetails
 import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Viewport
+import elfak.mosis.tourguide.domain.repository.TourRepository
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -33,6 +35,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.lang.Error
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,6 +45,7 @@ class TourScreenViewModel @Inject constructor(
     private val tourGuideApiWrapper: TourGuideApiWrapper,
     private val convertor: UnitConvertor,
     private val sessionTokenSingleton: SessionTokenSingleton,
+    private val tourRepository: TourRepository
 ): ViewModel() {
     var uiState by mutableStateOf(TourScreenUiState())
         private set
@@ -56,6 +60,7 @@ class TourScreenViewModel @Inject constructor(
         viewModelScope.launch {
             tourGuideApiWrapper.testApi()
         }
+        getTour("xg2lA0e7JKHEOwQZMNQo")
         uiState.tourDetails.onTitleChanged = { setTitle(it) }
         uiState.tourDetails.onSummaryChanged = { setSummary(it) }
         uiState.tourDetails.onOriginChanged = { setOrigin(it) }
@@ -133,8 +138,8 @@ class TourScreenViewModel @Inject constructor(
     fun setBothLocationsSet(value: Boolean) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(bothLocationsSet = value))
     }
-    fun resetTourDetails() {
-        uiState = uiState.copy(tourDetails = uiState.tourDetails.clear())
+    fun setTourDetails(tourDetails: TourDetails) {
+        uiState = uiState.copy(tourDetails = tourDetails)
     }
 
 
@@ -188,6 +193,9 @@ class TourScreenViewModel @Inject constructor(
 
     fun clearErrorMessage() {
         uiState = uiState.copy(hasErrors = false)
+    }
+    fun setErrorMessage(message: String) {
+        uiState = uiState.copy(errorMessage = message, hasErrors = true)
     }
 
     //endregion
@@ -550,5 +558,26 @@ class TourScreenViewModel @Inject constructor(
     }
 
     //endregion
+    fun getTour(tourId: String) {
+        viewModelScope.launch {
+            try {
+                val tour = tourRepository.getTour(tourId)
+                setTourDetails(uiState.tourDetails.update(tour))
+                if (uiState.tourDetails.bothLocationsSet) {
+                    uiState.tourDetails.onBothLocationsSet(true)
+                }
+            }
+            catch (ex: Exception) {
+                if (ex.message != null) {
+                   this@TourScreenViewModel.setErrorMessage(ex.message!!)
+                   return@launch
+                }
+                this@TourScreenViewModel.setErrorMessage("Error has occurred")
+            }
 
+        }
+    }
+    //region TOUR REPOSITORY
+
+    //endregion
 }

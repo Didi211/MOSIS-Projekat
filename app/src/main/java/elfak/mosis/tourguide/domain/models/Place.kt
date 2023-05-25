@@ -1,6 +1,7 @@
 package elfak.mosis.tourguide.domain.models
 
 import com.google.android.gms.maps.model.LatLng
+import elfak.mosis.tourguide.data.models.PlaceModel
 
 
 data class Place(
@@ -14,6 +15,15 @@ data class Place(
             address = "",
             location = LatLng(0.0,0.0)
         )
+    }
+    companion object {
+        fun convert(place: PlaceModel): Place {
+            return Place(
+                id = place.id,
+                address = place.address,
+                location = place.location
+            )
+        }
     }
 }
 
