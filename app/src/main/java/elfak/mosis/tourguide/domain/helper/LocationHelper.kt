@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Looper
 import android.util.Log
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.Task
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -163,7 +164,7 @@ class LocationHelper @Inject constructor(
         return res == PackageManager.PERMISSION_GRANTED;
     }
 
-    fun decodePolyline(encodedPolyline: String): List<Pair<Double, Double>> {
+    fun decodePolyline(encodedPolyline: String): List<LatLng> {
         val polylinePoints = mutableListOf<Pair<Double, Double>>()
         var index = 0
         var lat = 0
@@ -201,7 +202,7 @@ class LocationHelper @Inject constructor(
             polylinePoints.add(Pair(decodedLat, decodedLng))
         }
 
-        return polylinePoints
+        return polylinePoints.map { LatLng(it.first, it.second) }
     }
 
 
