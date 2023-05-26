@@ -2,6 +2,7 @@
     <!--  image descriptions  -->
     <string name="logo_description">Tour Guide Logo</string>
     <string name="travelers_description">Travelers image</string>
+    <string name="no_tours_image_description">No tours image</string>
     <string name="check">Checkmark</string>
     <string name="cancel">Cancel</string>
     <string name="edit">Edit</string>
@@ -11,6 +12,7 @@
     <string name="app_name">Tour Guide</string>
     <string name="welcome_screen_title">Tour Guide</string>
     <string name="welcome_screen_subtitle">Make your travels easier</string>
+    <string name="no_tours_created">No tours created</string>
 
 
     <!--  input fields  -->
@@ -28,6 +30,7 @@
     <!--  Screen titles   -->
     <string name="home">Home</string>
     <string name="tour">Tour</string>
+    <string name="profile">Profile</string>
 
     <!--  button description  -->
     <string name="add">Add</string>
@@ -48,6 +51,7 @@
     <string name="permission_denied_twice">Permissions have been denied more than twice. Please allow them in settings.</string>
     <string name="location_needed">App needs GPS enabled to find your location.</string>
     <string name="my_location">My location</string>
+
     <!--  search box  -->
     <string name="add_checkpoint">ADD NEW CHECKPOINT</string>
     <string name="search_in_radius">Search in radius: </string>
@@ -55,5 +59,6 @@
     <string name="search_holder">Eg. Rome, Italy</string>
     <string name="search_holder2">Eg. Paris, France</string>
     <string name="place_not_selected">Nothing was selected.</string>
-    <string name="profile">Profile</string>
+
+
 </resources>

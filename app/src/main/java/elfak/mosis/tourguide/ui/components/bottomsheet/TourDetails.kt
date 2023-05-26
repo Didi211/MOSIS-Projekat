@@ -36,7 +36,7 @@ import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.domain.models.Place
-import elfak.mosis.tourguide.domain.models.TourDetails
+import elfak.mosis.tourguide.domain.models.tour.TourDetails
 import elfak.mosis.tourguide.ui.components.TransparentTextField
 import elfak.mosis.tourguide.ui.components.buttons.ButtonRowContainer
 import elfak.mosis.tourguide.ui.components.buttons.CancelButton

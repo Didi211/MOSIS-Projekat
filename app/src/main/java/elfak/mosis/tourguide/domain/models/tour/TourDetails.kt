@@ -1,7 +1,8 @@
-package elfak.mosis.tourguide.domain.models
+package elfak.mosis.tourguide.domain.models.tour
 
 import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.data.models.TourModel
+import elfak.mosis.tourguide.domain.models.Place
 
 data class TourDetails(
     var title: String = "",

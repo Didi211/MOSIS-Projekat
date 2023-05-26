@@ -16,14 +16,13 @@ class TourRepositoryImpl @Inject constructor(
 
     override suspend fun getTour(tourId: String): TourModel {
         val tour = collectionRef.document(tourId).get().await()
-        if (tour == null) {
-            throw Exception("Tour not found in the database.")
-        }
+            ?: throw Exception("Tour not found in the database.")
         return tour.toObject<TourModel>()!!
     }
 
     override suspend fun getAllTours(): List<TourModel> {
-        TODO("Not yet implemented")
+        val queryResult = collectionRef.get().await()
+        return queryResult.toObjects(TourModel::class.java)
     }
 
     override suspend fun createTour(tour: TourModel) {

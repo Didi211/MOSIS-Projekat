@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import elfak.mosis.tourguide.R
-import elfak.mosis.tourguide.ui.components.LogoImage
+import elfak.mosis.tourguide.ui.components.images.LogoImage
 import elfak.mosis.tourguide.ui.navigation.Screen
 
 val logoSize = 80.dp

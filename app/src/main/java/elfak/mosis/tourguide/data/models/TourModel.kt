@@ -1,6 +1,7 @@
 package elfak.mosis.tourguide.data.models
 
 import com.google.firebase.firestore.DocumentId
+import elfak.mosis.tourguide.domain.models.tour.TourCard
 
 data class TourModel(
     @DocumentId
@@ -10,3 +11,11 @@ data class TourModel(
     val origin: PlaceModel? = null,
     val destination: PlaceModel? = null,
 )
+
+fun TourModel.toTourCard(): TourCard {
+    return TourCard(
+        id = id,
+        title = title?: "",
+        summary = summary?: ""
+    )
+}
