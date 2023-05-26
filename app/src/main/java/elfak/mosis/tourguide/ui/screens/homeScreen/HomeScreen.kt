@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
@@ -35,11 +36,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import elfak.mosis.tourguide.R
@@ -170,16 +170,17 @@ fun ThreeDotMenuIcon() {
     val context = LocalContext.current
     Column(
         Modifier
-            .padding(5.dp)
+            .clip(CircleShape)
             .clickable {
                 Toasty
                     .info(context, "OPTIONS UNDER DEVELOPING")
                     .show()
             }
+            .size(40.dp)
+            .padding(5.dp)
     ) {
         Icon(
-            modifier = Modifier
-                .size(28.dp),
+            modifier = Modifier.fillMaxSize(),
             imageVector = Icons.Filled.MoreVert,
             contentDescription = null,
             tint = MaterialTheme.colors.primary,
