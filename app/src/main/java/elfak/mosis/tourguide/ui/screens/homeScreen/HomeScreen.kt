@@ -54,7 +54,7 @@ import es.dmoral.toasty.Toasty
 @Composable
 fun HomeScreen(
     viewModel: HomeScreenViewModel,
-    navigateToTour: () -> Unit,
+    navigateToTour: (String?) -> Unit,
     navController: NavController
 ) {
     val scaffoldState = rememberScaffoldState()
@@ -82,7 +82,7 @@ fun HomeScreen(
                 contentDescription = stringResource(id = R.string.add),
                 icon = Icons.Rounded.Add,
 //                modifier = Modifier.size(36.dp),
-                onClick = navigateToTour
+                onClick = { navigateToTour(null) }
             )
         }
     ) {
@@ -98,7 +98,7 @@ fun HomeScreen(
                     true -> {
                         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(15.dp)) {
                             items(viewModel.uiState.tours) { tour ->
-                                TourCard(tour)
+                                TourCard(tour = tour, onClick = { navigateToTour(tour.id) })
                             }
                         }
                     }
@@ -118,7 +118,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun TourCard(tour: TourCard) {
+fun TourCard(tour: TourCard, onClick: () -> Unit = { }) {
     Card(
         shape = RoundedCornerShape(20.dp),
         elevation = 5.dp,
@@ -134,6 +134,9 @@ fun TourCard(tour: TourCard) {
                     modifier = Modifier
                         .fillMaxHeight()
                         .padding(10.dp)
+                        .clickable {
+                            onClick()
+                        }
                 ) {
                     Text(text = tour.title, style = MaterialTheme.typography.h1, color = MaterialTheme.colors.primary)
                     Spacer(Modifier.height(5.dp))

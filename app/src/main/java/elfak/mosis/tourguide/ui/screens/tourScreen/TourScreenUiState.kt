@@ -26,7 +26,7 @@ data class TourScreenUiState(
     var routeChanged: Boolean = false,
 
     val tourDetails: TourDetails = TourDetails(),
-    val tourState: TourState = TourState.CREATING,
+    val tourState: TourState = TourState.VIEWING,
 
     val placeDetails: PlaceDetails = PlaceDetails(),
 
@@ -35,7 +35,9 @@ data class TourScreenUiState(
     val tourScreenState: TourScreenState = TourScreenState.TOUR_DETAILS,
 
     var hasErrors: Boolean = false,
-    var errorMessage: String = ""
+    var errorMessage: String = "",
+
+    val tourId: String? = null
     )
 
 

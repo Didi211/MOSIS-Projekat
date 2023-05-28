@@ -46,7 +46,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun TourScreen(
     viewModel: TourScreenViewModel,
-    navController: NavController
+    navController: NavController,
+    tourId: String?
 ) {
     val menuViewModel = hiltViewModel<MenuViewModel>()
     val context = LocalContext.current

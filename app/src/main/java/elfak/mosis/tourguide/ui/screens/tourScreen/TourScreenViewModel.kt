@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -44,7 +45,8 @@ class TourScreenViewModel @Inject constructor(
     private val tourGuideApiWrapper: TourGuideApiWrapper,
     private val convertor: UnitConvertor,
     private val sessionTokenSingleton: SessionTokenSingleton,
-    private val tourRepository: TourRepository
+    private val tourRepository: TourRepository,
+    savedStateHandle: SavedStateHandle
 ): ViewModel() {
     var uiState by mutableStateOf(TourScreenUiState())
         private set
@@ -65,10 +67,28 @@ class TourScreenViewModel @Inject constructor(
     private var job: Job? = null
     private var textInputJob: Job? = null
     init {
-        viewModelScope.launch {
-            tourGuideApiWrapper.testApi()
+        if (savedStateHandle.contains("tourId")) {
+            setTourId(savedStateHandle["tourId"])
         }
-        getTour("xg2lA0e7JKHEOwQZMNQo")
+        viewModelScope.launch {
+            try {
+                if (uiState.tourId != null) {
+                    val tour = tourRepository.getTour(uiState.tourId!!)
+                    setTourDetails(uiState.tourDetails.update(tour))
+                    if (uiState.tourDetails.bothLocationsSet) {
+                        uiState.tourDetails.onBothLocationsSet(true)
+                    }
+                    setTourState(TourState.VIEWING)
+                }
+                else {
+                    setTourState(TourState.CREATING)
+                }
+            }
+            catch (ex: Exception) {
+                handleError(ex)
+            }
+        }
+
         uiState.tourDetails.onTitleChanged = { setTitle(it) }
         uiState.tourDetails.onSummaryChanged = { setSummary(it) }
         uiState.tourDetails.onOriginChanged = { setOrigin(it) }
@@ -113,6 +133,10 @@ class TourScreenViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun setTourId(tourId: String?) {
+        uiState = uiState.copy(tourId = tourId)
     }
 
     override fun onCleared() {
@@ -505,22 +529,6 @@ class TourScreenViewModel @Inject constructor(
 
     //endregion
 
-    //region TOUR REPOSITORY
-    fun getTour(tourId: String) {
-        viewModelScope.launch {
-            try {
-                val tour = tourRepository.getTour(tourId)
-                setTourDetails(uiState.tourDetails.update(tour))
-                if (uiState.tourDetails.bothLocationsSet) {
-                    uiState.tourDetails.onBothLocationsSet(true)
-                }
-            }
-            catch (ex: Exception) {
-                handleError(ex)
-            }
-
-        }
-    }
     //endregion
 
     //region Error Handler
