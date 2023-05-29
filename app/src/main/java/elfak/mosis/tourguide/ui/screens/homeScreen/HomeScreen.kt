@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -132,6 +133,7 @@ fun TourCard(tour: TourCard, onClick: () -> Unit = { }) {
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
+                        .fillMaxWidth(0.8f)
                         .padding(10.dp)
                         .clickable {
                             onClick()
@@ -142,8 +144,8 @@ fun TourCard(tour: TourCard, onClick: () -> Unit = { }) {
                     Text(
                         text = tour.summary,
                         style = MaterialTheme.typography.body1,
-                        modifier = Modifier.fillMaxWidth(0.8f),
-                        color = MaterialTheme.colors.primary
+                        color = MaterialTheme.colors.primary,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
                 Column(

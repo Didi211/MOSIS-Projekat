@@ -18,14 +18,12 @@ import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRe
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
 import com.google.android.libraries.places.api.net.PlacesClient
 import dagger.hilt.android.lifecycle.HiltViewModel
-import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.data.models.PlaceDetails
 import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
-import elfak.mosis.tourguide.domain.models.tour.TourDetails
 import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Viewport
@@ -40,6 +38,7 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import elfak.mosis.tourguide.domain.models.tour.TourDetails as TourDetails1
 
 @HiltViewModel
 class TourScreenViewModel @Inject constructor(
@@ -131,7 +130,7 @@ class TourScreenViewModel @Inject constructor(
                         setTime(convertor.formatTime(route.duration))
                     }
                     catch(ex: Exception) {
-                        uiState = uiState.copy(hasErrors = true, errorMessage = ex.message ?: "Error occurred")
+                        handleError(ex)
                     }
 
                 }
@@ -174,7 +173,7 @@ class TourScreenViewModel @Inject constructor(
     fun setBothLocationsSet(value: Boolean) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(bothLocationsSet = value))
     }
-    fun setTourDetails(tourDetails: TourDetails) {
+    fun setTourDetails(tourDetails: TourDetails1) {
         uiState = uiState.copy(tourDetails = tourDetails)
     }
 
@@ -226,12 +225,6 @@ class TourScreenViewModel @Inject constructor(
         return uiState.locationState == LocationState.Located
     }
 
-    fun clearErrorMessage() {
-        uiState = uiState.copy(hasErrors = false)
-    }
-    fun setErrorMessage(message: String) {
-        uiState = uiState.copy(errorMessage = message, hasErrors = true)
-    }
 
     //endregion
 
@@ -534,15 +527,49 @@ class TourScreenViewModel @Inject constructor(
     //endregion
 
     //region TourRepository
-    fun createTour() {
+    fun onSave() {
+        // validation
+        val blankTitle = uiState.tourDetails.title.isBlank()
+        val blankSummary = uiState.tourDetails.summary.isBlank()
+        val blankOrigin = uiState.tourDetails.origin.id.isBlank()
+        val blankDestination = uiState.tourDetails.destination.id.isBlank()
+        if (blankTitle && blankSummary && blankOrigin && blankDestination) {
+            setErrorMessage("None of the fields are filled. Fill at least one field")
+            return
+        }
         viewModelScope.launch {
-            val userId = authRepository.getUserIdLocal()!!
-            tourRepository.createTour(uiState.tourDetails.toTourModel(userId))
+            try {
+                val userId = authRepository.getUserIdLocal()!!
+                val successMessage = if (uiState.tourId != null) "updated" else "created"
+                if (uiState.tourId != null) {
+                    tourRepository.updateTour(uiState.tourId!!, uiState.tourDetails.toTourModel(userId))
+                }
+                else {
+                    tourRepository.createTour(uiState.tourDetails.toTourModel(userId))
+                }
+                setTourState(TourState.VIEWING)
+                setSuccessMessage("Tour successfully $successMessage")
+            }
+            catch (ex: Exception) { handleError(ex) }
+
         }
     }
     //endregion
 
-    //region Error Handler
+    //region Message Handler
+    fun clearErrorMessage() {
+        uiState = uiState.copy(toastData = uiState.toastData.copy(hasErrors = false))
+    }
+    private fun setErrorMessage(message: String) {
+        uiState = uiState.copy(toastData = uiState.toastData.copy(errorMessage = message, hasErrors = true))
+    }
+    private fun setSuccessMessage(message: String) {
+        uiState = uiState.copy(toastData = uiState.toastData.copy(successMessage = message, hasSuccessMessage = true))
+    }
+    fun clearSuccessMessage() {
+        uiState = uiState.copy(toastData = uiState.toastData.copy(hasSuccessMessage = false))
+    }
+
     private fun handleError (ex: Exception) {
         if (ex.message != null) {
             setErrorMessage(ex.message!!)
@@ -550,4 +577,5 @@ class TourScreenViewModel @Inject constructor(
         }
         setErrorMessage("Error has occurred")
     }
+
 }

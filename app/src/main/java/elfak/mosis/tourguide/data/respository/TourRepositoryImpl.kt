@@ -30,7 +30,7 @@ class TourRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateTour(tourId: String, tour: TourModel) {
-        TODO("Not yet implemented")
+        collectionRef.document(tourId).set(tour).await()
     }
 
     override suspend fun deleteTour(tourId: String) {

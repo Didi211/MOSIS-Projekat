@@ -72,9 +72,13 @@ fun TourScreen(
         viewModel.setSearchBarVisibility(false)
     }
 
-    if (viewModel.uiState.hasErrors) {
-        Toasty.error(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_LONG, true).show()
+    if (viewModel.uiState.toastData.hasErrors) {
+        Toasty.error(LocalContext.current, viewModel.uiState.toastData.errorMessage, Toast.LENGTH_LONG, true).show()
         viewModel.clearErrorMessage()
+    }
+    if (viewModel.uiState.toastData.hasSuccessMessage) {
+        Toasty.info(LocalContext.current, viewModel.uiState.toastData.successMessage, Toast.LENGTH_SHORT, false).show()
+        viewModel.clearSuccessMessage()
     }
 
 
@@ -85,9 +89,7 @@ fun TourScreen(
                     TourScreenState.TOUR_DETAILS -> TourDetails(
                         state = viewModel.uiState.tourState,
                         tourDetails = viewModel.uiState.tourDetails,
-                        onSave = {
-                            viewModel.createTour()
-                            viewModel.setTourState(TourState.VIEWING) },
+                        onSave = { viewModel.onSave() },
                         onEdit = { viewModel.setTourState(TourState.EDITING) },
                         onCancel = { viewModel.setTourState(TourState.VIEWING) },
                         placesList = viewModel.locationAutofillDialog,

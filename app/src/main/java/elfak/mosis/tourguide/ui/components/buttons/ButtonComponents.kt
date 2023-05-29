@@ -44,11 +44,15 @@ fun ButtonComponent(text: String, width: Dp, onClick: () -> Unit) {
 }
 
 @Composable
-fun SaveButton(onClick: () -> Unit = { }) {
+fun SaveButton(
+    modifier: Modifier = Modifier.width(100.dp),
+    paddingValues: PaddingValues = PaddingValues(10.dp),
+    onClick: () -> Unit = { }
+) {
     Button(
-        modifier = Modifier.width(100.dp),
+        modifier = modifier,
         shape = RoundedCornerShape(30.dp),
-        contentPadding = PaddingValues(10.dp),
+        contentPadding = paddingValues,
         onClick = onClick
     ) {
         Icon(

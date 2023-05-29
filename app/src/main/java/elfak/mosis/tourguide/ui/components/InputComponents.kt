@@ -76,7 +76,6 @@ fun TransparentTextField(
         visualTransformation = if (inputType == InputTypes.Password) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardActions = keyboardActions,
         enabled = enabled,
-        maxLines = if (singleLine) 1 else 3,
         placeholder = { Text(placeholder) },
         trailingIcon = trailingIcon
     )
