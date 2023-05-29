@@ -1,6 +1,7 @@
 package elfak.mosis.tourguide.domain.models.tour
 
 import com.google.android.gms.maps.model.LatLng
+import elfak.mosis.tourguide.data.models.PlaceModel
 import elfak.mosis.tourguide.data.models.TourModel
 import elfak.mosis.tourguide.data.models.toPlace
 import elfak.mosis.tourguide.domain.models.Place
@@ -50,7 +51,7 @@ data class TourDetails(
             destination = if(tour.destination != null) tour.destination.toPlace() else Place(),
             distance = "",
             time = "",
-            bothLocationsSet = tour.origin != null && tour.destination != null,
+            bothLocationsSet = areLocationSet(tour.origin, tour.destination),
             polylinePoints = emptyList()
         )
     }
@@ -66,6 +67,13 @@ fun TourDetails.toTourModel(createdBy: String): TourModel {
     )
 }
 
+private fun areLocationSet(origin: PlaceModel?,  destination: PlaceModel?): Boolean {
+    if (origin == null) return false
+    if (destination == null) return false
+    if (origin.id.isBlank()) return false
+    if (destination.id.isBlank()) return false
+    return true
+}
 
 
 
