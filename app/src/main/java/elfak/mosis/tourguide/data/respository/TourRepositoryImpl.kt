@@ -20,13 +20,13 @@ class TourRepositoryImpl @Inject constructor(
         return tour.toObject<TourModel>()!!
     }
 
-    override suspend fun getAllTours(): List<TourModel> {
-        val queryResult = collectionRef.get().await()
+    override suspend fun getAllTours(userId: String): List<TourModel> {
+        val queryResult = collectionRef.whereEqualTo("createdBy",userId).get().await()
         return queryResult.toObjects(TourModel::class.java)
     }
 
     override suspend fun createTour(tour: TourModel) {
-        TODO("Not yet implemented")
+        collectionRef.add(tour).await()
     }
 
     override suspend fun updateTour(tourId: String, tour: TourModel) {

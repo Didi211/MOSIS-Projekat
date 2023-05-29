@@ -2,7 +2,9 @@ package elfak.mosis.tourguide.domain.models.tour
 
 import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.data.models.TourModel
+import elfak.mosis.tourguide.data.models.toPlace
 import elfak.mosis.tourguide.domain.models.Place
+import elfak.mosis.tourguide.domain.models.toPlaceModel
 
 data class TourDetails(
     var title: String = "",
@@ -44,28 +46,24 @@ data class TourDetails(
         return this.copy(
             title = tour.title ?: "",
             summary = tour.summary ?: "",
-            origin = if(tour.origin != null) Place.convert(tour.origin) else Place(),
-            destination = if(tour.destination != null) Place.convert(tour.destination) else Place(),
+            origin = if(tour.origin != null) tour.origin.toPlace() else Place(),
+            destination = if(tour.destination != null) tour.destination.toPlace() else Place(),
             distance = "",
             time = "",
             bothLocationsSet = tour.origin != null && tour.destination != null,
             polylinePoints = emptyList()
         )
     }
-    companion object {
-        fun convert(tour: TourModel): TourDetails {
-            return TourDetails(
-                title = tour.title ?: "",
-                summary = tour.summary ?: "",
-                origin = if(tour.origin != null) Place.convert(tour.origin) else Place(),
-                destination = if(tour.destination != null) Place.convert(tour.destination) else Place(),
-                distance = "",
-                time = "",
-                bothLocationsSet = tour.origin != null && tour.destination != null,
-                polylinePoints = emptyList()
-            )
-        }
-    }
+}
+
+fun TourDetails.toTourModel(createdBy: String): TourModel {
+    return TourModel(
+        title = title,
+        summary = summary,
+        origin = origin.toPlaceModel(),
+        destination = destination.toPlaceModel(),
+        createdBy = createdBy
+    )
 }
 
 

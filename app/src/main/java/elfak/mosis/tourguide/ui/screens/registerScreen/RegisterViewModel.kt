@@ -6,16 +6,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import elfak.mosis.tourguide.data.respository.AuthRepository
-import elfak.mosis.tourguide.ui.screens.loginScreen.LoginUiState
-import es.dmoral.toasty.Toasty
+import elfak.mosis.tourguide.domain.repository.AuthRepository
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel  @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
     ) : ViewModel() {
 //    private val _usersList = MutableStateFlow<List<UserModel>>(emptyList())
 //    val usersList = _usersList.asStateFlow()
@@ -47,8 +44,7 @@ class RegisterViewModel  @Inject constructor(
                 if (uiState.password != uiState.confirm_password) {
                     throw Exception("Passwords doesn't match.")
                 }
-                val result = authRepository.register(uiState.username, uiState.password, uiState.email, uiState.fullname)
-                // TODO - send user id on home screen or save it locally as currentUser
+                authRepository.register(uiState.username, uiState.password, uiState.email, uiState.fullname)
                 onSuccess()
             }
             catch (err:Exception) {

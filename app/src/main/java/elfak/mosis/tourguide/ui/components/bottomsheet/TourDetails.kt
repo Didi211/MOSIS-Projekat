@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.R
@@ -164,7 +165,7 @@ fun TourDetailsContainer(
                     onTextChanged = tourDetails.onTitleChanged,
                     textStyle = Typography.h1,
                     enabled = enabledInputs,
-                    keyboardOptions = KeyboardOptions().copy(imeAction = ImeAction.Next)
+                    keyboardOptions = KeyboardOptions().copy(imeAction = ImeAction.Next, capitalization = KeyboardCapitalization.Sentences)
                 )
             }
             // summary

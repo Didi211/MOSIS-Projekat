@@ -38,7 +38,4 @@ data class TourScreenUiState(
     var errorMessage: String = "",
 
     val tourId: String? = null
-    )
-
-
-
+)

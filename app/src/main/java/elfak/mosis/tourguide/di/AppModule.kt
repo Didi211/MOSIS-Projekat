@@ -15,6 +15,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import elfak.mosis.tourguide.data.respository.AuthRepositoryImpl
 import elfak.mosis.tourguide.data.respository.TourRepositoryImpl
 import elfak.mosis.tourguide.domain.api.RetrofitClient
 import elfak.mosis.tourguide.domain.api.TourGuideApi
@@ -22,6 +23,7 @@ import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
+import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.TourRepository
 import retrofit2.Retrofit
 import javax.inject.Singleton
@@ -87,5 +89,11 @@ object AppModule {
     @Provides
     fun provideTourRepository(firestore: FirebaseFirestore): TourRepository = TourRepositoryImpl(firestore)
 
-
+    @Singleton
+    @Provides
+    fun provideAuthRepository(
+        @ApplicationContext context: Context,
+        firebaseAuth: FirebaseAuth,
+        firestore: FirebaseFirestore,
+    ): AuthRepository = AuthRepositoryImpl(context, firebaseAuth, firestore)
 }

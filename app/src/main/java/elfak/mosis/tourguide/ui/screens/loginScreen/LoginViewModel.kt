@@ -6,14 +6,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import elfak.mosis.tourguide.data.respository.AuthRepository
+import elfak.mosis.tourguide.domain.repository.AuthRepository
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     var uiState by mutableStateOf(LoginUiState())
@@ -31,8 +30,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             // to launch coroutine - async function that does not block main thread
             try {
-                val result = authRepository.login(uiState.email, uiState.password).await()
-                // TODO - send user id on home screen or save it locally as currentUser
+                authRepository.login(uiState.email, uiState.password)
                 onSuccess()
             }
             catch (err: Exception) {

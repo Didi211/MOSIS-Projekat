@@ -18,6 +18,7 @@ import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRe
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
 import com.google.android.libraries.places.api.net.PlacesClient
 import dagger.hilt.android.lifecycle.HiltViewModel
+import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.data.models.PlaceDetails
 import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
@@ -28,6 +29,8 @@ import elfak.mosis.tourguide.domain.models.tour.TourDetails
 import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Viewport
+import elfak.mosis.tourguide.domain.models.tour.toTourModel
+import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.TourRepository
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
@@ -46,6 +49,7 @@ class TourScreenViewModel @Inject constructor(
     private val convertor: UnitConvertor,
     private val sessionTokenSingleton: SessionTokenSingleton,
     private val tourRepository: TourRepository,
+    private val authRepository: AuthRepository,
     savedStateHandle: SavedStateHandle
 ): ViewModel() {
     var uiState by mutableStateOf(TourScreenUiState())
@@ -109,7 +113,7 @@ class TourScreenViewModel @Inject constructor(
                             throw Exception("Origin and destination can't be the same for creating a tour!")
                         }
 
-                        var result: RouteResponse? = tourGuideApiWrapper.getRoute(originId, destinationId)
+                        val result: RouteResponse? = tourGuideApiWrapper.getRoute(originId, destinationId)
                         // null checking if error has happened
                         if(result?.routes == null) {
                             throw Exception("Couldn't find route.")
@@ -529,6 +533,13 @@ class TourScreenViewModel @Inject constructor(
 
     //endregion
 
+    //region TourRepository
+    fun createTour() {
+        viewModelScope.launch {
+            val userId = authRepository.getUserIdLocal()!!
+            tourRepository.createTour(uiState.tourDetails.toTourModel(userId))
+        }
+    }
     //endregion
 
     //region Error Handler

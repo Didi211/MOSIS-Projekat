@@ -47,7 +47,6 @@ import kotlinx.coroutines.launch
 fun TourScreen(
     viewModel: TourScreenViewModel,
     navController: NavController,
-    tourId: String?
 ) {
     val menuViewModel = hiltViewModel<MenuViewModel>()
     val context = LocalContext.current
@@ -86,7 +85,9 @@ fun TourScreen(
                     TourScreenState.TOUR_DETAILS -> TourDetails(
                         state = viewModel.uiState.tourState,
                         tourDetails = viewModel.uiState.tourDetails,
-                        onSave = { viewModel.setTourState(TourState.VIEWING) },
+                        onSave = {
+                            viewModel.createTour()
+                            viewModel.setTourState(TourState.VIEWING) },
                         onEdit = { viewModel.setTourState(TourState.EDITING) },
                         onCancel = { viewModel.setTourState(TourState.VIEWING) },
                         placesList = viewModel.locationAutofillDialog,

@@ -10,6 +10,8 @@ data class TourModel(
     val summary: String? = null,
     val origin: PlaceModel? = null,
     val destination: PlaceModel? = null,
+    val createdBy: String = "",
+//    val guests: List<String>? = null
 )
 
 fun TourModel.toTourCard(): TourCard {

@@ -46,7 +46,6 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             TourScreen(
                 viewModel = viewModel,
                 navController = navController,
-                tourId = it.arguments?.getString("tourId")
             )
         }
         composable(Screen.NotificationScreen.route) {
