@@ -8,7 +8,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:673476541562:android:4b24b7071d96a784980fc3",
+        "mobilesdk_app_id": "1:673476541562:android:a7faa1fa862a2935980fc3",
         "android_client_info": {
           "package_name": "elfak.mosis.tourguide"
         }
@@ -20,6 +20,22 @@
           "android_info": {
             "package_name": "elfak.mosis.tourguide",
             "certificate_hash": "b7079782589bd9d2fcc4f01f4135ecff4ebac5c6"
+          }
+        },
+        {
+          "client_id": "673476541562-6d09si4cfeo3luqa4sqa6hebl4ijge6s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "elfak.mosis.tourguide",
+            "certificate_hash": "1032764c9bbb99df99156d9c932cd4cd73cac27b"
+          }
+        },
+        {
+          "client_id": "673476541562-h8g91jnlvbgr5a0ltihcbbdojvrork0b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "elfak.mosis.tourguide",
+            "certificate_hash": "6006eebab91115ee2c79f7679cbfeedf5319db7c"
           }
         },
         {

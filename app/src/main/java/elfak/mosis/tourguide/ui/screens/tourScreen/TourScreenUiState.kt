@@ -5,7 +5,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import elfak.mosis.tourguide.data.models.PlaceDetails
 import elfak.mosis.tourguide.domain.models.DeviceSettings
-import elfak.mosis.tourguide.domain.models.TourDetails
+import elfak.mosis.tourguide.domain.models.ToastData
+import elfak.mosis.tourguide.domain.models.tour.TourDetails
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 
 data class TourScreenUiState(
@@ -26,7 +27,7 @@ data class TourScreenUiState(
     var routeChanged: Boolean = false,
 
     val tourDetails: TourDetails = TourDetails(),
-    val tourState: TourState = TourState.CREATING,
+    val tourState: TourState = TourState.VIEWING,
 
     val placeDetails: PlaceDetails = PlaceDetails(),
 
@@ -34,9 +35,7 @@ data class TourScreenUiState(
 
     val tourScreenState: TourScreenState = TourScreenState.TOUR_DETAILS,
 
-    var hasErrors: Boolean = false,
-    var errorMessage: String = ""
-    )
+    val toastData: ToastData = ToastData(),
 
-
-
+    val tourId: String? = null
+)

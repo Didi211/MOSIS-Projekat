@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -26,6 +27,9 @@ import elfak.mosis.tourguide.domain.helper.UnitConvertor
 import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Viewport
+import elfak.mosis.tourguide.domain.models.tour.toTourModel
+import elfak.mosis.tourguide.domain.repository.AuthRepository
+import elfak.mosis.tourguide.domain.repository.TourRepository
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -34,6 +38,7 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import elfak.mosis.tourguide.domain.models.tour.TourDetails as TourDetails1
 
 @HiltViewModel
 class TourScreenViewModel @Inject constructor(
@@ -42,6 +47,9 @@ class TourScreenViewModel @Inject constructor(
     private val tourGuideApiWrapper: TourGuideApiWrapper,
     private val convertor: UnitConvertor,
     private val sessionTokenSingleton: SessionTokenSingleton,
+    private val tourRepository: TourRepository,
+    private val authRepository: AuthRepository,
+    savedStateHandle: SavedStateHandle
 ): ViewModel() {
     var uiState by mutableStateOf(TourScreenUiState())
         private set
@@ -49,13 +57,47 @@ class TourScreenViewModel @Inject constructor(
 //    private var chosenLocation by mutableStateOf(PlaceAutocompleteResult("",""))
     val locationAutofill = mutableStateListOf<PlaceAutocompleteResult>()
     val locationAutofillDialog = mutableStateListOf<PlaceAutocompleteResult>()
+    private val placeFields = listOf(
+        Place.Field.LAT_LNG,
+        Place.Field.ADDRESS,
+        Place.Field.NAME,
+        Place.Field.TYPES,
+        Place.Field.RATING,
+        Place.Field.ICON_URL,
+        Place.Field.VIEWPORT
+    )
 
     private var job: Job? = null
     private var textInputJob: Job? = null
     init {
-        viewModelScope.launch {
-            tourGuideApiWrapper.testApi()
+        val editMode: Boolean = savedStateHandle["editMode"]!!
+        if (savedStateHandle.contains("tourId")) {
+            setTourId(savedStateHandle["tourId"])
         }
+        viewModelScope.launch {
+            try {
+                if (uiState.tourId != null) {
+                    val tour = tourRepository.getTour(uiState.tourId!!)
+                    setTourDetails(uiState.tourDetails.update(tour))
+                    if (uiState.tourDetails.bothLocationsSet) {
+                        uiState.tourDetails.onBothLocationsSet(true)
+                    }
+                    if (editMode) { // user clicked option edit from dropdown
+                        setTourState(TourState.CREATING)
+                    }
+                    else { // user clicked on card
+                        setTourState(TourState.VIEWING)
+                    }
+                }
+                else {
+                    setTourState(TourState.CREATING)
+                }
+            }
+            catch (ex: Exception) {
+                handleError(ex)
+            }
+        }
+
         uiState.tourDetails.onTitleChanged = { setTitle(it) }
         uiState.tourDetails.onSummaryChanged = { setSummary(it) }
         uiState.tourDetails.onOriginChanged = { setOrigin(it) }
@@ -76,7 +118,7 @@ class TourScreenViewModel @Inject constructor(
                             throw Exception("Origin and destination can't be the same for creating a tour!")
                         }
 
-                        var result: RouteResponse? = tourGuideApiWrapper.getRoute(originId, destinationId)
+                        val result: RouteResponse? = tourGuideApiWrapper.getRoute(originId, destinationId)
                         // null checking if error has happened
                         if(result?.routes == null) {
                             throw Exception("Couldn't find route.")
@@ -94,12 +136,16 @@ class TourScreenViewModel @Inject constructor(
                         setTime(convertor.formatTime(route.duration))
                     }
                     catch(ex: Exception) {
-                        uiState = uiState.copy(hasErrors = true, errorMessage = ex.message ?: "Error occurred")
+                        handleError(ex)
                     }
 
                 }
             }
         }
+    }
+
+    private fun setTourId(tourId: String?) {
+        uiState = uiState.copy(tourId = tourId)
     }
 
     override fun onCleared() {
@@ -133,16 +179,15 @@ class TourScreenViewModel @Inject constructor(
     fun setBothLocationsSet(value: Boolean) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(bothLocationsSet = value))
     }
-    fun resetTourDetails() {
-        uiState = uiState.copy(tourDetails = uiState.tourDetails.clear())
+    fun setTourDetails(tourDetails: TourDetails1) {
+        uiState = uiState.copy(tourDetails = tourDetails)
     }
 
 
 
     private fun decodePolyline(encodedPolyline: String) {
         val decodedPolyline = locationHelper.decodePolyline(encodedPolyline)
-        val pointsLatLng: List<LatLng> = decodedPolyline.map { LatLng(it.first, it.second) }
-        setPolylinePoints(pointsLatLng)
+        setPolylinePoints(decodedPolyline)
     }
     private fun setPolylinePoints(polylinePoints: List<LatLng>) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(polylinePoints = polylinePoints))
@@ -186,9 +231,6 @@ class TourScreenViewModel @Inject constructor(
         return uiState.locationState == LocationState.Located
     }
 
-    fun clearErrorMessage() {
-        uiState = uiState.copy(hasErrors = false)
-    }
 
     //endregion
 
@@ -214,23 +256,15 @@ class TourScreenViewModel @Inject constructor(
     }
 
     fun startLocationUpdates() {
-        try {
-            if(isLocated()) {
-               return
-            }
-            locationHelper.startLocationTracking()
+        if(isLocated()) {
+           return
         }
-        catch (e: Exception) {
-            e.printStackTrace()
-            Log.e("LocationERR",e.message!!)
-        }
+        locationHelper.startLocationTracking()
     }
 
     private fun stopLocationUpdates() {
         locationHelper.stopLocationTracking()
     }
-
-
     //endregion
 
     //region CAMERA ANIMATION
@@ -264,14 +298,6 @@ class TourScreenViewModel @Inject constructor(
     private fun moveCamera() {
         viewModelScope.launch {
             try {
-//                if(uiState.placeDetails.viewport != null) {
-//                    val bounds = uiState.placeDetails.viewport!!
-//                    uiState.cameraPositionState.animate(
-//                        CameraUpdateFactory.newLatLngBounds(bounds,50),1500
-//                    )
-//                    return@launch
-//                }
-
                 // keeping the zoom level the same if it is zoomed enough
                 val zoom = if (uiState.cameraPositionState.position.zoom < 12) 14f else uiState.cameraPositionState.position.zoom
                 uiState.cameraPositionState.animate(
@@ -310,25 +336,12 @@ class TourScreenViewModel @Inject constructor(
 
     //region SEARCH LOCATION
     fun findLocationId(latLng: LatLng) {
-        //get id
         viewModelScope.launch {
             val place = tourGuideApiWrapper.getPlaceId(PlaceLatLng.toLatLng(latLng)) ?: return@launch
-            //get details
             getPOIDetails(place.placeId)
-            //show details
         }
     }
     fun getPOIDetails(placeId: String) {
-        val placeFields = listOf(
-            Place.Field.LAT_LNG,
-            Place.Field.ADDRESS,
-            Place.Field.ADDRESS_COMPONENTS,
-            Place.Field.NAME,
-            Place.Field.TYPES,
-            Place.Field.RATING,
-            Place.Field.ICON_URL,
-            Place.Field.VIEWPORT
-        )
         val request = FetchPlaceRequest.builder(placeId, placeFields)
             .setSessionToken(sessionTokenSingleton.token)
             .build()
@@ -365,12 +378,8 @@ class TourScreenViewModel @Inject constructor(
         textInputJob = viewModelScope.launch {
             delay(500)
             job?.cancel()
-            if(showInDialog) {
-                locationAutofillDialog.clear()
-            }
-            else {
-                locationAutofill.clear()
-            }
+            val targetAutofill = if (showInDialog) locationAutofillDialog else locationAutofill
+            targetAutofill.clear()
             job = viewModelScope.launch {
                 launchSearchRequest(query, showInDialog)
             }
@@ -401,7 +410,6 @@ class TourScreenViewModel @Inject constructor(
     }
 
     private fun onSearchSuccess(response: FindAutocompletePredictionsResponse) {
-        // if got any, populate location list
         locationAutofill += response.autocompletePredictions.map {
             PlaceAutocompleteResult(
                 address = it.getFullText(null).toString(),
@@ -410,7 +418,6 @@ class TourScreenViewModel @Inject constructor(
         }
     }
     private fun onDialogSearchSuccess(response: FindAutocompletePredictionsResponse) {
-        // if got any, populate location list
         locationAutofillDialog += response.autocompletePredictions.map {
             PlaceAutocompleteResult(
                 address = it.getFullText(null).toString(),
@@ -419,19 +426,8 @@ class TourScreenViewModel @Inject constructor(
         }
     }
 
-
-
     fun searchOnMap(placeId: String? = null) {
         if (placeId == null) return
-        val placeFields = listOf(
-            Place.Field.LAT_LNG,
-            Place.Field.ADDRESS,
-            Place.Field.NAME,
-            Place.Field.TYPES,
-            Place.Field.RATING,
-            Place.Field.ICON_URL,
-            Place.Field.VIEWPORT
-        )
         val request = FetchPlaceRequest.builder(placeId, placeFields)
             .setSessionToken(sessionTokenSingleton.token)
             .build()
@@ -447,7 +443,6 @@ class TourScreenViewModel @Inject constructor(
                     setSearchFlag(true)
                     // call animation
                     viewModelScope.launch {
-//                        onLocationChanged()
                         moveCameraWithBounds(Viewport(it.place.viewport!!.southwest, it.place.viewport!!.northeast))
                     }
                     sessionTokenSingleton.invalidateToken()
@@ -477,8 +472,7 @@ class TourScreenViewModel @Inject constructor(
         )
         job.joinAll()
 
-        if (startLocationLatLng == invalidLocation) return
-        if (endLocationLatLng == invalidLocation) return
+        if (startLocationLatLng == invalidLocation || endLocationLatLng == invalidLocation) return
 
         var place = elfak.mosis.tourguide.domain.models.Place(
             uiState.tourDetails.origin.id,
@@ -495,51 +489,38 @@ class TourScreenViewModel @Inject constructor(
     }
 
     private suspend fun findLocationLatLng(placeId: String): LatLng? {
-        var placeLatLng: LatLng? = null
-
         val placeFields = listOf(Place.Field.LAT_LNG)
         val request = FetchPlaceRequest.newInstance(placeId, placeFields)
-        try {
-            val response = placesClient.fetchPlace(request).await() ?: return null
-            placeLatLng = response.place.latLng!!
-        }
-        catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return placeLatLng
+        val response = placesClient.fetchPlace(request).await() ?: return null
+        return response.place.latLng!!
     }
-
-
 
     fun clearSearchBar() {
         changeSearchValue("")
         locationAutofill.clear()
         setSearchBarVisibility(false)
     }
-
     //endregion
 
     //region DEVICE SETTINGS
-    private fun setGps(gpsEnabled: Boolean) {
+    private fun setGps(gpsEnabled: Boolean): Boolean {
         uiState = uiState.copy(deviceSettings = uiState.deviceSettings.copy(gpsEnabled = gpsEnabled))
+        return gpsEnabled
     }
 
-    private fun setLocationPermissionStatus(status: Boolean) {
+    private fun setLocationPermissionStatus(status: Boolean): Boolean {
         uiState = uiState.copy(deviceSettings = uiState.deviceSettings.copy(locationPermissionAllowed = status))
+        return status
     }
     fun createLocationPermissions(): List<String> {
         return locationHelper.createLocationPermissions()
     }
     fun checkGps(): Boolean {
-        val status = locationHelper.isGpsOn()
-        setGps(status)
-        return status
+        return setGps(locationHelper.isGpsOn())
     }
 
     fun checkPermissions(): Boolean {
-        val allowed = locationHelper.hasAllowedPermissions()
-        setLocationPermissionStatus(allowed)
-        return allowed
+        return setLocationPermissionStatus(locationHelper.hasAllowedPermissions())
     }
     //endregion
 
@@ -550,5 +531,57 @@ class TourScreenViewModel @Inject constructor(
     }
 
     //endregion
+
+    //region TourRepository
+    fun onSave() {
+        // validation
+        val blankTitle = uiState.tourDetails.title.isBlank()
+        val blankSummary = uiState.tourDetails.summary.isBlank()
+        val blankOrigin = uiState.tourDetails.origin.id.isBlank()
+        val blankDestination = uiState.tourDetails.destination.id.isBlank()
+        if (blankTitle && blankSummary && blankOrigin && blankDestination) {
+            setErrorMessage("None of the fields are filled. Fill at least one field")
+            return
+        }
+        viewModelScope.launch {
+            try {
+                val userId = authRepository.getUserIdLocal()!!
+                val successMessage = if (uiState.tourId != null) "updated" else "created"
+                if (uiState.tourId != null) {
+                    tourRepository.updateTour(uiState.tourId!!, uiState.tourDetails.toTourModel(userId))
+                }
+                else {
+                    tourRepository.createTour(uiState.tourDetails.toTourModel(userId))
+                }
+                setTourState(TourState.VIEWING)
+                setSuccessMessage("Tour successfully $successMessage")
+            }
+            catch (ex: Exception) { handleError(ex) }
+
+        }
+    }
+    //endregion
+
+    //region Message Handler
+    fun clearErrorMessage() {
+        uiState = uiState.copy(toastData = uiState.toastData.copy(hasErrors = false))
+    }
+    private fun setErrorMessage(message: String) {
+        uiState = uiState.copy(toastData = uiState.toastData.copy(errorMessage = message, hasErrors = true))
+    }
+    private fun setSuccessMessage(message: String) {
+        uiState = uiState.copy(toastData = uiState.toastData.copy(successMessage = message, hasSuccessMessage = true))
+    }
+    fun clearSuccessMessage() {
+        uiState = uiState.copy(toastData = uiState.toastData.copy(hasSuccessMessage = false))
+    }
+
+    private fun handleError (ex: Exception) {
+        if (ex.message != null) {
+            setErrorMessage(ex.message!!)
+            return
+        }
+        setErrorMessage("Error has occurred")
+    }
 
 }

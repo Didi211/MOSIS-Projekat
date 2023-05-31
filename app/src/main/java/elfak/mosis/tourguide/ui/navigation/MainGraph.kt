@@ -3,7 +3,9 @@ package elfak.mosis.tourguide.ui.navigation
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import elfak.mosis.tourguide.ui.screens.friendsScreen.FriendsScreen
 import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreen
@@ -21,20 +23,36 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             val viewModel = hiltViewModel<HomeScreenViewModel>()
             HomeScreen(
                 viewModel = viewModel,
-                navigateToTour = {
-                    navController.navigate(Screen.TourScreen.route)
+                navigateToTour = { tourId: String?, editMode: Boolean ->
+                    if (tourId != null) {
+                        navController.navigate(Screen.TourScreen.route + "?tourId=$tourId&editMode=$editMode")
+                    }
+                    else {
+                        navController.navigate(Screen.TourScreen.route)
+                    }
                 },
                 navController = navController
             )
         }
-        composable(Screen.TourScreen.route) {
+        composable(Screen.TourScreen.route + "?tourId={tourId}&editMode={editMode}",
+            arguments = listOf(
+                navArgument("tourId") {
+                    nullable = true
+                    type = NavType.StringType
+                    defaultValue = null
+                },navArgument("editMode") {
+                    type = NavType.BoolType
+                    defaultValue = false
+                },
+            )
+        ) {
             val viewModel = hiltViewModel<TourScreenViewModel>()
             TourScreen(
                 viewModel = viewModel,
-                navController = navController
+                navController = navController,
             )
         }
-        composable(Screen.NotificationScreen.route){
+        composable(Screen.NotificationScreen.route) {
             NotificationScreen(
 
             )

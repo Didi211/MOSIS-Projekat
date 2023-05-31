@@ -22,7 +22,7 @@ import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.InputTypes
 import elfak.mosis.tourguide.ui.components.BasicInputComponent
 import elfak.mosis.tourguide.ui.components.buttons.ButtonComponent
-import elfak.mosis.tourguide.ui.components.LogoWithTextComponent
+import elfak.mosis.tourguide.ui.components.images.LogoWithTextComponent
 import es.dmoral.toasty.Toasty
 
 @Composable

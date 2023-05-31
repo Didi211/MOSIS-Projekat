@@ -1,4 +1,4 @@
-package elfak.mosis.tourguide.ui.components
+package elfak.mosis.tourguide.ui.components.images
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon

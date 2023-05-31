@@ -1,5 +1,6 @@
 package elfak.mosis.tourguide.ui.components.bottomsheet
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,7 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
@@ -27,21 +30,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.domain.models.Place
-import elfak.mosis.tourguide.domain.models.TourDetails
+import elfak.mosis.tourguide.domain.models.tour.TourDetails
 import elfak.mosis.tourguide.ui.components.TransparentTextField
 import elfak.mosis.tourguide.ui.components.buttons.ButtonRowContainer
 import elfak.mosis.tourguide.ui.components.buttons.CancelButton
 import elfak.mosis.tourguide.ui.components.buttons.EditButton
 import elfak.mosis.tourguide.ui.components.buttons.SaveButton
+import elfak.mosis.tourguide.ui.components.dialogs.BlockTextDialog
 import elfak.mosis.tourguide.ui.components.dialogs.SearchLocationDialog
 import elfak.mosis.tourguide.ui.components.icons.CancelIcon
 import elfak.mosis.tourguide.ui.screens.tourScreen.TourState
@@ -117,7 +123,7 @@ fun TourDetailsEditMode(
             locationInput = it
             openDialog = true
         }) {
-        SaveButton(onSave)
+        SaveButton(onClick = onSave)
         Spacer(Modifier.width(10.dp))
         CancelButton(onCancel)
     }
@@ -137,6 +143,20 @@ fun TourDetailsContainer(
     chooseLocation: (String) -> Unit = { },
     buttons: @Composable () -> Unit,
 ) {
+    var openDialog by remember { mutableStateOf(false) }
+
+    if (openDialog) {
+        BlockTextDialog(
+            text = tourDetails.summary,
+            onTextChanged = tourDetails.onSummaryChanged,
+            label = stringResource(id = R.string.summary) + ":",
+            enabled = tourState != TourState.VIEWING,
+            onDismiss = {
+                openDialog = false
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .padding(top = 5.dp, start = 15.dp, end = 15.dp)
@@ -156,7 +176,7 @@ fun TourDetailsContainer(
             InputRowContainer {
                 TransparentTextField(
                     modifier = Modifier
-                        .height(70.dp)
+                        .wrapContentHeight()
                         .fillMaxWidth()
                         .padding(top = 0.dp, bottom = 0.dp),
                     text = tourDetails.title,
@@ -164,7 +184,8 @@ fun TourDetailsContainer(
                     onTextChanged = tourDetails.onTitleChanged,
                     textStyle = Typography.h1,
                     enabled = enabledInputs,
-                    keyboardOptions = KeyboardOptions().copy(imeAction = ImeAction.Next)
+                    singleLine = false,
+                    keyboardOptions = KeyboardOptions().copy(imeAction = ImeAction.Next, capitalization = KeyboardCapitalization.Sentences)
                 )
             }
             // summary
@@ -172,13 +193,22 @@ fun TourDetailsContainer(
                 TransparentTextField(
                     modifier = Modifier
                         .height(70.dp)
+                        .border(
+                            width = 1.dp,
+                            color = if (tourState != TourState.VIEWING) MaterialTheme.colors.primary else Color.Transparent,
+                            shape = RoundedCornerShape(13.dp)
+                        )
+                        .padding(top = 0.dp, bottom = 0.dp)
+                        .clip(RoundedCornerShape(13.dp))
                         .fillMaxWidth()
-                        .padding(top = 0.dp, bottom = 0.dp),
+                        .clickable {
+                            openDialog = true
+                        },
                     text = tourDetails.summary,
                     placeholder = stringResource(id = R.string.summary),
                     onTextChanged = tourDetails.onSummaryChanged,
                     textStyle = Typography.body1,
-                    enabled = enabledInputs,
+                    enabled = false,
                     singleLine = false,
                 )
             }
@@ -190,11 +220,11 @@ fun TourDetailsContainer(
                     // Start Location
                     Text("From:", color = MaterialTheme.colors.primary)
                     Column {
-
+                            val modifier = if (enabledInputs) Modifier.clickable { chooseLocation("Start") } else Modifier
                         TransparentTextField(
-                            modifier = Modifier
-                                .widthIn(max = 280.dp)
-                                .clickable { chooseLocation("Start") },
+                            modifier = modifier
+                                .widthIn(max = 280.dp),
+//                                .clickable { chooseLocation("Start") },
                             text = tourDetails.origin.address,
                             placeholder = stringResource(id = R.string.search_holder2),
                             enabled = false,
@@ -225,11 +255,12 @@ fun TourDetailsContainer(
                     // End Location
                     Text("To:", color = MaterialTheme.colors.primary)
                     Column {
+                        val modifier = if (enabledInputs) Modifier.clickable { chooseLocation("End") } else Modifier
 
                         TransparentTextField(
-                            modifier = Modifier
-                                .widthIn(max = 280.dp)
-                                .clickable { chooseLocation("End") },
+                            modifier = modifier
+                                .widthIn(max = 280.dp),
+//                                .clickable { chooseLocation("End") },
                             text = tourDetails.destination.address,
                             placeholder = stringResource(id = R.string.search_holder),
                             enabled = false,

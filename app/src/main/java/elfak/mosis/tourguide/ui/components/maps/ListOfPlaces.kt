@@ -39,10 +39,7 @@ fun ListOfPlaces(
         ) {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.padding(12.dp)) {
-                items(
-//                    viewModel.locationAutofill
-                    placesList
-                ) {
+                items(placesList) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

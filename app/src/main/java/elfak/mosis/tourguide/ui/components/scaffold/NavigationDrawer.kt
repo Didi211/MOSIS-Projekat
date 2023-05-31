@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import elfak.mosis.tourguide.R
-import elfak.mosis.tourguide.ui.components.LogoImage
+import elfak.mosis.tourguide.ui.components.images.LogoImage
 import elfak.mosis.tourguide.ui.navigation.Screen
 
 val logoSize = 80.dp
@@ -89,7 +89,7 @@ fun MenuItemStyle(menuItem: MenuData) {
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .clickable { menuItem.navigate() },
+            .clickable { menuItem.onClick() },
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
 
@@ -126,7 +126,7 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
         MenuData(
             Icons.Rounded.Home,
             "Home",
-            navigate = {
+            onClick = {
                 navController.navigate(Screen.HomeScreen.route)
                 {
                     popUpTo(Screen.HomeScreen.route) { inclusive = true }
@@ -138,7 +138,7 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
         MenuData(
             Icons.Rounded.Notifications,
             "Notifications",
-            navigate = {
+            onClick = {
                 navController.navigate(Screen.NotificationScreen.route)
                 {
                     popUpTo(Screen.HomeScreen.route)
@@ -150,7 +150,7 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
         MenuData(
             Icons.Rounded.Person,
             "Profile",
-            navigate = {
+            onClick = {
                 navController.navigate(Screen.ProfileScreen.route)
                 {
                     popUpTo(Screen.HomeScreen.route)
@@ -162,7 +162,7 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
         MenuData(
             Icons.Rounded.List,
             "Friends List",
-            navigate = {
+            onClick = {
                 navController.navigate(Screen.FriendsScreen.route)
                 {
                     popUpTo(Screen.HomeScreen.route)
@@ -174,7 +174,7 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
         MenuData(
           Icons.Rounded.ArrowForward,
           "Sign out",
-          navigate = {
+          onClick = {
               viewModel.logout()
               navController.navigate(Screen.WelcomeScreen.route) {
                   popUpTo(Screen.Main.route) { inclusive = true }
@@ -216,6 +216,6 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
 data class MenuData(
     val menuIcon: ImageVector,
     val name: String,
-    val navigate: () -> Unit
+    val onClick: () -> Unit
 )
 

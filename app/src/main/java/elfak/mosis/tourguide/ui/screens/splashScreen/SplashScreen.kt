@@ -2,23 +2,16 @@ package elfak.mosis.tourguide.ui.screens.splashScreen
 
 import android.view.animation.OvershootInterpolator
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import elfak.mosis.tourguide.R
-import elfak.mosis.tourguide.ui.components.LogoComponent
-import elfak.mosis.tourguide.ui.components.LogoImage
+import elfak.mosis.tourguide.ui.components.images.LogoImage
 import kotlinx.coroutines.delay
 
 @Composable
