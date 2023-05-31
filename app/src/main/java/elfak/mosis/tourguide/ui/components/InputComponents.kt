@@ -43,7 +43,7 @@ fun BasicInputComponent(
             singleLine = true,
             keyboardOptions = keyboardOptions,
             visualTransformation = if (inputType == InputTypes.Password) PasswordVisualTransformation() else VisualTransformation.None,
-            keyboardActions = keyboardActions
+            keyboardActions = keyboardActions,
         )
 
     }

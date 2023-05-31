@@ -5,7 +5,9 @@ import elfak.mosis.tourguide.domain.models.tour.TourCard
 
 data class HomeScreenUiState(
     val tours: List<TourCard> = emptyList(),
-)
+    val isRefreshing: Boolean = false
+) {
+}
 
 private fun mockTourList(): List<TourCard> {
     val lorem = "Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry."

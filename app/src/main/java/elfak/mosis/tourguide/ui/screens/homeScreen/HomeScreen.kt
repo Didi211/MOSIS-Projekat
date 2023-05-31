@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalAnimationApi::class)
+@file:OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
 
 package elfak.mosis.tourguide.ui.screens.homeScreen
 
@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
@@ -30,6 +31,9 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -60,6 +64,10 @@ fun HomeScreen(
     val scaffoldState = rememberScaffoldState()
     val coroutineScope = rememberCoroutineScope()
     val menuViewModel = hiltViewModel<MenuViewModel>()
+    val refreshState = rememberPullRefreshState(
+        refreshing = viewModel.uiState.isRefreshing,
+        onRefresh = { viewModel.refreshTours() }
+    )
     Scaffold(
         scaffoldState = scaffoldState,
         // top navigation bar with menu button
@@ -96,10 +104,22 @@ fun HomeScreen(
             AnimatedContent(targetState = viewModel.uiState.tours.isNotEmpty()) { state ->
                 when (state) {
                     true -> {
-                        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(15.dp)) {
-                            items(viewModel.uiState.tours) { tour ->
-                                TourCard(tour = tour, onClick = { navigateToTour(tour.id) })
+                        Box(modifier = Modifier.pullRefresh(refreshState)) {
+                            LazyColumn(
+                                Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                contentPadding = PaddingValues(15.dp)
+                            ) {
+//                                if (viewModel.uiState.isRefreshing) {
+//                                    item {
+//                                        CircularProgressIndicator()
+//                                    }
+//                                }
+                                items(viewModel.uiState.tours) { tour ->
+                                    TourCard(tour = tour, onClick = { navigateToTour(tour.id) })
+                                }
                             }
+                            PullRefreshIndicator(viewModel.uiState.isRefreshing, refreshState, Modifier.align(Alignment.TopCenter))
                         }
                     }
                     false -> {
