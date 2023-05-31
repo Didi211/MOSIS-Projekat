@@ -23,9 +23,9 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             val viewModel = hiltViewModel<HomeScreenViewModel>()
             HomeScreen(
                 viewModel = viewModel,
-                navigateToTour = { tourId: String? ->
+                navigateToTour = { tourId: String?, editMode: Boolean ->
                     if (tourId != null) {
-                        navController.navigate(Screen.TourScreen.route + "?tourId=$tourId")
+                        navController.navigate(Screen.TourScreen.route + "?tourId=$tourId&editMode=$editMode")
                     }
                     else {
                         navController.navigate(Screen.TourScreen.route)
@@ -34,13 +34,17 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
                 navController = navController
             )
         }
-        composable(Screen.TourScreen.route + "?tourId={tourId}",
+        composable(Screen.TourScreen.route + "?tourId={tourId}&editMode={editMode}",
             arguments = listOf(
                 navArgument("tourId") {
                     nullable = true
                     type = NavType.StringType
                     defaultValue = null
-                })
+                },navArgument("editMode") {
+                    type = NavType.BoolType
+                    defaultValue = false
+                },
+            )
         ) {
             val viewModel = hiltViewModel<TourScreenViewModel>()
             TourScreen(

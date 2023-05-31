@@ -5,7 +5,7 @@ import elfak.mosis.tourguide.domain.models.tour.TourCard
 
 data class HomeScreenUiState(
     val tours: List<TourCard> = emptyList(),
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
 ) {
 }
 

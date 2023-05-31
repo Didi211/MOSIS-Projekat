@@ -3,8 +3,6 @@ package elfak.mosis.tourguide.ui.screens.homeScreen
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,8 +21,6 @@ class HomeScreenViewModel @Inject constructor(
 ) : ViewModel() {
     var uiState by mutableStateOf(HomeScreenUiState())
         private set
-    private val _tours: MutableLiveData<List<TourCard>> = MutableLiveData(emptyList())
-    val tours: LiveData<List<TourCard>> = _tours
 
     init {
         viewModelScope.launch {
@@ -54,5 +50,11 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
-
+    fun deleteTour(tourId: String) {
+        viewModelScope.launch {
+            tourRepository.deleteTour(tourId)
+            val tours = uiState.tours.filter { it.id != tourId }
+            setTours(tours)
+        }
+    }
 }

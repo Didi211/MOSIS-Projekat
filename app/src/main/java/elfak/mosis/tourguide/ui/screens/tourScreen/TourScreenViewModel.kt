@@ -70,6 +70,7 @@ class TourScreenViewModel @Inject constructor(
     private var job: Job? = null
     private var textInputJob: Job? = null
     init {
+        val editMode: Boolean = savedStateHandle["editMode"]!!
         if (savedStateHandle.contains("tourId")) {
             setTourId(savedStateHandle["tourId"])
         }
@@ -81,7 +82,12 @@ class TourScreenViewModel @Inject constructor(
                     if (uiState.tourDetails.bothLocationsSet) {
                         uiState.tourDetails.onBothLocationsSet(true)
                     }
-                    setTourState(TourState.VIEWING)
+                    if (editMode) { // user clicked option edit from dropdown
+                        setTourState(TourState.CREATING)
+                    }
+                    else { // user clicked on card
+                        setTourState(TourState.VIEWING)
+                    }
                 }
                 else {
                     setTourState(TourState.CREATING)

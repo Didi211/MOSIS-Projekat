@@ -34,6 +34,6 @@ class TourRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteTour(tourId: String) {
-        TODO("Not yet implemented")
+        collectionRef.document(tourId).delete().await()
     }
 }
