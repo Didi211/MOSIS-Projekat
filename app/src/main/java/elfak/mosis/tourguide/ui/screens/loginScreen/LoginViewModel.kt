@@ -30,6 +30,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             // to launch coroutine - async function that does not block main thread
             try {
+               validateCredentials()
                 authRepository.login(uiState.email, uiState.password)
                 onSuccess()
             }
@@ -41,5 +42,14 @@ class LoginViewModel @Inject constructor(
 
     fun clearErrorMessage() {
         uiState = uiState.copy(hasErrors = false)
+    }
+
+    private fun validateCredentials() {
+        if (uiState.email.isBlank()) {
+            throw Exception("Email field cannot be empty")
+        }
+        if (uiState.password.isBlank()) {
+            throw Exception("Password field cannot be empty")
+        }
     }
 }
