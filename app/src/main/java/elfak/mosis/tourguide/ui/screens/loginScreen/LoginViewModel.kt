@@ -46,10 +46,10 @@ class LoginViewModel @Inject constructor(
 
     private fun validateCredentials() {
         if (uiState.email.isBlank()) {
-            throw Exception("Email field cannot be empty")
+            throw Exception("Email cannot be empty")
         }
         if (uiState.password.isBlank()) {
-            throw Exception("Password field cannot be empty")
+            throw Exception("Password cannot be empty")
         }
     }
 }

@@ -3,9 +3,11 @@ package elfak.mosis.tourguide.ui.screens.registerScreen
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import elfak.mosis.tourguide.data.models.UserModel
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -41,15 +43,56 @@ class RegisterViewModel  @Inject constructor(
         viewModelScope.launch {
             // to launch coroutine - async function that does not block main thread
             try {
-                if (uiState.password != uiState.confirm_password) {
-                    throw Exception("Passwords doesn't match.")
-                }
-                authRepository.register(uiState.username, uiState.password, uiState.email, uiState.fullname)
+                validateUserInfo()
+                authRepository.register(uiState.getUserData())
                 onSuccess()
             }
             catch (err:Exception) {
                 uiState = uiState.copy(hasErrors = true, errorMessage = err.message ?: "Error occurred")
             }
+        }
+    }
+
+    private fun validateUserInfo() {
+        val emailRegex = Regex("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+\$")
+        val charsOnly = Regex("^[a-zA-Z]+$")
+        // fullname
+        if (uiState.fullname.isBlank()) {
+            throw Exception("Fullname cannot be empty.")
+        }
+        if (!uiState.fullname.matches(charsOnly)) {
+            throw Exception("Fullname must be only characters.")
+        }
+
+        // username
+        if (uiState.username.isBlank()) {
+            throw Exception("Username cannot be empty.")
+        }
+
+        // phone number
+        if (uiState.phoneNumber.isNotBlank()) {
+            if (!uiState.phoneNumber.isDigitsOnly()) {
+                throw Exception("Phone number must be only digits")
+            }
+        }
+
+        // email
+        if (uiState.email.isBlank() ) {
+            throw Exception("Email cannot be empty.")
+        }
+        if (!uiState.email.matches(emailRegex)) {
+            throw Exception("Email not valid. Proper form: 'tour@tourguide.com'")
+        }
+
+        // passwords
+        if (uiState.password.isBlank()) {
+            throw Exception("Password cannot be empty.")
+        }
+        if (uiState.password.length < 6) {
+            throw Exception("Password must have 6 symbols.")
+        }
+        if (uiState.password != uiState.confirm_password) {
+            throw Exception("Passwords are not matching!")
         }
     }
 

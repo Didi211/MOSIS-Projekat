@@ -34,12 +34,11 @@ class AuthRepositoryImpl @Inject constructor(
         saveUserIdLocal(result.user!!.uid)
     }
 
-    override suspend fun register(username: String, password: String, email: String, fullname: String) {
-        val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+    override suspend fun register(user: UserModel) {
+        val result = firebaseAuth.createUserWithEmailAndPassword(user.email, user.password).await()
         saveUserIdLocal(result.user!!.uid)
-        UserModel(username, fullname, email)
         firebaseStore.collection("Users").add(
-            UserModel(username, fullname, email)
+            user
         ).await()
     }
 
