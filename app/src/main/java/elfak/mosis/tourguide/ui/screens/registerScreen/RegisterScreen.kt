@@ -1,5 +1,5 @@
 @file:OptIn(ExperimentalPermissionsApi::class, ExperimentalPermissionsApi::class,
-    ExperimentalFoundationApi::class
+    ExperimentalFoundationApi::class, ExperimentalAnimationApi::class
 )
 
 package elfak.mosis.tourguide.ui.screens.registerScreen
@@ -12,16 +12,15 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -81,7 +80,10 @@ fun RegisterScreen(
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture(),
         onResult = { success ->
-            viewModel.setHasPhoto(success)
+            if (!success) {
+                viewModel.setPhotoUri(viewModel.uiState.previousPhoto.uri)
+            }
+            viewModel.setHasPhoto(true)
         }
     )
     var permissionAlreadyRequested by rememberSaveable {
@@ -151,7 +153,7 @@ fun RegisterScreen(
                                     if (viewModel.uiState.photo.hasPhoto) {
                                         // remove current photo
                                         viewModel.setHasPhoto(false)
-                                        viewModel.changePhotoUri(null)
+                                        viewModel.setPhotoUri(null)
                                         showInfoMessage(context, R.string.image_removed)
                                     }
                                 },
@@ -161,7 +163,9 @@ fun RegisterScreen(
                         verticalArrangement = Arrangement.Center
 
                     ) {
-                        val hasPhoto = viewModel.uiState.photo.hasPhoto && viewModel.uiState.photo.uri != null
+                        val hasPhoto = viewModel.uiState.photo.hasPhoto
+                                && viewModel.uiState.photo.uri != null
+
                         if (!hasPhoto) {
                             Icon(
                                 imageVector = Icons.Outlined.AddAPhoto,
@@ -187,7 +191,7 @@ fun RegisterScreen(
                     BasicInputComponent(
                         text = viewModel.uiState.fullname,
                         onTextChanged = {
-                            viewModel.changeFullname(it)
+                            viewModel.setFullname(it)
                         },
                         label = stringResource(id = R.string.fullname) + ":",
                         keyboardOptions = KeyboardOptions.Default.copy(
@@ -204,7 +208,7 @@ fun RegisterScreen(
                     BasicInputComponent(
                         text = viewModel.uiState.username,
                         onTextChanged = {
-                            viewModel.changeUsername(it.trim())
+                            viewModel.setUsername(it.trim())
                         },
                         label = stringResource(id = R.string.username) + ":",
                         keyboardOptions = KeyboardOptions.Default.copy(
@@ -238,7 +242,7 @@ fun RegisterScreen(
                     BasicInputComponent(
                         text = viewModel.uiState.email,
                         onTextChanged = {
-                            viewModel.changeEmail(it.trim())
+                            viewModel.setEmail(it.trim())
                         },
                         label = stringResource(id = R.string.email) + ":",
                         keyboardOptions = KeyboardOptions.Default.copy(
@@ -255,7 +259,7 @@ fun RegisterScreen(
                     BasicInputComponent(
                         text = viewModel.uiState.password,
                         onTextChanged = {
-                            viewModel.changePassword(it.trim())
+                            viewModel.setPassword(it.trim())
                         },
                         label = stringResource(id = R.string.password) + ":",
                         keyboardOptions = KeyboardOptions.Default.copy(
@@ -272,7 +276,7 @@ fun RegisterScreen(
                     BasicInputComponent(
                         text = viewModel.uiState.confirm_password,
                         onTextChanged = {
-                            viewModel.changeConfirmPassword(it.trim())
+                            viewModel.setConfirmPassword(it.trim())
                         },
                         label = stringResource(id = R.string.confirm_password) + ":",
                         keyboardOptions = KeyboardOptions.Default.copy(
@@ -340,9 +344,10 @@ private fun openCamera(
 
     // open camera
     try {
+        viewModel.setPreviousPhoto()
         viewModel.setHasPhoto(false)
         val uri = CameraFileProvider.getImageUri(context)
-        viewModel.changePhotoUri(uri) // changing file in fs in which will camera write and compose read
+        viewModel.setPhotoUri(uri) // changing file in fs in which will camera write and compose read
         cameraLauncher.launch(uri)
     }
     catch (ex: Exception) {

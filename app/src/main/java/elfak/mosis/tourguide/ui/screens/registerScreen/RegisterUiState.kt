@@ -15,6 +15,7 @@ data class RegisterUiState(
     var errorMessage: String = "",
 
     val photo: Photo = Photo(),
+    val previousPhoto: Photo = Photo()
 ) {
     fun getUserData(): UserModel {
         return UserModel(

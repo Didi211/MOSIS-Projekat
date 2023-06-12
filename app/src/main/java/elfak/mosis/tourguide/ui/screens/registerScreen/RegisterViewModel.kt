@@ -11,7 +11,6 @@ import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import elfak.mosis.tourguide.data.models.UserModel
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,19 +24,19 @@ class RegisterViewModel  @Inject constructor(
         private set
 
     // region UI STATE METHODS
-    fun changeFullname(fullname: String) {
+    fun setFullname(fullname: String) {
         uiState = uiState.copy(fullname = fullname)
     }
-    fun changeUsername(username: String) {
+    fun setUsername(username: String) {
         uiState = uiState.copy(username = username)
     }
-    fun changeEmail(email: String) {
+    fun setEmail(email: String) {
         uiState = uiState.copy(email = email)
     }
-    fun changePassword(password: String) {
+    fun setPassword(password: String) {
         uiState = uiState.copy(password = password)
     }
-    fun changeConfirmPassword(confirm_password: String) {
+    fun setConfirmPassword(confirm_password: String) {
         uiState = uiState.copy(confirm_password = confirm_password)
     }
     //endregion
@@ -46,8 +45,11 @@ class RegisterViewModel  @Inject constructor(
     fun setHasPhoto(value: Boolean) {
         uiState = uiState.copy(photo = uiState.photo.copy(hasPhoto = value))
     }
-    fun changePhotoUri(uri: Uri?) {
+    fun setPhotoUri(uri: Uri?) {
         uiState = uiState.copy(photo = uiState.photo.copy(uri = uri))
+    }
+    fun setPreviousPhoto() {
+        uiState = uiState.copy(previousPhoto = uiState.photo)
     }
     //endregion
 
