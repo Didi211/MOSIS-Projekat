@@ -1,14 +1,23 @@
+@file:OptIn(ExperimentalPermissionsApi::class, ExperimentalPermissionsApi::class,
+    ExperimentalFoundationApi::class
+)
+
 package elfak.mosis.tourguide.ui.screens.registerScreen
 
+import android.Manifest
+import android.content.Context
+import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.Image
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.clipScrollableContainer
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +29,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -31,28 +39,36 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.domain.helper.CameraFileProvider
 import elfak.mosis.tourguide.ui.InputTypes
 import elfak.mosis.tourguide.ui.components.BasicInputComponent
 import elfak.mosis.tourguide.ui.components.buttons.ButtonComponent
 import elfak.mosis.tourguide.ui.components.images.LogoWithTextComponent
 import es.dmoral.toasty.Toasty
-import org.intellij.lang.annotations.JdkConstants.VerticalScrollBarPolicy
 
 @Composable
 fun RegisterScreen(
@@ -61,6 +77,23 @@ fun RegisterScreen(
     viewModel: RegisterViewModel
 ) {
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = { success ->
+            viewModel.setHasPhoto(success)
+        }
+    )
+    var permissionAlreadyRequested by rememberSaveable {
+        mutableStateOf(false)
+    }
+    val permissionState = rememberPermissionState(
+        permission = Manifest.permission.CAMERA,
+        onPermissionResult = {
+            viewModel.checkPermissions(context)
+            permissionAlreadyRequested = true
+        }
+    )
 
     if (viewModel.uiState.hasErrors) {
         Toasty.error(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_LONG, true).show()
@@ -102,14 +135,34 @@ fun RegisterScreen(
                             .fillMaxWidth()
                             .clip(CircleShape)
                             .border(5.dp, MaterialTheme.colors.primary, CircleShape)
-                            .clickable {
-                                // open camera
-                            },
+                            .combinedClickable(
+                                interactionSource = MutableInteractionSource(),
+                                onClick = {
+                                    // open camera
+                                    openCamera(
+                                        viewModel,
+                                        permissionAlreadyRequested,
+                                        permissionState,
+                                        cameraLauncher,
+                                        context
+                                    )
+                                },
+                                onLongClick = {
+                                    if (viewModel.uiState.photo.hasPhoto) {
+                                        // remove current photo
+                                        viewModel.setHasPhoto(false)
+                                        viewModel.changePhotoUri(null)
+                                        showInfoMessage(context, R.string.image_removed)
+                                    }
+                                },
+                                indication = LocalIndication.current,
+                            ),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
 
                     ) {
-                        if (!viewModel.uiState.hasPhoto) {
+                        val hasPhoto = viewModel.uiState.photo.hasPhoto && viewModel.uiState.photo.uri != null
+                        if (!hasPhoto) {
                             Icon(
                                 imageVector = Icons.Outlined.AddAPhoto,
                                 contentDescription = stringResource(id = R.string.add_profile_photo),
@@ -120,11 +173,14 @@ fun RegisterScreen(
 
                             )
                         }
-                        //                    else {
-                        //                        Image(
-                        //
-                        //                        )
-                        //                    }
+                        else {
+                            AsyncImage(
+                                model = viewModel.uiState.photo.uri,
+                                modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                contentScale = ContentScale.Crop,
+                                contentDescription = stringResource(id = R.string.user_photo)
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(10.dp))
                     // fullname
@@ -230,19 +286,6 @@ fun RegisterScreen(
                         ),
                         inputType = InputTypes.Password
                     )
-
-
-//                TextButton( //postoji
-//                    modifier = Modifier.padding(all = 10.dp),
-//                    onClick = { /* TODO - navigate to forgot password screen */ }) {
-//                    //telo textbutton-a
-//                    Text(
-//                        textDecoration = TextDecoration.Underline,
-//                        text = stringResource(id = R.string.forgot_password),
-//                        modifier = Modifier.background(color = MaterialTheme.colors.background)
-//
-//                    )
-//                }
                 }
 
                 // button
@@ -268,21 +311,6 @@ fun RegisterScreen(
 //    }
 }
 
-@Composable
-fun ScrollableColumn(
-    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
-    modifier: Modifier = Modifier,
-    scrollState: ScrollState = rememberScrollState(),
-//    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
-//    horizontalGravity: Alignment.Horizontal = Alignment.Start,
-    reverseScrollDirection: Boolean = false,
-    isScrollEnabled: Boolean = true,
-
-//    contentPadding: ,
-    children: @Composable ColumnScope.() -> Unit
-) {
-}
-
 
 private fun register(viewModel: RegisterViewModel, focusManager: FocusManager, navigateToHome: () -> Unit){
     viewModel.register{
@@ -291,3 +319,41 @@ private fun register(viewModel: RegisterViewModel, focusManager: FocusManager, n
     }
 }
 
+private fun openCamera(
+    viewModel: RegisterViewModel,
+    permissionAlreadyRequested: Boolean,
+    permissionState: PermissionState,
+    cameraLauncher: ManagedActivityResultLauncher<Uri, Boolean>,
+    context: Context
+) {
+    if (!viewModel.checkPermissions(context)) {
+        if (!permissionAlreadyRequested || permissionState.status.shouldShowRationale) {
+            permissionState.launchPermissionRequest()
+            return
+        }
+        showDeniedPermissionMessage(
+            context,
+            R.string.permission_denied_twice
+        )
+        return
+    }
+
+    // open camera
+    try {
+        viewModel.setHasPhoto(false)
+        val uri = CameraFileProvider.getImageUri(context)
+        viewModel.changePhotoUri(uri) // changing file in fs in which will camera write and compose read
+        cameraLauncher.launch(uri)
+    }
+    catch (ex: Exception) {
+        ex.message?.let { Toasty.error(context, it).show() }
+    }
+}
+
+fun showDeniedPermissionMessage(context: Context, @StringRes message: Int) {
+    Toasty.error(context, message, Toast.LENGTH_LONG).show()
+}
+
+fun showInfoMessage(context: Context, @StringRes message: Int) {
+    Toasty.info(context, message).show()
+}

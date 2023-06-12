@@ -45,8 +45,13 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun validateCredentials() {
+        val emailRegex = Regex("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+\$")
+
         if (uiState.email.isBlank()) {
             throw Exception("Email cannot be empty")
+        }
+        if (!uiState.email.matches(emailRegex)) {
+            throw Exception("Email not valid. Proper form: 'tour@tourguide.com'")
         }
         if (uiState.password.isBlank()) {
             throw Exception("Password cannot be empty")

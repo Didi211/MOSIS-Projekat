@@ -1,18 +1,20 @@
 package elfak.mosis.tourguide.ui.screens.registerScreen
 
 import elfak.mosis.tourguide.data.models.UserModel
+import elfak.mosis.tourguide.domain.models.Photo
 
 data class RegisterUiState(
     var fullname: String = "",
     var username: String = "",
+    val phoneNumber: String = "",
     var email: String = "",
     var password: String = "",
     var confirm_password: String = "",
+
     var hasErrors: Boolean = false,
     var errorMessage: String = "",
-    val phoneNumber: String = "",
-    val hasPhoto: Boolean = false,
-    val photoUrl: String = ""
+
+    val photo: Photo = Photo(),
 ) {
     fun getUserData(): UserModel {
         return UserModel(
@@ -21,7 +23,7 @@ data class RegisterUiState(
             email = email,
             password = password,
             phoneNumber = phoneNumber,
-            photoUrl = photoUrl
+            photoUrl = "profile_photo_$username"
         )
     }
 }

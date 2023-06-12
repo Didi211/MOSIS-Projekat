@@ -1,5 +1,9 @@
 package elfak.mosis.tourguide.ui.screens.registerScreen
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -16,12 +20,11 @@ import javax.inject.Inject
 class RegisterViewModel  @Inject constructor(
     private val authRepository: AuthRepository,
     ) : ViewModel() {
-//    private val _usersList = MutableStateFlow<List<UserModel>>(emptyList())
-//    val usersList = _usersList.asStateFlow()
 
     var uiState by mutableStateOf(RegisterUiState())
         private set
 
+    // region UI STATE METHODS
     fun changeFullname(fullname: String) {
         uiState = uiState.copy(fullname = fullname)
     }
@@ -37,6 +40,16 @@ class RegisterViewModel  @Inject constructor(
     fun changeConfirmPassword(confirm_password: String) {
         uiState = uiState.copy(confirm_password = confirm_password)
     }
+    //endregion
+
+    // region CAMERA
+    fun setHasPhoto(value: Boolean) {
+        uiState = uiState.copy(photo = uiState.photo.copy(hasPhoto = value))
+    }
+    fun changePhotoUri(uri: Uri?) {
+        uiState = uiState.copy(photo = uiState.photo.copy(uri = uri))
+    }
+    //endregion
 
     fun register(onSuccess: () -> Unit) {
         /* TODO - call api for register */
@@ -56,6 +69,7 @@ class RegisterViewModel  @Inject constructor(
     private fun validateUserInfo() {
         val emailRegex = Regex("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+\$")
         val charsOnly = Regex("^[a-zA-Z]+$")
+
         // fullname
         if (uiState.fullname.isBlank()) {
             throw Exception("Fullname cannot be empty.")
@@ -96,12 +110,18 @@ class RegisterViewModel  @Inject constructor(
         }
     }
 
+
     fun clearErrorMessage() {
         uiState = uiState.copy(hasErrors = false)
     }
 
     fun changePhoneNumber(phone: String) {
         uiState = uiState.copy(phoneNumber = phone)
+    }
+
+    fun checkPermissions(context: Context): Boolean {
+        val res = context.checkCallingOrSelfPermission(Manifest.permission.CAMERA)
+        return res == PackageManager.PERMISSION_GRANTED
     }
 
 }

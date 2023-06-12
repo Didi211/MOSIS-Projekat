@@ -329,7 +329,7 @@ private fun locateMe(
             permissionsState.launchMultiplePermissionRequest()
             return
         }
-        showDeniedPermissionMessage(context, R.string.permission_denied_twice)
+        showDeniedPermissionMessage(context, R.string.permissions_denied_twice)
         return
     }
     // check gps
