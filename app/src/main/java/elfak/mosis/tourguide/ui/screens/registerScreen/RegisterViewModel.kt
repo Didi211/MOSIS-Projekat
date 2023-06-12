@@ -57,4 +57,8 @@ class RegisterViewModel  @Inject constructor(
         uiState = uiState.copy(hasErrors = false)
     }
 
+    fun changePhoneNumber(phone: String) {
+        uiState = uiState.copy(phoneNumber = phone)
+    }
+
 }

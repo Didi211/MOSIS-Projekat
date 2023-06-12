@@ -7,5 +7,8 @@ data class RegisterUiState(
     var password: String = "",
     var confirm_password: String = "",
     var hasErrors: Boolean = false,
-    var errorMessage: String = ""
-)
+    var errorMessage: String = "",
+    val phoneNumber: String = "",
+    val hasPhoto: Boolean = false
+) {
+}

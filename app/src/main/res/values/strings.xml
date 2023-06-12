@@ -62,7 +62,8 @@
 
     <!--  validation  -->
     <string name="tour_details_empty_validation_error">None of the fields are filled. Fill at least one field</string>
-
+    <string name="add_profile_photo">Add profile photo</string>
+    <string name="phone_number">Phone number</string>
 
 
 </resources>
