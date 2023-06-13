@@ -20,12 +20,13 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "au
 class AuthRepositoryImpl @Inject constructor(
     private val context: Context,
     private val firebaseAuth: FirebaseAuth,
-    private val firebaseStore: FirebaseFirestore
+    private val fireStore: FirebaseFirestore
 ): AuthRepository {
     /* This implementation of firebase functions uses callback functions when the async call is completed
     *  So suspend keyword is not needed, but still they will be call inside the coroutine */
 
     private val dataStore = context.dataStore
+    private val usersRef = fireStore.collection("Users")
 
     override suspend fun login(username: String, password: String) {
         // current way of handling async functions
@@ -37,9 +38,16 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun register(user: UserModel) {
         val result = firebaseAuth.createUserWithEmailAndPassword(user.email, user.password).await()
         saveUserIdLocal(result.user!!.uid)
-        firebaseStore.collection("Users").add(
+        val fireStoreResult = usersRef.add(
             user
         ).await()
+    }
+
+    override suspend fun tryRegister(username: String): Boolean {
+        val usernameTaken = usersRef
+            .whereEqualTo("username", username)
+            .get().await()
+        return usernameTaken.isEmpty
     }
 
     override suspend fun logout() {

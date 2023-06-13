@@ -24,7 +24,7 @@ data class RegisterUiState(
             email = email,
             password = password,
             phoneNumber = phoneNumber,
-            photoUrl = "profile_photo_$username"
+            photoUrl = photo.filename
         )
     }
 }

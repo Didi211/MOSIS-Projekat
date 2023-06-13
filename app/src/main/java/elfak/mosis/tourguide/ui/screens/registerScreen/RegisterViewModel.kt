@@ -12,16 +12,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.domain.repository.AuthRepository
+import elfak.mosis.tourguide.domain.repository.PhotoRepository
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel  @Inject constructor(
     private val authRepository: AuthRepository,
+    private val photoRepository: PhotoRepository
     ) : ViewModel() {
 
     var uiState by mutableStateOf(RegisterUiState())
         private set
+
+    init {
+        setFullname("John Doe")
+        setUsername("john_doe")
+        setEmail("john.doe@gmail.com")
+        setPhoneNumber("89416510516")
+        setPassword("111222")
+        setConfirmPassword("111222")
+    }
 
     // region UI STATE METHODS
     fun setFullname(fullname: String) {
@@ -29,6 +40,9 @@ class RegisterViewModel  @Inject constructor(
     }
     fun setUsername(username: String) {
         uiState = uiState.copy(username = username)
+    }
+    fun setPhoneNumber(phone: String) {
+        uiState = uiState.copy(phoneNumber = phone)
     }
     fun setEmail(email: String) {
         uiState = uiState.copy(email = email)
@@ -51,6 +65,9 @@ class RegisterViewModel  @Inject constructor(
     fun setPreviousPhoto() {
         uiState = uiState.copy(previousPhoto = uiState.photo)
     }
+    private fun setPhotoUrl(url: String) {
+        uiState = uiState.copy(photo = uiState.photo.copy(filename = url))
+    }
     //endregion
 
     fun register(onSuccess: () -> Unit) {
@@ -59,6 +76,14 @@ class RegisterViewModel  @Inject constructor(
             // to launch coroutine - async function that does not block main thread
             try {
                 validateUserInfo()
+                if (!authRepository.tryRegister(uiState.username)) {
+                    throw Exception("Username is already taken.")
+                }
+                if (uiState.photo.hasPhoto) {
+                    setPhotoUrl(uiState.username)
+                    val photoDownloadUrl = photoRepository.uploadUserPhoto(uiState.photo)
+                    setPhotoUrl(photoDownloadUrl)
+                }
                 authRepository.register(uiState.getUserData())
                 onSuccess()
             }
@@ -70,7 +95,7 @@ class RegisterViewModel  @Inject constructor(
 
     private fun validateUserInfo() {
         val emailRegex = Regex("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+\$")
-        val charsOnly = Regex("^[a-zA-Z]+$")
+        val charsOnly = Regex("^[a-zA-Z ]+$")
 
         // fullname
         if (uiState.fullname.isBlank()) {
@@ -117,9 +142,7 @@ class RegisterViewModel  @Inject constructor(
         uiState = uiState.copy(hasErrors = false)
     }
 
-    fun changePhoneNumber(phone: String) {
-        uiState = uiState.copy(phoneNumber = phone)
-    }
+
 
     fun checkPermissions(context: Context): Boolean {
         val res = context.checkCallingOrSelfPermission(Manifest.permission.CAMERA)

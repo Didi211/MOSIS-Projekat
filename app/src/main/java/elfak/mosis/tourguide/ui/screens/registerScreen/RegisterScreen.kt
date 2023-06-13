@@ -225,7 +225,7 @@ fun RegisterScreen(
                     BasicInputComponent(
                         text = viewModel.uiState.phoneNumber,
                         onTextChanged = {
-                            viewModel.changePhoneNumber(it.trim())
+                            viewModel.setPhoneNumber(it.trim())
                         },
                         label = stringResource(id = R.string.phone_number) + ":",
                         keyboardOptions = KeyboardOptions.Default.copy(
