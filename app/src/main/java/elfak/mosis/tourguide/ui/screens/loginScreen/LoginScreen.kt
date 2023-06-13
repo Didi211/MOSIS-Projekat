@@ -7,10 +7,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
@@ -38,9 +43,11 @@ fun LoginScreen(
     viewModel: LoginViewModel
 ) {
     val focusManager = LocalFocusManager.current
+    var inProgress by remember { mutableStateOf(false) }
 
     if (viewModel.uiState.hasErrors) {
         Toasty.error(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_LONG, true).show()
+        inProgress = false
         viewModel.clearErrorMessage()
     }
     Box(modifier = Modifier.fillMaxSize()) {
@@ -88,40 +95,60 @@ fun LoginScreen(
                         imeAction = ImeAction.Done,
                     ),
                     keyboardActions = KeyboardActions(
-                        onDone = { login(viewModel, focusManager,navigateToHome) }
+                        onDone = {
+                            inProgress = true
+                            login(viewModel, focusManager) {
+                                inProgress = false
+                                navigateToHome()
+                            }
+                        }
                     ),
                     inputType = InputTypes.Password
                 )
                 Spacer(modifier = Modifier.heightIn(30.dp))
 
                 // buttons
-                // Login
-                ButtonComponent( //pravljeno
-                    text = stringResource(id = R.string.login),
-                    width = 230.dp,
-                    onClick =  { login(viewModel, focusManager, navigateToHome) }
+                if (inProgress) {
+                    CircularProgressIndicator()
+                }
+                else {
+                    Column() {
+                        // Login
+                        ButtonComponent( //pravljeno
+                            text = stringResource(id = R.string.login),
+                            width = 230.dp,
+                            onClick =  {
+                                inProgress = true
+                                login(viewModel, focusManager) {
+                                    inProgress = false
+                                    navigateToHome()
+                                }
+                            }
 
-                )
-                // Forgot password
-                TextButton( //postoji
-                    modifier = Modifier.padding(all = 10.dp),
-                    //telo textbutton-a
-                    onClick = navigateToResetPassword
-                ) {
-                    Text(
-                        textDecoration = TextDecoration.Underline,
-                        text = stringResource(id = R.string.forgot_password),
-                        modifier = Modifier.background(color = MaterialTheme.colors.background)
-                    )
+                        )
+                        // Forgot password
+                        TextButton( //postoji
+                            modifier = Modifier.padding(all = 10.dp),
+                            //telo textbutton-a
+                            onClick = navigateToResetPassword
+                        ) {
+                            Text(
+                                textDecoration = TextDecoration.Underline,
+                                text = stringResource(id = R.string.forgot_password),
+                                modifier = Modifier.background(color = MaterialTheme.colors.background)
+                            )
+                        }
+
+                    }
                 }
             }
         }
     }
 }
 
-private fun login(viewModel: LoginViewModel, focusManager: FocusManager, navigateToHome: () -> Unit) {
+private fun login(viewModel: LoginViewModel, focusManager: FocusManager, onSuccess: () -> Unit) {
+    focusManager.clearFocus()
     viewModel.login {
-        focusManager.clearFocus()
-        navigateToHome()
+        onSuccess()
     }
 }

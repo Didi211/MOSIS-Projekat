@@ -19,6 +19,7 @@ data class RegisterUiState(
 ) {
     fun getUserData(): UserModel {
         return UserModel(
+            id = "",
             fullname = fullname,
             username = username,
             email = email,
