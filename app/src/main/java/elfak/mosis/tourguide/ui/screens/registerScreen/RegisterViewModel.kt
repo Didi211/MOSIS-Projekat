@@ -25,14 +25,6 @@ class RegisterViewModel  @Inject constructor(
     var uiState by mutableStateOf(RegisterUiState())
         private set
 
-    init {
-        setFullname("John Doe")
-        setUsername("john_doe")
-        setEmail("john.doe@gmail.com")
-        setPhoneNumber("89416510516")
-        setPassword("111222")
-        setConfirmPassword("111222")
-    }
 
     // region UI STATE METHODS
     fun setFullname(fullname: String) {

@@ -56,6 +56,9 @@ android {
 }
 
 dependencies {
+    // Compressor
+    implementation 'id.zelory:compressor:3.0.1'
+
     // DataStore Preferences
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 

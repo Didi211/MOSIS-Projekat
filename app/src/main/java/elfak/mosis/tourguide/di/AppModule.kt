@@ -20,6 +20,7 @@ import dagger.hilt.components.SingletonComponent
 import elfak.mosis.tourguide.data.respository.AuthRepositoryImpl
 import elfak.mosis.tourguide.data.respository.PhotoRepositoryImpl
 import elfak.mosis.tourguide.data.respository.TourRepositoryImpl
+import elfak.mosis.tourguide.data.respository.UsersRepositoryImpl
 import elfak.mosis.tourguide.domain.api.RetrofitClient
 import elfak.mosis.tourguide.domain.api.TourGuideApi
 import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
@@ -29,6 +30,7 @@ import elfak.mosis.tourguide.domain.helper.UnitConvertor
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.PhotoRepository
 import elfak.mosis.tourguide.domain.repository.TourRepository
+import elfak.mosis.tourguide.domain.repository.UsersRepository
 import retrofit2.Retrofit
 import javax.inject.Singleton
 
@@ -106,5 +108,12 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun providePhotoRepository(firebaseStorage: FirebaseStorage) : PhotoRepository = PhotoRepositoryImpl(firebaseStorage)
+    fun providePhotoRepository(
+        @ApplicationContext context: Context,
+        firebaseStorage: FirebaseStorage,
+    ) : PhotoRepository = PhotoRepositoryImpl(context, firebaseStorage)
+
+    @Singleton
+    @Provides
+    fun provideUsersRepository(firestore: FirebaseFirestore): UsersRepository = UsersRepositoryImpl(firestore)
 }

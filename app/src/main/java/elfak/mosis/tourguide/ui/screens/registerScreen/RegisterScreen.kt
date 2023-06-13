@@ -33,6 +33,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
@@ -40,6 +41,7 @@ import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -96,6 +98,7 @@ fun RegisterScreen(
             permissionAlreadyRequested = true
         }
     )
+    var inProgress by remember { mutableStateOf(false) }
 
     if (viewModel.uiState.hasErrors) {
         Toasty.error(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_LONG, true).show()
@@ -180,7 +183,9 @@ fun RegisterScreen(
                         else {
                             AsyncImage(
                                 model = viewModel.uiState.photo.uri,
-                                modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
                                 contentScale = ContentScale.Crop,
                                 contentDescription = stringResource(id = R.string.user_photo)
                             )
@@ -286,7 +291,13 @@ fun RegisterScreen(
                             imeAction = ImeAction.Done,
                         ),
                         keyboardActions = KeyboardActions(
-                            onDone = { register(viewModel, focusManager, navigateToHome) }
+                            onDone = {
+                                inProgress = true
+                                register(viewModel, focusManager) {
+                                    inProgress = false
+                                    navigateToHome()
+                                }
+                            }
                         ),
                         inputType = InputTypes.Password
                     )
@@ -300,26 +311,33 @@ fun RegisterScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Bottom
                 ) {
-                    ButtonComponent(
-                        text = stringResource(id = R.string.register),
-                        width = 230.dp,
-                        onClick = {
-                            viewModel.register(navigateToHome)
-                        }
-                    )
+                    if (inProgress) {
+                        CircularProgressIndicator()
+                    }
+                    else {
+                        ButtonComponent(
+                            text = stringResource(id = R.string.register),
+                            width = 230.dp,
+                            onClick = {
+                                inProgress = true
+                                register(viewModel, focusManager) {
+                                    inProgress = false
+                                    navigateToHome()
+                                }
+                            }
+                        )
+                    }
                     Spacer(modifier = Modifier.heightIn(15.dp))
                 }
             }
         }
-//        }
-//    }
 }
 
 
-private fun register(viewModel: RegisterViewModel, focusManager: FocusManager, navigateToHome: () -> Unit){
-    viewModel.register{
-        focusManager.clearFocus()
-        navigateToHome()
+private fun register(viewModel: RegisterViewModel, focusManager: FocusManager, onSuccess: () -> Unit) {
+    focusManager.clearFocus()
+    viewModel.register {
+        onSuccess()
     }
 }
 
