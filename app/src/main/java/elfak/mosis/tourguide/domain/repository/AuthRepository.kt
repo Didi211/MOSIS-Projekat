@@ -8,7 +8,7 @@ interface AuthRepository {
 //     suspend fun removeUserIdLocal()
 
     suspend fun login(username: String, password: String)
-    suspend fun register(user: UserModel): Any
+    suspend fun register(user: UserModel, password: String): Any
     suspend fun tryRegister(username: String): Boolean
     suspend fun logout()
 }

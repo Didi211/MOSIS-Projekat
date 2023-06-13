@@ -102,6 +102,7 @@ fun RegisterScreen(
 
     if (viewModel.uiState.hasErrors) {
         Toasty.error(LocalContext.current, viewModel.uiState.errorMessage, Toast.LENGTH_LONG, true).show()
+        inProgress = false
         viewModel.clearErrorMessage()
     }
 //    LazyColumn {

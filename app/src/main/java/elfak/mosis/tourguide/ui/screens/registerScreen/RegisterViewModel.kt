@@ -76,7 +76,7 @@ class RegisterViewModel  @Inject constructor(
                     val photoDownloadUrl = photoRepository.uploadUserPhoto(uiState.photo)
                     setPhotoUrl(photoDownloadUrl)
                 }
-                authRepository.register(uiState.getUserData())
+                authRepository.register(uiState.getUserData(), uiState.password)
                 onSuccess()
             }
             catch (err:Exception) {
