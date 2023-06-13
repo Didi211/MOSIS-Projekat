@@ -30,6 +30,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             // to launch coroutine - async function that does not block main thread
             try {
+               validateCredentials()
                 authRepository.login(uiState.email, uiState.password)
                 onSuccess()
             }
@@ -41,5 +42,19 @@ class LoginViewModel @Inject constructor(
 
     fun clearErrorMessage() {
         uiState = uiState.copy(hasErrors = false)
+    }
+
+    private fun validateCredentials() {
+        val emailRegex = Regex("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+\$")
+
+        if (uiState.email.isBlank()) {
+            throw Exception("Email cannot be empty")
+        }
+        if (!uiState.email.matches(emailRegex)) {
+            throw Exception("Email not valid. Proper form: 'tour@tourguide.com'")
+        }
+        if (uiState.password.isBlank()) {
+            throw Exception("Password cannot be empty")
+        }
     }
 }

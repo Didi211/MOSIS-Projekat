@@ -23,7 +23,7 @@ fun BasicInputComponent(
     onTextChanged: (String) -> Unit,
     label: String,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    inputType: InputTypes,
+    inputType: InputTypes = InputTypes.Text,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     inputColors: TextFieldColors = basicInputColors(),
     modifier: Modifier = Modifier

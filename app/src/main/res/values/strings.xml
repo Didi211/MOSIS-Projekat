@@ -48,7 +48,8 @@
 
     <!--  location  -->
     <string name="permission_not_allowed">App needs location permissions in order to function properly.</string>
-    <string name="permission_denied_twice">Permissions have been denied more than twice. Please allow them in settings.</string>
+    <string name="permissions_denied_twice">Permissions have been denied more than twice. Please allow them in settings.</string>
+    <string name="permission_denied_twice">Permission has been denied more than twice. Please allow it in settings.</string>
     <string name="location_needed">App needs GPS enabled to find your location.</string>
     <string name="my_location">My location</string>
 
@@ -62,7 +63,10 @@
 
     <!--  validation  -->
     <string name="tour_details_empty_validation_error">None of the fields are filled. Fill at least one field</string>
-
+    <string name="add_profile_photo">Add profile photo</string>
+    <string name="phone_number">Phone number</string>
+    <string name="user_photo">User\'s profile image</string>
+    <string name="image_removed">Photo removed.</string>
 
 
 </resources>

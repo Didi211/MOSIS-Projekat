@@ -46,7 +46,7 @@ fun LoginScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // logo
-            LogoWithTextComponent(text = stringResource(id = R.string.login), navigateBack)
+            LogoWithTextComponent(text = stringResource(id = R.string.login), navigateBack = navigateBack)
             Spacer(modifier = Modifier.height(30.dp))
 
             // inputs
