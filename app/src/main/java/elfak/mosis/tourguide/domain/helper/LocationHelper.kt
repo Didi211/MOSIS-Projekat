@@ -27,13 +27,10 @@ class LocationHelper @Inject constructor(
     private var request: LocationRequest
     private var onLocationResultListener: (location: Location) -> Unit = { }
     private var onLocationAvailabilityListener: (gpsEnabled: Boolean) -> Unit = { }
-    private var createdPermissions = false
-    private var permissions: List<String>? = null
     private var isRequesting: Boolean = false
 
     init {
         request = createRequest()
-
     }
 
     private fun createRequest(): LocationRequest {
@@ -44,14 +41,6 @@ class LocationHelper @Inject constructor(
             setWaitForAccurateLocation(true)
         }.build()
         return request
-    }
-
-    fun changeRequest(timeInterval: Long, minimalDistance: Float) {
-        this.timeInterval = timeInterval
-        this.minimalDistance = minimalDistance
-        createRequest()
-        stopLocationTracking()
-        startLocationTracking()
     }
 
     fun startLocationTracking() {
@@ -121,91 +110,6 @@ class LocationHelper @Inject constructor(
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
-
-    fun createLocationPermissions(): List<String> {
-        if (createdPermissions) {
-            return this.permissions!!
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-             this.permissions =  listOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            )
-        } else {
-            this.permissions =  listOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-            )
-        }
-        return this.permissions!!
-    }
-
-    fun distanceInMeter(startLat: Double, startLon: Double, endLat: Double, endLon: Double): Float {
-        val results = FloatArray(1)
-        Location.distanceBetween(startLat,startLon,endLat,endLon,results)
-        return results[0]
-    }
-
-    fun hasAllowedPermissions(): Boolean {
-        var hasAllPermissions = true
-
-        for (permission in permissions!!) {
-            //you can return false instead of assigning, but by assigning you can log all permission values
-            if (!hasPermission(permission)) {
-                hasAllPermissions = false
-            }
-        }
-        return hasAllPermissions
-    }
-
-    private fun hasPermission(permission: String): Boolean {
-        val res = context.checkCallingOrSelfPermission(permission)
-        return res == PackageManager.PERMISSION_GRANTED;
-    }
-
-    fun decodePolyline(encodedPolyline: String): List<LatLng> {
-        val polylinePoints = mutableListOf<Pair<Double, Double>>()
-        var index = 0
-        var lat = 0
-        var lng = 0
-
-        while (index < encodedPolyline.length) {
-            var shift = 0
-            var result = 0
-
-            while (true) {
-                val byte = encodedPolyline[index++].toInt() - 63
-                result = result or ((byte and 0x1F) shl shift)
-                shift += 5
-                if (byte < 0x20) break
-            }
-
-            val dlat = if (result and 1 != 0) (result shr 1).inv() else result shr 1
-            lat += dlat
-
-            shift = 0
-            result = 0
-
-            while (true) {
-                val byte = encodedPolyline[index++].toInt() - 63
-                result = result or ((byte and 0x1F) shl shift)
-                shift += 5
-                if (byte < 0x20) break
-            }
-
-            val dlng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
-            lng += dlng
-
-            val decodedLat = lat / 1E5
-            val decodedLng = lng / 1E5
-            polylinePoints.add(Pair(decodedLat, decodedLng))
-        }
-
-        return polylinePoints.map { LatLng(it.first, it.second) }
-    }
-
-
 }
 
 

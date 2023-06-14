@@ -24,7 +24,9 @@ import elfak.mosis.tourguide.data.respository.UsersRepositoryImpl
 import elfak.mosis.tourguide.domain.api.RetrofitClient
 import elfak.mosis.tourguide.domain.api.TourGuideApi
 import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
+import elfak.mosis.tourguide.domain.helper.GoogleMapHelper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
+import elfak.mosis.tourguide.domain.helper.PermissionHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
 import elfak.mosis.tourguide.domain.repository.AuthRepository
@@ -116,4 +118,13 @@ object AppModule {
     @Singleton
     @Provides
     fun provideUsersRepository(firestore: FirebaseFirestore): UsersRepository = UsersRepositoryImpl(firestore)
+
+    @Singleton
+    @Provides
+    fun provideGoogleMapHelper(): GoogleMapHelper = GoogleMapHelper()
+
+    @Singleton
+    @Provides
+    fun providePermissionHelper(@ApplicationContext context: Context)
+    : PermissionHelper = PermissionHelper(context)
 }
