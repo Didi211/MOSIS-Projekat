@@ -115,6 +115,7 @@ class TourScreenViewModel @Inject constructor(
             if (it) {
                 viewModelScope.launch {
                     try {
+                        setPolylinePoints(emptyList()) // clearing old route
                         if (uiState.tourDetails.origin.id != uiState.tourDetails.destination.id) {
                             setLocationsLatLng()
                         }
@@ -343,6 +344,7 @@ class TourScreenViewModel @Inject constructor(
 
     //region SEARCH LOCATION
     fun findLocationId(latLng: LatLng) {
+        // Another way to show poi when id is not provided
         viewModelScope.launch {
             val place = tourGuideApiWrapper.getPlaceId(PlaceLatLng.toLatLng(latLng)) ?: return@launch
             getPOIDetails(place.placeId)

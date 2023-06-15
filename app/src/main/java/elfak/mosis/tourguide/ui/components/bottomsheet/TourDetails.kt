@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
+import elfak.mosis.tourguide.domain.LocationType
 import elfak.mosis.tourguide.domain.models.Place
 import elfak.mosis.tourguide.domain.models.tour.TourDetails
 import elfak.mosis.tourguide.ui.components.TransparentTextField
@@ -64,7 +65,6 @@ fun TourDetails(
     placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
 ) {
-    // this can be moved inside sheetContent on TourScreen
     when(state) {
         TourState.CREATING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces)
         TourState.VIEWING -> TourDetailsViewMode(tourDetails, onEdit)
@@ -80,10 +80,10 @@ fun TourDetailsEditMode(
     placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
 ) {
-    var locationInput by remember { mutableStateOf("") }
+    var locationInput by remember { mutableStateOf(LocationType.Origin.name) }
     var openDialog by remember { mutableStateOf(false) }
+    var searchValue by remember { mutableStateOf("") }
 
-    // this could be route data class
     var originSet by remember {
         mutableStateOf( tourDetails.origin.id.isNotBlank() )
     }
@@ -98,11 +98,11 @@ fun TourDetailsEditMode(
                 placesList.clear()
             },
             onPlaceClick = { place ->
-                if (locationInput == "Start") {
+                if (locationInput == LocationType.Origin.name) {
                     tourDetails.onOriginChanged(Place(place.placeId, place.address))
                     originSet = true
                 }
-                else {
+                else if (locationInput == LocationType.Destination.name) {
                     tourDetails.onDestinationChanged(Place(place.placeId, place.address))
                     destinationSet = true
                 }
@@ -113,14 +113,16 @@ fun TourDetailsEditMode(
                 placesList.clear()
             },
             placesList = placesList,
+            searchValue = searchValue,
             searchForPlaces = searchForPlaces
         )
     }
     TourDetailsContainer(
         tourState = TourState.EDITING,
         tourDetails = tourDetails,
-        chooseLocation = {
-            locationInput = it
+        chooseLocation = { type, searchText ->
+            locationInput = type.name
+            searchValue = searchText
             openDialog = true
         }) {
         SaveButton(onClick = onSave)
@@ -140,7 +142,7 @@ fun TourDetailsContainer(
     tourState: TourState,
     tourDetails: TourDetails,
     enabledInputs: Boolean = true,
-    chooseLocation: (String) -> Unit = { },
+    chooseLocation: (LocationType, String) -> Unit = {_, _ ->  },
     buttons: @Composable () -> Unit,
 ) {
     var openDialog by remember { mutableStateOf(false) }
@@ -162,6 +164,7 @@ fun TourDetailsContainer(
             .padding(top = 5.dp, start = 15.dp, end = 15.dp)
             .wrapContentSize()
     ) {
+        // Handlebar
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -188,7 +191,7 @@ fun TourDetailsContainer(
                     keyboardOptions = KeyboardOptions().copy(imeAction = ImeAction.Next, capitalization = KeyboardCapitalization.Sentences)
                 )
             }
-            // summary
+            // Summary
             InputRowContainer {
                 TransparentTextField(
                     modifier = Modifier
@@ -212,19 +215,22 @@ fun TourDetailsContainer(
                     singleLine = false,
                 )
             }
-            // inputs
+            // Inputs
             Column(
                 modifier = Modifier.padding(top = 15.dp)
             ) {
                 InputRowContainer {
-                    // Start Location
+                    // Origin
                     Text("From:", color = MaterialTheme.colors.primary)
                     Column {
-                            val modifier = if (enabledInputs) Modifier.clickable { chooseLocation("Start") } else Modifier
+                        val modifier = if (enabledInputs) {
+                            Modifier.clickable {
+                                chooseLocation(LocationType.Origin, tourDetails.origin.address)
+                            }
+                        } else Modifier
                         TransparentTextField(
                             modifier = modifier
                                 .widthIn(max = 280.dp),
-//                                .clickable { chooseLocation("Start") },
                             text = tourDetails.origin.address,
                             placeholder = stringResource(id = R.string.search_holder2),
                             enabled = false,
@@ -252,15 +258,17 @@ fun TourDetailsContainer(
 
                 }
                 InputRowContainer {
-                    // End Location
+                    // Destination
                     Text("To:", color = MaterialTheme.colors.primary)
                     Column {
-                        val modifier = if (enabledInputs) Modifier.clickable { chooseLocation("End") } else Modifier
-
+                        val modifier = if (enabledInputs) {
+                            Modifier.clickable {
+                                chooseLocation(LocationType.Destination, tourDetails.destination.address)
+                            }
+                        } else Modifier
                         TransparentTextField(
                             modifier = modifier
                                 .widthIn(max = 280.dp),
-//                                .clickable { chooseLocation("End") },
                             text = tourDetails.destination.address,
                             placeholder = stringResource(id = R.string.search_holder),
                             enabled = false,
