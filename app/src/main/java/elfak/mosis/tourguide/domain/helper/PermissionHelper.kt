@@ -3,7 +3,6 @@ package elfak.mosis.tourguide.domain.helper
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.os.Build
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,20 +17,12 @@ class PermissionHelper @Inject constructor(
 
     fun createLocationPermissions(): List<String> {
         if (createdLocationPermissions) {
-            return this.locationPermissions!!
+            return locationPermissions!!
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            this.locationPermissions =  listOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            )
-        } else {
-            this.locationPermissions =  listOf(
+        locationPermissions =  listOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
             )
-        }
         return this.locationPermissions!!
     }
 

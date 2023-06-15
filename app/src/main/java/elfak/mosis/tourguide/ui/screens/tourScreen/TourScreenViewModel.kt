@@ -58,7 +58,6 @@ class TourScreenViewModel @Inject constructor(
     var uiState by mutableStateOf(TourScreenUiState())
         private set
 
-//    private var chosenLocation by mutableStateOf(PlaceAutocompleteResult("",""))
     val locationAutofill = mutableStateListOf<PlaceAutocompleteResult>()
     val locationAutofillDialog = mutableStateListOf<PlaceAutocompleteResult>()
     private val placeFields = listOf(
@@ -74,6 +73,7 @@ class TourScreenViewModel @Inject constructor(
     private var job: Job? = null
     private var textInputJob: Job? = null
     init {
+        //region get tours
         val editMode: Boolean = savedStateHandle["editMode"]!!
         if (savedStateHandle.contains("tourId")) {
             setTourId(savedStateHandle["tourId"])
@@ -101,7 +101,9 @@ class TourScreenViewModel @Inject constructor(
                 handleError(ex)
             }
         }
+        //endregion
 
+        //region tourdetails callbacks
         uiState.tourDetails.onTitleChanged = { setTitle(it) }
         uiState.tourDetails.onSummaryChanged = { setSummary(it) }
         uiState.tourDetails.onOriginChanged = { setOrigin(it) }
@@ -146,6 +148,7 @@ class TourScreenViewModel @Inject constructor(
                 }
             }
         }
+        //endregion
     }
 
     private fun setTourId(tourId: String?) {

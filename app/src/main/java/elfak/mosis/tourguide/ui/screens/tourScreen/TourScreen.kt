@@ -95,6 +95,7 @@ fun TourScreen(
         viewModel.setSearchBarVisibility(false)
     }
 
+    // region TOAST MESSAGES HANDLING
     if (viewModel.uiState.toastData.hasErrors) {
         Toasty.error(LocalContext.current, viewModel.uiState.toastData.errorMessage, Toast.LENGTH_LONG, true).show()
         viewModel.clearErrorMessage()
@@ -103,6 +104,7 @@ fun TourScreen(
         Toasty.info(LocalContext.current, viewModel.uiState.toastData.successMessage, Toast.LENGTH_SHORT, false).show()
         viewModel.clearSuccessMessage()
     }
+    // endregion
 
 
     BottomSheetScaffold(

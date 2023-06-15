@@ -1,16 +1,12 @@
 package elfak.mosis.tourguide.domain.helper
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
-import android.os.Build
 import android.os.Looper
 import android.util.Log
 import com.google.android.gms.location.*
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.Task
 import javax.inject.Inject
 import javax.inject.Singleton

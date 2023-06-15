@@ -4,7 +4,6 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
     <uses-permission android:name="android.permission.CAMERA"/>
 
     <uses-feature android:name="android.hardware.camera.any"/>
@@ -32,7 +31,7 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.TourGuide"
             android:windowSoftInputMode="adjustResize"
-            >
+            android:windowSoftInputMode="adjustResize" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -49,6 +48,7 @@
             android:authorities="elfak.mosis.tourguide"
             android:grantUriPermissions="true"
             android:exported="false">
+            android:exported="false" >
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/image_file_path" />
