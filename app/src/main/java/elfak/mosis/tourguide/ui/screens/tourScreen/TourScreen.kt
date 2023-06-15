@@ -51,6 +51,7 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.domain.LocationType
 import elfak.mosis.tourguide.domain.helper.BitmapHelper
 import elfak.mosis.tourguide.ui.components.bottomsheet.PlaceDetails
 import elfak.mosis.tourguide.ui.components.bottomsheet.TourDetails
@@ -128,11 +129,16 @@ fun TourScreen(
                             viewModel.setTourScreenState(TourScreenState.TOUR_DETAILS)
                             viewModel.setSearchFlag(false)
                         },
-                        onAddToTour = { place ->
-                            viewModel.setDestination(place)
+                        onAddToTour = { place, locationType ->
+                            when (locationType) {
+                                LocationType.Origin -> { viewModel.setOrigin(place) }
+                                LocationType.Destination -> { viewModel.setDestination(place) }
+                                LocationType.Waypoint -> { Toasty.info(context,"feature_under_development").show() }
+                            }
                             viewModel.setTourScreenState(TourScreenState.TOUR_DETAILS)
                             viewModel.setSearchFlag(false)
-                            if(viewModel.uiState.tourDetails.origin.id.isNotBlank()) {
+                            if(viewModel.uiState.tourDetails.origin.id.isNotBlank()
+                                && viewModel.uiState.tourDetails.destination.id.isNotBlank()) {
                                 viewModel.uiState.tourDetails.onBothLocationsSet(true)
                             }
 
@@ -271,7 +277,11 @@ fun TourScreen(
                         R.drawable.my_location
                     ),
                     state = MarkerState(position = viewModel.uiState.myLocation),
-                    visible = viewModel.uiState.deviceSettings.gpsEnabled
+                    visible = viewModel.uiState.deviceSettings.gpsEnabled,
+                    onClick = { marker ->
+                        viewModel.findLocationId(marker.position)
+                        true
+                    }
                 )
                 // point of interest
                 Marker(

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,12 +25,13 @@ import elfak.mosis.tourguide.ui.components.maps.SearchField
 
 @Composable
 fun SearchLocationDialog(
-    onDismiss: () -> Unit,
+    searchValue: String,
     placesList: MutableList<PlaceAutocompleteResult>,
+    onDismiss: () -> Unit,
     onPlaceClick: (PlaceAutocompleteResult) -> Unit,
     searchForPlaces: (String) -> Unit = { }
 ) {
-    var text by remember { mutableStateOf("")}
+    var text by remember { mutableStateOf(searchValue)}
     val focusManager = LocalFocusManager.current
     Dialog(
         onDismissRequest = onDismiss
@@ -48,6 +50,9 @@ fun SearchLocationDialog(
                     focusManager.clearFocus()
                 },
             )
+            LaunchedEffect(key1 = true) {
+                searchForPlaces(text)
+            }
             SearchField(
                 onSearch = { },
                 text = text,
