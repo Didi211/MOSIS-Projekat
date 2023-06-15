@@ -94,7 +94,12 @@ fun RegisterScreen(
     val permissionState = rememberPermissionState(
         permission = Manifest.permission.CAMERA,
         onPermissionResult = {
-            viewModel.checkPermissions(context)
+            val allowed = viewModel.checkPermissions(context)
+            if (allowed) {
+                val uri = CameraFileProvider.getImageUri(context)
+                viewModel.setPhotoUri(uri)
+                cameraLauncher.launch(uri)
+            }
             permissionAlreadyRequested = true
         }
     )
