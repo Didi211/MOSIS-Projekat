@@ -24,7 +24,9 @@ import elfak.mosis.tourguide.data.respository.UsersRepositoryImpl
 import elfak.mosis.tourguide.domain.api.RetrofitClient
 import elfak.mosis.tourguide.domain.api.TourGuideApi
 import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
+import elfak.mosis.tourguide.domain.helper.GoogleMapHelper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
+import elfak.mosis.tourguide.domain.helper.PermissionHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
 import elfak.mosis.tourguide.domain.repository.AuthRepository
@@ -44,6 +46,8 @@ object AppModule {
 
 
     // We need firebase as an injection in auth repository and others.
+
+    // region FIREBASE
     @Singleton
     @Provides
     fun provideFirebaseAuth(firebase: Firebase): FirebaseAuth = firebase.auth
@@ -61,6 +65,9 @@ object AppModule {
     @Provides
     fun provideFirebaseStorage(firebase: Firebase): FirebaseStorage = firebase.storage
 
+    //endregion
+
+    //region LOCATION
     @Provides
     fun provideFusedLocationProviderClient(@ApplicationContext context: Context)
         :FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
@@ -72,6 +79,12 @@ object AppModule {
         fusedLocationProviderClient: FusedLocationProviderClient
     ) : LocationHelper =  LocationHelper(context, fusedLocationProviderClient)
 
+    //endregion
+
+    //region GOOGLE MAPS
+    @Singleton
+    @Provides
+    fun provideGoogleMapHelper(): GoogleMapHelper = GoogleMapHelper()
 
     @Provides
     fun provideSessionTokenSingleton(): SessionTokenSingleton = SessionTokenSingleton()
@@ -79,6 +92,9 @@ object AppModule {
     @Provides
     fun providePlacesClient(@ApplicationContext context: Context): PlacesClient = Places.createClient(context)
 
+    //endregion
+
+    //region TOUR GUIDE API
     @Provides
     @Singleton
     fun provideRetrofit(): Retrofit = RetrofitClient.googleRoutesApiClient()
@@ -90,10 +106,19 @@ object AppModule {
     @Singleton
     @Provides
     fun provideWrapper(tourGuideApi: TourGuideApi) = TourGuideApiWrapper(tourGuideApi)
+    //endregion
 
+    //region COMMON
     @Provides
     fun provideUnitConvertor(): UnitConvertor = UnitConvertor()
 
+    @Singleton
+    @Provides
+    fun providePermissionHelper(@ApplicationContext context: Context)
+            : PermissionHelper = PermissionHelper(context)
+    //endregion
+
+    //region REPOSITORIES
     @Singleton
     @Provides
     fun provideTourRepository(firestore: FirebaseFirestore): TourRepository = TourRepositoryImpl(firestore)
@@ -116,4 +141,8 @@ object AppModule {
     @Singleton
     @Provides
     fun provideUsersRepository(firestore: FirebaseFirestore): UsersRepository = UsersRepositoryImpl(firestore)
+
+    //endregion
+
+
 }

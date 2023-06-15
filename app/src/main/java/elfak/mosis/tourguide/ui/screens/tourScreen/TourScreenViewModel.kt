@@ -21,7 +21,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.data.models.PlaceDetails
 import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
+import elfak.mosis.tourguide.domain.helper.GoogleMapHelper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
+import elfak.mosis.tourguide.domain.helper.PermissionHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
 import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
@@ -49,12 +51,13 @@ class TourScreenViewModel @Inject constructor(
     private val sessionTokenSingleton: SessionTokenSingleton,
     private val tourRepository: TourRepository,
     private val authRepository: AuthRepository,
+    private val googleMapHelper: GoogleMapHelper,
+    private val permissionHelper: PermissionHelper,
     savedStateHandle: SavedStateHandle
 ): ViewModel() {
     var uiState by mutableStateOf(TourScreenUiState())
         private set
 
-//    private var chosenLocation by mutableStateOf(PlaceAutocompleteResult("",""))
     val locationAutofill = mutableStateListOf<PlaceAutocompleteResult>()
     val locationAutofillDialog = mutableStateListOf<PlaceAutocompleteResult>()
     private val placeFields = listOf(
@@ -70,6 +73,7 @@ class TourScreenViewModel @Inject constructor(
     private var job: Job? = null
     private var textInputJob: Job? = null
     init {
+        //region get tours
         val editMode: Boolean = savedStateHandle["editMode"]!!
         if (savedStateHandle.contains("tourId")) {
             setTourId(savedStateHandle["tourId"])
@@ -97,7 +101,9 @@ class TourScreenViewModel @Inject constructor(
                 handleError(ex)
             }
         }
+        //endregion
 
+        //region tourdetails callbacks
         uiState.tourDetails.onTitleChanged = { setTitle(it) }
         uiState.tourDetails.onSummaryChanged = { setSummary(it) }
         uiState.tourDetails.onOriginChanged = { setOrigin(it) }
@@ -142,6 +148,7 @@ class TourScreenViewModel @Inject constructor(
                 }
             }
         }
+        //endregion
     }
 
     private fun setTourId(tourId: String?) {
@@ -186,7 +193,7 @@ class TourScreenViewModel @Inject constructor(
 
 
     private fun decodePolyline(encodedPolyline: String) {
-        val decodedPolyline = locationHelper.decodePolyline(encodedPolyline)
+        val decodedPolyline = googleMapHelper.decodePolyline(encodedPolyline)
         setPolylinePoints(decodedPolyline)
     }
     private fun setPolylinePoints(polylinePoints: List<LatLng>) {
@@ -285,7 +292,7 @@ class TourScreenViewModel @Inject constructor(
 
     private fun isMovingCameraNecessary(currentCameraPosition: LatLng ): Boolean {
         // calculates if previous location is close to the new one so the camera is basically positioned
-        val distance = locationHelper.distanceInMeter(
+        val distance = googleMapHelper.distanceInMeter(
             startLat = uiState.myLocation.latitude,
             startLon = uiState.myLocation.longitude,
             endLat = currentCameraPosition.latitude,
@@ -513,14 +520,14 @@ class TourScreenViewModel @Inject constructor(
         return status
     }
     fun createLocationPermissions(): List<String> {
-        return locationHelper.createLocationPermissions()
+        return permissionHelper.createLocationPermissions()
     }
     fun checkGps(): Boolean {
         return setGps(locationHelper.isGpsOn())
     }
 
     fun checkPermissions(): Boolean {
-        return setLocationPermissionStatus(locationHelper.hasAllowedPermissions())
+        return setLocationPermissionStatus(permissionHelper.hasAllowedLocationPermissions())
     }
     //endregion
 
