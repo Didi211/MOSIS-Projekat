@@ -112,7 +112,7 @@ fun LoginScreen(
                     CircularProgressIndicator()
                 }
                 else {
-                    Column() {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         // Login
                         ButtonComponent( //pravljeno
                             text = stringResource(id = R.string.login),
