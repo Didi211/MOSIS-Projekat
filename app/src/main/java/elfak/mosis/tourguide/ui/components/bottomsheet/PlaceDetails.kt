@@ -30,18 +30,21 @@ import elfak.mosis.tourguide.ui.components.buttons.AddToTourButton
 import elfak.mosis.tourguide.ui.components.buttons.ButtonRowContainer
 import elfak.mosis.tourguide.ui.components.buttons.CancelButton
 import elfak.mosis.tourguide.ui.components.dialogs.ChooseLocationTypeDialog
+import elfak.mosis.tourguide.ui.screens.tourScreen.TourState
 
 @Composable
 fun PlaceDetails(
+    tourState: TourState,
     placeDetails: PlaceDetails,
     onCancel: () -> Unit = { },
     onAddToTour: (Place, LocationType) -> Unit = {_,_ -> }
 ) {
-    PlaceDetailsContainer(placeDetails, onCancel, onAddToTour)
+    PlaceDetailsContainer(tourState,placeDetails, onCancel, onAddToTour)
 }
 
 @Composable
 fun PlaceDetailsContainer(
+    tourState: TourState,
     placeDetails: PlaceDetails,
     onCancel: () -> Unit = { },
     onAddToTour: (Place, LocationType) -> Unit = {_,_ ->  }
@@ -131,11 +134,11 @@ fun PlaceDetailsContainer(
                     }
                 )
             }
-            AddToTourButton(onClick = { openDialog = true
-            })
+            if (tourState == TourState.EDITING) {
+                AddToTourButton(onClick = { openDialog = true })
+            }
             Spacer(Modifier.width(10.dp))
             CancelButton(onCancel)
         }
     }
 }
-

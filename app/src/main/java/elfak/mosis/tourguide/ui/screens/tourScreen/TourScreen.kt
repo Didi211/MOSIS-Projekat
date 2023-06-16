@@ -124,6 +124,7 @@ fun TourScreen(
                         },
                     )
                     TourScreenState.PLACE_DETAILS -> PlaceDetails(
+                        tourState = viewModel.uiState.tourState,
                         placeDetails = viewModel.uiState.placeDetails,
                         onCancel = {
                             viewModel.setTourScreenState(TourScreenState.TOUR_DETAILS)
@@ -258,8 +259,12 @@ fun TourScreen(
                     if (!viewModel.checkGps()) {
                         return@GoogleMap
                     }
+                    viewModel.changeLocationState(LocationState.LocationOn)
+                    if (viewModel.uiState.tourDetails.bothLocationsSet) {
+                        return@GoogleMap
+                    }
                     viewModel.startLocationUpdates()
-                    viewModel.changeLocationState(LocationState.Located)
+                    viewModel.changeLocationState(LocationState.LocationOn)
                 },
                 onMapClick = { latlng ->
                     viewModel.clearSearchBar()
