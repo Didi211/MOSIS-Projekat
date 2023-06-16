@@ -26,6 +26,7 @@ import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.PermissionHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
+import elfak.mosis.tourguide.domain.helper.ValidationHelper
 import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Viewport
@@ -53,6 +54,7 @@ class TourScreenViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val googleMapHelper: GoogleMapHelper,
     private val permissionHelper: PermissionHelper,
+    private val validationHelper: ValidationHelper,
     savedStateHandle: SavedStateHandle
 ): ViewModel() {
     var uiState by mutableStateOf(TourScreenUiState())
@@ -544,12 +546,11 @@ class TourScreenViewModel @Inject constructor(
     //region TourRepository
     fun onSave() {
         // validation
-        val blankTitle = uiState.tourDetails.title.isBlank()
-        val blankSummary = uiState.tourDetails.summary.isBlank()
-        val blankOrigin = uiState.tourDetails.origin.id.isBlank()
-        val blankDestination = uiState.tourDetails.destination.id.isBlank()
-        if (blankTitle && blankSummary && blankOrigin && blankDestination) {
-            setErrorMessage("None of the fields are filled. Fill at least one field")
+        try {
+            if (uiState.tourDetails.title.isBlank()) throw Exception("Title cannot be empty.")
+        }
+        catch (ex: Exception) {
+            ex.message?.let { setErrorMessage(it) }
             return
         }
         viewModelScope.launch {
