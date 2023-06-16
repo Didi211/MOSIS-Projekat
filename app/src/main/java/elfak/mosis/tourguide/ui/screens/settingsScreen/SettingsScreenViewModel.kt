@@ -8,8 +8,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor(): ViewModel() {
-    var uiState by mutableStateOf(SettingsUiState())
+class SettingsScreenViewModel @Inject constructor(): ViewModel() {
+    var uiState by mutableStateOf(SettingsScreenUiState())
         private set
 
     init {

@@ -1,6 +1,6 @@
 package elfak.mosis.tourguide.ui.screens.settingsScreen
 
-data class SettingsUiState(
+data class SettingsScreenUiState(
     val isServiceEnabled: Boolean = false,
 ) {
 
