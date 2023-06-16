@@ -11,4 +11,5 @@ interface AuthRepository {
     suspend fun register(user: UserModel, password: String): Any
     suspend fun tryRegister(username: String): Boolean
     suspend fun logout()
+    suspend fun changePassword(password: String)
 }
