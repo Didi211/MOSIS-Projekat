@@ -13,6 +13,8 @@ import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreenViewModel
 import elfak.mosis.tourguide.ui.screens.notificationScreen.NotificationScreen
 import elfak.mosis.tourguide.ui.screens.profileScreen.ProfileScreen
+import elfak.mosis.tourguide.ui.screens.settingsScreen.SettingsScreen
+import elfak.mosis.tourguide.ui.screens.settingsScreen.SettingsViewModel
 import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreenViewModel
 
 fun NavGraphBuilder.mainGraph(navController: NavController) {
@@ -66,6 +68,10 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             FriendsScreen(
 
             )
+        }
+        composable(Screen.SettingScreen.route){
+            val viewModel = hiltViewModel<SettingsViewModel>()
+            SettingsScreen(navController = navController, viewModel = viewModel)
         }
     }
 }

@@ -1,12 +1,13 @@
 <resources>
-    <!--  image descriptions  -->
+    <!--  image and icon descriptions  -->
     <string name="logo_description">Tour Guide Logo</string>
     <string name="travelers_description">Travelers image</string>
     <string name="no_tours_image_description">No tours image</string>
     <string name="check">Checkmark</string>
     <string name="cancel">Cancel</string>
     <string name="edit">Edit</string>
-
+    <string name="add_profile_photo">Add profile photo</string>
+    <string name="user_photo">User\'s profile image</string>
 
     <!--  titles  -->
     <string name="app_name">Tour Guide</string>
@@ -26,11 +27,14 @@
     <string name="destination">Destination</string>
     <string name="title">Title</string>
     <string name="summary">Summary</string>
+    <string name="phone_number">Phone number</string>
+
 
     <!--  Screen titles   -->
     <string name="home">Home</string>
     <string name="tour">Tour</string>
     <string name="profile">Profile</string>
+    <string name="settings">Settings</string>
 
     <!--  button description  -->
     <string name="add">Add</string>
@@ -63,10 +67,11 @@
 
     <!--  validation  -->
     <string name="tour_details_empty_validation_error">None of the fields are filled. Fill at least one field</string>
-    <string name="add_profile_photo">Add profile photo</string>
-    <string name="phone_number">Phone number</string>
-    <string name="user_photo">User\'s profile image</string>
+
     <string name="image_removed">Photo removed.</string>
+    <string name="location_tracking_service_enable">Use location in background to receive notifications about tours\' locations.</string>
+    <string name="location_tracking_service_disable">Disable location tracking service. You won\'t be able to receive notifications.</string>
+    <string name="location_tracking_service">Location Tracking Service</string>
 
 
 </resources>

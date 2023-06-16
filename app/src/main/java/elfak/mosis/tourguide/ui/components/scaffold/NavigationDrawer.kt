@@ -18,6 +18,7 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.List
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -81,8 +82,6 @@ fun TourGuideNavigationDrawer(
         }
     }
 }
-
-
 
 @Composable
 fun MenuItemStyle(menuItem: MenuData) {
@@ -172,6 +171,17 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
     )
     menuList.add(
         MenuData(
+            Icons.Rounded.Settings,
+            "Settings",
+            onClick = {
+                navController.navigate(Screen.SettingScreen.route) {
+                    popUpTo(Screen.Main.route) { inclusive = true }
+                }
+            }
+        )
+    )
+    menuList.add(
+        MenuData(
           Icons.Rounded.ArrowForward,
           "Sign out",
           onClick = {
@@ -183,6 +193,8 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
           }
         )
     )
+
+
 
 }
 
