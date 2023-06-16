@@ -535,7 +535,7 @@ class TourScreenViewModel @Inject constructor(
     }
     //endregion
 
-    //region PlaceDetails
+    //region PLACE DETAILS
     private fun changePlaceDetails(id: String, place: Place) {
         uiState = uiState.copy(placeDetails = PlaceDetails.convert(place))
         uiState = uiState.copy(placeDetails = uiState.placeDetails.copy(id = id))
@@ -543,7 +543,7 @@ class TourScreenViewModel @Inject constructor(
 
     //endregion
 
-    //region TourRepository
+    //region TOUR REPOSITORY
     fun onSave() {
         // validation
         try {
@@ -553,6 +553,7 @@ class TourScreenViewModel @Inject constructor(
             ex.message?.let { setErrorMessage(it) }
             return
         }
+
         viewModelScope.launch {
             try {
                 val userId = authRepository.getUserIdLocal()!!
@@ -572,7 +573,7 @@ class TourScreenViewModel @Inject constructor(
     }
     //endregion
 
-    //region Message Handler
+    //region MESSAGE HANDLER
     fun clearErrorMessage() {
         uiState = uiState.copy(toastData = uiState.toastData.copy(hasErrors = false))
     }
@@ -585,6 +586,7 @@ class TourScreenViewModel @Inject constructor(
     fun clearSuccessMessage() {
         uiState = uiState.copy(toastData = uiState.toastData.copy(hasSuccessMessage = false))
     }
+    //endregion
 
     private fun handleError (ex: Exception) {
         if (ex.message != null) {
