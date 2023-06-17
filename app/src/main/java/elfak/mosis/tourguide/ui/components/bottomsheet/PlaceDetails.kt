@@ -134,7 +134,7 @@ fun PlaceDetailsContainer(
                     }
                 )
             }
-            if (tourState == TourState.EDITING) {
+            if (tourState != TourState.VIEWING) {
                 AddToTourButton(onClick = { openDialog = true })
             }
             Spacer(Modifier.width(10.dp))

@@ -4,11 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextFieldColors
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,23 +13,23 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import elfak.mosis.tourguide.ui.InputTypes
+import elfak.mosis.tourguide.ui.theme.SageGreen
 import elfak.mosis.tourguide.ui.theme.Typography
 
 
 @Composable
 fun BasicInputComponent(
-    text: String = "",
+    modifier: Modifier = Modifier,
+    text: String,
     onTextChanged: (String) -> Unit,
     label: String,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     inputType: InputTypes = InputTypes.Text,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    inputColors: TextFieldColors = basicInputColors(),
-    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     placeholder: String = "",
     trailingIcon: @Composable (() -> Unit)? = null,
 ) {
-
     Column {
         OutlinedTextField(
             modifier = modifier,
@@ -44,8 +40,9 @@ fun BasicInputComponent(
             ) },
             onValueChange = onTextChanged,
             textStyle = MaterialTheme.typography.body1,
-            colors = inputColors,
+            colors = basicInputColors(enabled),
             shape = RoundedCornerShape(13.dp),
+            enabled = enabled,
             singleLine = true,
             keyboardOptions = keyboardOptions,
             visualTransformation = if (inputType == InputTypes.Password) PasswordVisualTransformation() else VisualTransformation.None,
@@ -56,6 +53,25 @@ fun BasicInputComponent(
 
     }
 }
+
+@Composable
+fun basicInputColors(enabled: Boolean): TextFieldColors {
+    val colors = MaterialTheme.colors
+    return TextFieldDefaults.outlinedTextFieldColors(
+        backgroundColor = if (enabled) colors.secondary else SageGreen,
+        textColor = colors.onSecondary,
+        cursorColor = colors.onSecondary,
+        focusedBorderColor = colors.secondaryVariant,
+        unfocusedBorderColor = Color.Transparent,
+        unfocusedLabelColor = colors.onPrimary,
+        focusedLabelColor = colors.primary,
+        disabledTextColor = colors.onSecondary,
+        disabledBorderColor = Color.Transparent,
+        disabledLabelColor = colors.onSecondary,
+        placeholderColor = colors.onSecondary
+    )
+}
+
 
 @Composable
 fun TransparentTextField(
@@ -89,20 +105,6 @@ fun TransparentTextField(
     )
 }
 
-@Composable
-fun basicInputColors(): TextFieldColors {
-    val colors = MaterialTheme.colors
-    return TextFieldDefaults.outlinedTextFieldColors(
-        backgroundColor = colors.secondary,
-        textColor = colors.onSecondary,
-        cursorColor = colors.onSecondary,
-        focusedBorderColor = colors.secondaryVariant,
-        unfocusedBorderColor = Color.Transparent,
-        unfocusedLabelColor = colors.onPrimary,
-        focusedLabelColor = colors.primary,
-        placeholderColor = colors.onSecondary
-    )
-}
 
 @Composable
 fun transparentInputColors(): TextFieldColors {
