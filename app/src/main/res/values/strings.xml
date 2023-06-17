@@ -74,6 +74,11 @@
     <string name="accept">Accept</string>
     <string name="decline">Decline</string>
     <string name="add_friend">Add friend</string>
+    <string name="no_friends_image">No friends image</string>
+    <string name="no_friends">Friends list is empty</string>
+    <string name="no_friend_requests">No friend requests</string>
+    <string name="no_friends_available">No friends available</string>
+    <string name="find_friends">Go to Search tab and find friends to explore the world together.</string>
 
 
 </resources>

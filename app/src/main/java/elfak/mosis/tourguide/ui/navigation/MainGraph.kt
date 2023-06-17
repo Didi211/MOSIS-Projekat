@@ -67,7 +67,10 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             val viewModel = hiltViewModel<FriendsScreenViewModel>()
             FriendsScreen(
                 navController = navController,
-                viewModel = viewModel
+                viewModel = viewModel,
+                onCardClick = { friendId ->
+                    navController.navigate(Screen.ProfileScreen.route + "?userId=$friendId")
+                }
             )
         }
     }

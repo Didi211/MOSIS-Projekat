@@ -10,7 +10,7 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import elfak.mosis.tourguide.ui.components.scaffold.MenuData
+import elfak.mosis.tourguide.domain.models.menu.MenuData
 
 @Composable
 fun Menu(

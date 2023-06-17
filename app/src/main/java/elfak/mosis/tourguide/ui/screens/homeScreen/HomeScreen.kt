@@ -51,11 +51,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.domain.models.menu.MenuData
 import elfak.mosis.tourguide.domain.models.tour.TourCard
 import elfak.mosis.tourguide.ui.components.images.NoToursImage
 import elfak.mosis.tourguide.ui.components.menu.Menu
 import elfak.mosis.tourguide.ui.components.menu.MenuIcon
-import elfak.mosis.tourguide.ui.components.scaffold.MenuData
 import elfak.mosis.tourguide.ui.components.scaffold.MenuViewModel
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer

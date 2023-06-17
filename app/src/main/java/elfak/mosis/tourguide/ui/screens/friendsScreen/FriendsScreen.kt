@@ -1,6 +1,11 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package elfak.mosis.tourguide.ui.screens.friendsScreen
 
+import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,13 +31,11 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PersonRemove
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material.icons.rounded.PersonRemove
 import androidx.compose.material.rememberScaffoldState
@@ -54,13 +57,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.models.friends.FriendCard
-import elfak.mosis.tourguide.ui.components.buttons.ButtonRowContainer
+import elfak.mosis.tourguide.domain.models.menu.MenuData
 import elfak.mosis.tourguide.ui.components.buttons.CircleButton
+import elfak.mosis.tourguide.ui.components.icons.CancelIcon
+import elfak.mosis.tourguide.ui.components.images.NoFriendsImage
 import elfak.mosis.tourguide.ui.components.images.UserAvatar
 import elfak.mosis.tourguide.ui.components.maps.SearchField
 import elfak.mosis.tourguide.ui.components.menu.Menu
 import elfak.mosis.tourguide.ui.components.menu.MenuIcon
-import elfak.mosis.tourguide.ui.components.scaffold.MenuData
 import elfak.mosis.tourguide.ui.components.scaffold.MenuViewModel
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
@@ -69,11 +73,25 @@ import es.dmoral.toasty.Toasty
 @Composable
 fun FriendsScreen(
     viewModel: FriendsScreenViewModel,
+    onCardClick: (friendId: String) -> Unit,
     navController: NavController
 ){
     val scaffoldState = rememberScaffoldState()
     val coroutineScope = rememberCoroutineScope()
     val menuViewModel = hiltViewModel<MenuViewModel>()
+
+    // region TOAST MESSAGES HANDLING
+    if (viewModel.uiState.toastData.hasErrors) {
+        Toasty.error(LocalContext.current, viewModel.uiState.toastData.errorMessage, Toast.LENGTH_LONG, true).show()
+        viewModel.clearErrorMessage()
+    }
+    if (viewModel.uiState.toastData.hasSuccessMessage) {
+        Toasty.info(LocalContext.current, viewModel.uiState.toastData.successMessage, Toast.LENGTH_SHORT, false).show()
+        viewModel.clearSuccessMessage()
+    }
+    // endregion
+
+
     Scaffold(
         scaffoldState = scaffoldState,
         // top navigation bar with menu button
@@ -112,8 +130,8 @@ fun FriendsScreen(
                             .wrapContentWidth()
                             .weight(fill = true, weight = 1f)
                             .clip(RoundedCornerShape(5.dp))
-                            .clickable { viewModel.setScreenState(state) }
-                        , horizontalAlignment = Alignment.CenterHorizontally
+                            .clickable { viewModel.setScreenState(state) },
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             text = state.toString(),
@@ -135,86 +153,193 @@ fun FriendsScreen(
             ) {
                 Spacer(Modifier.height(15.dp))
                 SearchField(
-                    onSearch = { viewModel.filterFriends(viewModel.uiState.searchText) },
+                    onSearch = { viewModel.startSearch() },
                     text = viewModel.uiState.searchText,
                     onTextChanged = { text ->
-                        viewModel.setSerachText(text)
-                        viewModel.filterFriends(viewModel.uiState.searchText)
+                        viewModel.setSearchText(text)
+                        viewModel.startSearch()
                     },
                     label = stringResource(id = R.string.search_friends) + ":",
                     trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = null,
-                            tint = MaterialTheme.colors.onSecondary
-                        )
+                        AnimatedContent(viewModel.uiState.searchText.isNotBlank()) { hasText ->
+                            when (hasText) {
+                                true -> {
+                                    CancelIcon(MaterialTheme.colors.onSecondary) {
+                                        viewModel.setSearchText("")
+                                        viewModel.startSearch()
+                                    }
+                                }
+                                false -> {
+                                    Icon(
+                                        imageVector = Icons.Filled.Search,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colors.onSecondary
+                                    )
+                                }
+                            }
+                        }
+
                     },
                     placeholder = stringResource(id = R.string.search_by_username_or_fullname)
                 )
             }
 
             when (viewModel.uiState.screenState) {
-                FriendsScreenState.Friends -> { FriendsTab(viewModel.mockUsers()) }
-                FriendsScreenState.Requests -> { FriendsRequestsTab(viewModel.mockUsers()) }
-                FriendsScreenState.Search -> { SearchFriendsTab(viewModel.mockUsers()) }
+                FriendsScreenState.Friends -> {
+                    FriendsTab(
+                        viewModel.uiState.friends,
+                        viewModel.uiState.filteredFriends,
+                        onCardClick = onCardClick,
+                        onUnfriend = { friendId -> viewModel.uiState.friendListFunctions.unfriendUser(friendId) },
+                        onInviteToTour = { friendId ->
+                            // open dialog for choosing tours
+                            viewModel.uiState.friendListFunctions.inviteFriendToTour(friendId)
+                        }
+                    )
+                }
+                FriendsScreenState.Requests -> {
+                    FriendsRequestsTab(
+                        viewModel.uiState.requests,
+                        onCardClick = onCardClick,
+                        onAccept = { friendId -> viewModel.uiState.requestListFunctions.acceptRequest(friendId) },
+                        onDecline = { friendId -> viewModel.uiState.requestListFunctions.declineRequest(friendId) },
+                    )
+                }
+                FriendsScreenState.Search -> {
+                    SearchFriendsTab(
+                        viewModel.uiState.searchResults,
+                        onCardClick = onCardClick,
+                        onSendRequest = { friendId -> viewModel.uiState.searchListFunctions.sendRequest(friendId) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+// varibales for containers
+val modifier = Modifier.fillMaxSize()
+val verticalAlignment = Alignment.CenterVertically
+val horizontalArrangement = Arrangement.End
+
+@Composable
+fun FriendsTab(
+    friends: List<FriendCard>,
+    filteredFriends: List<FriendCard>,
+    onCardClick: (friendId: String) -> Unit = { },
+    onUnfriend: (friendId: String) -> Unit ,
+    onInviteToTour: (friendId: String) -> Unit,
+) {
+    AnimatedContent(friends.isEmpty()) { empty ->
+        when(empty) {
+            true -> { NoFriendsImage(
+                stringResource(id = R.string.no_friends),
+                stringResource(id = R.string.find_friends)
+            ) }
+            false -> {
+                FriendCardContainer(
+                    friends = filteredFriends.ifEmpty { friends },
+                    screenState = FriendsScreenState.Friends,
+                    onCardClick = onCardClick,
+                    onUnfriend = onUnfriend,
+                    buttonsContent = { friendId ->
+                        Row(modifier, horizontalArrangement, verticalAlignment) {
+                           CardButton(
+                               text = stringResource(R.string.invite_to_tour),
+                               icon = Icons.Rounded.Add,
+                               backgroundColor = MaterialTheme.colors.secondary
+                           ) {
+                               onInviteToTour(friendId)
+                           }
+                       }
+                    }
+                )
             }
         }
     }
 }
 
 @Composable
-fun FriendsTab(friends: List<FriendCard>) {
-    FriendCardContainer(
-        friends = friends,
-        menuItems = listOf(
-            MenuData(
-                menuIcon = Icons.Filled.PersonRemove,
-                name = "Unfriend",
-                onClick = { /* unfriend user */ }
-            )
-        ),
-        screenState = FriendsScreenState.Friends
-    ) { friendId, isVisiting ->
-
+fun FriendsRequestsTab(
+    requests: List<FriendCard>,
+    onCardClick: (friendId: String) -> Unit = { },
+    onAccept: (friendId: String) -> Unit,
+    onDecline: (friendId: String) -> Unit,
+) {
+    AnimatedContent(requests.isEmpty()) { empty ->
+        when(empty) {
+            true -> { NoFriendsImage(stringResource(id = R.string.no_friend_requests)) }
+            false -> {
+                FriendCardContainer(
+                    requests,
+                    screenState = FriendsScreenState.Requests,
+                    onCardClick = onCardClick,
+                    buttonsContent = { friendId ->
+                        Row(modifier, horizontalArrangement, verticalAlignment) {
+                            CardButton(
+                                text = stringResource(R.string.accept),
+                                icon = Icons.Rounded.Check,
+                                backgroundColor = MaterialTheme.colors.primary
+                            ) {
+                                onAccept(friendId)
+                            }
+                            Spacer(Modifier.width(10.dp))
+                            CardButton(
+                                text = stringResource(R.string.cancel),
+                                icon = Icons.Rounded.Close,
+                                backgroundColor = MaterialTheme.colors.error
+                            ) {
+                                onDecline(friendId)
+                            }
+                        }
+                    }
+                )
+            }
+        }
     }
 }
 
-
-
 @Composable
-fun FriendsRequestsTab(requests: List<FriendCard>) {
-    FriendCardContainer(requests, screenState = FriendsScreenState.Requests) { friendId, isVisiting ->
+fun SearchFriendsTab(
+    searchResults: List<FriendCard>,
+    onCardClick: (friendId: String) -> Unit,
+    onSendRequest: (friendId: String) -> Unit,
+) {
+    AnimatedContent(searchResults.isEmpty()) { empty ->
+        when(empty) {
+            true -> { NoFriendsImage(stringResource(id = R.string.no_friends_available)) }
+            false -> {
+                FriendCardContainer(
+                    searchResults,
+                    screenState = FriendsScreenState.Search,
+                    onCardClick = onCardClick,
+                    buttonsContent = { friendId ->
+                        Row(modifier, horizontalArrangement, verticalAlignment) {
+                            CardButton(
+                                text = stringResource(R.string.add_friend),
+                                icon = Icons.Rounded.PersonAdd,
+                                backgroundColor = MaterialTheme.colors.primary
+                            ) {
+                                onSendRequest(friendId)
 
+                            }
+                        }
+                    }
+                )
+            }
+        }
     }
 }
 
-@Composable
-fun SearchFriendsTab(searchResults: List<FriendCard>) {
-    FriendCardContainer(searchResults, screenState = FriendsScreenState.Search) { friendId, isVisiting ->
-
-    }
-}
-
-@Composable
-fun SelectedTabIndicator() {
-    Divider(
-        color = MaterialTheme.colors.primary,
-        modifier = Modifier
-            .clip(RoundedCornerShape(5.dp))
-            .fillMaxWidth(0.8f),
-        thickness = 4.dp
-
-    )
-}
 
 @Composable
 fun FriendCardContainer(
     friends: List<FriendCard>,
-    menuItems: List<MenuData> = emptyList(),
     screenState: FriendsScreenState,
-    onCardClick: (friendId: String, isVisiting: Boolean) -> Unit = {_, _ ->  }
+    onCardClick: (friendId: String) -> Unit = { },
+    onUnfriend: (friendId: String) -> Unit = { }, // optional - only for friends tab
+    buttonsContent: @Composable (friendId: String) -> Unit,
 ) {
-
     Box {
         LazyColumn(
             Modifier.fillMaxSize(),
@@ -222,11 +347,22 @@ fun FriendCardContainer(
             contentPadding = PaddingValues(15.dp)
         ) {
             items(friends) { friend ->
+                val menuItems = mutableListOf<MenuData>()
+                if (screenState == FriendsScreenState.Friends) {
+                    menuItems.add(
+                        MenuData(
+                            menuIcon = Icons.Rounded.PersonRemove,
+                            name = "Unfriend user",
+                            onClick = { onUnfriend(friend.id) }
+                        )
+                    )
+                }
                 FriendCard(
                     friend = friend,
                     menuItems = menuItems,
                     screenState = screenState,
-                    onCardClick = { onCardClick(friend.id, true) },
+                    onCardClick = { onCardClick(friend.id) },
+                    buttonsContent = { buttonsContent(friend.id) }
                 )
             }
         }
@@ -238,7 +374,9 @@ fun FriendCard(
     friend: FriendCard,
     menuItems: List<MenuData> = emptyList(),
     screenState: FriendsScreenState,
+    buttonsContent: @Composable () -> Unit,
     onCardClick: () -> Unit = { },
+
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -249,9 +387,6 @@ fun FriendCard(
             .wrapContentWidth()
             .clickable {
                 onCardClick()
-                Toasty
-                    .info(context, "Visiting profile")
-                    .show()
             }
     ) {
         Box(modifier = Modifier
@@ -305,64 +440,66 @@ fun FriendCard(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
                     ) {
-                        val colors = MaterialTheme.colors
-
-                        val modifier = Modifier.fillMaxSize()
-                        val verticalAlignment = Alignment.CenterVertically
-                        val horizontalArrangement = Arrangement.End
-                        when (screenState) {
-                            FriendsScreenState.Friends -> {
-                               Row(modifier, verticalAlignment = verticalAlignment, horizontalArrangement = horizontalArrangement) {
-                                   CardButton(
-                                       text = stringResource(R.string.invite_to_tour),
-                                       icon = Icons.Rounded.Add,
-                                       backgroundColor = colors.secondary
-                                   ) {
-                                       Toasty.info(context, "Invitation sent").show()
-                                       // send invitation
-                                   }
-                               }
-                            }
-                            FriendsScreenState.Requests -> {
-                                Row(modifier, verticalAlignment = verticalAlignment, horizontalArrangement = horizontalArrangement) {
-                                    CardButton(
-                                        text = stringResource(R.string.accept),
-                                        icon = Icons.Rounded.Check,
-                                        backgroundColor = colors.primary
-                                    ) {
-                                        Toasty.info(context, "You are now friends").show()
-                                        // accept request
-                                    }
-                                    Spacer(Modifier.width(10.dp))
-                                    CardButton(
-                                        text = stringResource(R.string.cancel),
-                                        icon = Icons.Rounded.Close,
-                                        backgroundColor = colors.error
-                                    ) {
-                                        Toasty.info(context, "Request deleted").show()
-                                        // decline request
-                                    }
-                                }
-                            }
-                            FriendsScreenState.Search -> {
-                                Row(modifier, verticalAlignment = verticalAlignment, horizontalArrangement = horizontalArrangement) {
-                                    CardButton(
-                                        text = stringResource(R.string.add_friend),
-                                        icon = Icons.Rounded.PersonAdd,
-                                        backgroundColor = colors.primary
-                                    ) {
-                                        Toasty.info(context, "Request sent").show()
-                                        // send request
-                                    }
-                                }
-                            }
-                        }
+                        buttonsContent()
+//                        val colors = MaterialTheme.colors
+//                        val modifier = Modifier.fillMaxSize()
+//                        val verticalAlignment = Alignment.CenterVertically
+//                        val horizontalArrangement = Arrangement.End
+//                        when (screenState) {
+//                            FriendsScreenState.Friends -> {
+//                               Row(modifier, verticalAlignment = verticalAlignment, horizontalArrangement = horizontalArrangement) {
+//                                   CardButton(
+//                                       text = stringResource(R.string.invite_to_tour),
+//                                       icon = Icons.Rounded.Add,
+//                                       backgroundColor = colors.secondary
+//                                   ) {
+//                                       Toasty.info(context, "Invitation sent").show()
+//                                       // send invitation
+//                                   }
+//                               }
+//                            }
+//                            FriendsScreenState.Requests -> {
+//                                Row(modifier, verticalAlignment = verticalAlignment, horizontalArrangement = horizontalArrangement) {
+//                                    CardButton(
+//                                        text = stringResource(R.string.accept),
+//                                        icon = Icons.Rounded.Check,
+//                                        backgroundColor = colors.primary
+//                                    ) {
+//                                        Toasty.info(context, "You are now friends").show()
+//                                        // accept request
+//                                    }
+//                                    Spacer(Modifier.width(10.dp))
+//                                    CardButton(
+//                                        text = stringResource(R.string.cancel),
+//                                        icon = Icons.Rounded.Close,
+//                                        backgroundColor = colors.error
+//                                    ) {
+//                                        Toasty.info(context, "Request deleted").show()
+//                                        // decline request
+//                                    }
+//                                }
+//                            }
+//                            FriendsScreenState.Search -> {
+//                                Row(modifier, verticalAlignment = verticalAlignment, horizontalArrangement = horizontalArrangement) {
+//                                    CardButton(
+//                                        text = stringResource(R.string.add_friend),
+//                                        icon = Icons.Rounded.PersonAdd,
+//                                        backgroundColor = colors.primary
+//                                    ) {
+//                                        Toasty.info(context, "Request sent").show()
+//                                        // send request
+//                                    }
+//                                }
+//                            }
+//                        }
                     }
                 }
             }
         }
     }
 }
+
+
 
 @Composable
 fun ButtonText(text: String) {
@@ -388,4 +525,16 @@ fun CardButton(text: String, icon: ImageVector, backgroundColor: Color, onClick:
     }
 }
 
+
+@Composable
+fun SelectedTabIndicator() {
+    Divider(
+        color = MaterialTheme.colors.primary,
+        modifier = Modifier
+            .clip(RoundedCornerShape(5.dp))
+            .fillMaxWidth(0.8f),
+        thickness = 4.dp
+
+    )
+}
 

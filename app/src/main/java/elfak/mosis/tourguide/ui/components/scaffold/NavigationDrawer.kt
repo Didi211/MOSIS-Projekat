@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterialApi::class)
-
 package elfak.mosis.tourguide.ui.components.scaffold
 
 import androidx.compose.foundation.background
@@ -21,12 +19,12 @@ import androidx.compose.material.icons.rounded.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.domain.models.menu.MenuData
 import elfak.mosis.tourguide.ui.components.images.LogoImage
 import elfak.mosis.tourguide.ui.navigation.Screen
 
@@ -213,9 +211,5 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
 //    }
 //}
 
-data class MenuData(
-    val menuIcon: ImageVector,
-    val name: String,
-    val onClick: () -> Unit
-)
+
 
