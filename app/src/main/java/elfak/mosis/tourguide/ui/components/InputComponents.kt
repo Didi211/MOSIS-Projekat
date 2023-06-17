@@ -4,11 +4,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Text
+import androidx.compose.material.TextFieldColors
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -26,8 +29,11 @@ fun BasicInputComponent(
     inputType: InputTypes = InputTypes.Text,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     inputColors: TextFieldColors = basicInputColors(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    placeholder: String = "",
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
+
     Column {
         OutlinedTextField(
             modifier = modifier,
@@ -44,6 +50,8 @@ fun BasicInputComponent(
             keyboardOptions = keyboardOptions,
             visualTransformation = if (inputType == InputTypes.Password) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardActions = keyboardActions,
+            trailingIcon = trailingIcon,
+            placeholder = { Text(placeholder) }
         )
 
     }
@@ -92,6 +100,7 @@ fun basicInputColors(): TextFieldColors {
         unfocusedBorderColor = Color.Transparent,
         unfocusedLabelColor = colors.onPrimary,
         focusedLabelColor = colors.primary,
+        placeholderColor = colors.onSecondary
     )
 }
 

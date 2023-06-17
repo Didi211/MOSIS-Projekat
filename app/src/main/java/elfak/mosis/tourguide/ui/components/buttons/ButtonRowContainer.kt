@@ -10,12 +10,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ButtonRowContainer(content: @Composable RowScope.() -> Unit) {
+fun ButtonRowContainer(
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.End,
+    content: @Composable RowScope.() -> Unit
+) {
     Row(
         modifier = Modifier
             .padding(top = 15.dp, bottom = 15.dp)
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.End,
+        horizontalArrangement = horizontalArrangement,
 
         ) {
         content()

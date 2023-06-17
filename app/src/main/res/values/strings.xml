@@ -22,6 +22,7 @@
     <string name="fullname">Full name</string>
     <string name="email">Email</string>
     <string name="search_here">Search here</string>
+    <string name="search_friends">Search friends</string>
     <string name="origin">Origin</string>
     <string name="destination">Destination</string>
     <string name="title">Title</string>
@@ -68,6 +69,11 @@
     <string name="user_photo">User\'s profile image</string>
     <string name="image_removed">Photo removed.</string>
     <string name="friends">Friends</string>
+    <string name="search_by_username_or_fullname">Fullname/username</string>
+    <string name="invite_to_tour">Invite to tour</string>
+    <string name="accept">Accept</string>
+    <string name="decline">Decline</string>
+    <string name="add_friend">Add friend</string>
 
 
 </resources>
