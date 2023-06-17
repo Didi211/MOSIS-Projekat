@@ -17,6 +17,7 @@ import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.PhotoRepository
 import elfak.mosis.tourguide.domain.repository.UsersRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.handleCoroutineException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -62,6 +63,9 @@ class ProfileScreenViewModel @Inject constructor(
     fun setEmail(email: String) {
         uiState = uiState.copy(email = email)
     }
+    fun setInProgress(value: Boolean) {
+        uiState = uiState.copy(inProgress = value)
+    }
 
     //endregion
 
@@ -98,10 +102,8 @@ class ProfileScreenViewModel @Inject constructor(
         uiState = uiState.copy(toastData = uiState.toastData.copy(hasSuccessMessage = false))
         setInProgress(false)
     }
-    fun setInProgress(value: Boolean) {
-        uiState = uiState.copy(inProgress = value)
-    }
     //endregion
+
 
     fun checkPermissions(context: Context): Boolean {
         val res = context.checkCallingOrSelfPermission(Manifest.permission.CAMERA)
@@ -133,28 +135,34 @@ class ProfileScreenViewModel @Inject constructor(
     }
 
     private suspend fun loadData() {
-        var id = getUserIdFromPath()
-        if (id == null) {
-            id = authRepository.getUserIdLocal()
+        try {
+            var id = getUserIdFromPath()
+            if (id == null) {
+                id = authRepository.getUserIdLocal()
+            }
+            var user: UserModel
+            withContext(Dispatchers.IO) {
+                user = usersRepository.getUserData(id!!)
+            }
+            if (user.photoUrl.isNotBlank()) {
+                setPhotoUri(Uri.parse(user.photoUrl))
+                setHasPhoto(true)
+                setPhotoIsInUrl(true)
+            } else {
+                setHasPhoto(false)
+                setPhotoIsInUrl(false)
+            }
+            setUserId(user.id)
+            setUserAuthId(user.authId)
+            setFullname(user.fullname)
+            setUsername(user.username)
+            setPhoneNumber(user.phoneNumber)
+            setEmail(user.email)
         }
-        var user: UserModel
-        withContext(Dispatchers.IO) {
-            user = usersRepository.getUserData(id!!)
+        catch (ex: Exception) {
+            ex.message?.let { setErrorMessage(it) }
         }
-        if (user.photoUrl.isNotBlank()) {
-            setPhotoUri(Uri.parse(user.photoUrl))
-            setHasPhoto(true)
-            setPhotoIsInUrl(true)
-        } else {
-            setHasPhoto(false)
-            setPhotoIsInUrl(false)
-        }
-        setUserId(user.id)
-        setUserAuthId(user.authId)
-        setFullname(user.fullname)
-        setUsername(user.username)
-        setPhoneNumber(user.phoneNumber)
-        setEmail(user.email)
+
     }
 
     private suspend fun canEdit(): Boolean {
@@ -174,16 +182,16 @@ class ProfileScreenViewModel @Inject constructor(
     }
 
     fun changePassword(password: String, confirmPassword: String, onSuccess: () -> Unit) {
-        try {
-            validationHelper.validatePasswords(password, confirmPassword)
-            viewModelScope.launch {
+        viewModelScope.launch {
+            try {
+                validationHelper.validatePasswords(password, confirmPassword)
                 authRepository.changePassword(password)
                 onSuccess()
                 setSuccessMessage("Password successfully changed.")
             }
-        }
-        catch (ex: Exception) {
-            ex.message?.let { setErrorMessage(it) }
+            catch (ex: Exception) {
+                ex.message?.let { setErrorMessage(it) }
+            }
         }
     }
 

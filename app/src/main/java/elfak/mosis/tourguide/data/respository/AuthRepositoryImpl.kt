@@ -89,12 +89,17 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun changePassword(password: String) {
-        if (firebaseAuth.currentUser == null) {
-            throw Exception("User not authenticated.")
+        try {
+            if (firebaseAuth.currentUser == null) {
+                throw Exception("User not authenticated.")
+            }
+            if (firebaseAuth.currentUser!!.uid != getUserAuthIdLocal()) {
+                throw Exception("User not authenticated.")
+            }
+            firebaseAuth.currentUser!!.updatePassword(password).await()
         }
-        if (firebaseAuth.currentUser!!.uid != getUserAuthIdLocal()) {
-            throw Exception("User not authenticated.")
+        catch (ex: Exception) {
+            throw ex
         }
-        firebaseAuth.currentUser!!.updatePassword(password).await()
     }
 }
