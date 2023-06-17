@@ -67,6 +67,7 @@
     <string name="phone_number">Phone number</string>
     <string name="user_photo">User\'s profile image</string>
     <string name="image_removed">Photo removed.</string>
+    <string name="edit_profile">Edit profile</string>
 
 
 </resources>
