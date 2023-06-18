@@ -16,7 +16,9 @@ import elfak.mosis.tourguide.domain.helper.ValidationHelper
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.PhotoRepository
 import elfak.mosis.tourguide.domain.repository.UsersRepository
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -63,6 +65,10 @@ class ProfileScreenViewModel @Inject constructor(
         uiState = uiState.copy(email = email)
     }
 
+    fun setDirty(dirty: Boolean) {
+        uiState = uiState.copy(isDataDirty = dirty)
+    }
+
     //endregion
 
     // region CAMERA
@@ -75,11 +81,30 @@ class ProfileScreenViewModel @Inject constructor(
     fun setPreviousPhoto() {
         uiState = uiState.copy(previousPhoto = uiState.photo)
     }
-    private fun setPhotoUrl(url: String) {
-        uiState = uiState.copy(photo = uiState.photo.copy(filename = url))
+    private fun setPhotoOriginalFilename(originalFilename: String) {
+        uiState = uiState.copy(photo = uiState.photo.copy(filename = originalFilename))
     }
     fun setPhotoIsInUrl(value: Boolean) {
         uiState = uiState.copy(photo = uiState.photo.copy(photoIsInUrl = value))
+    }
+    fun setShouldDeletePhotosFromServer(delete: Boolean) {
+        uiState = uiState.copy(shouldDeletePhotosFromServer = delete)
+    }
+    fun removeCurrentPhoto() {
+        setHasPhoto(false)
+        setPhotoIsInUrl(false)
+        setPhotoUri(null)
+        setShouldDeletePhotosFromServer(true)
+
+    }
+
+    fun handleCameraLauncherResult(success: Boolean) {
+        if (!success) {
+            setPhotoUri(uiState.previousPhoto.uri)
+        }
+        setPhotoIsInUrl(false)
+        setHasPhoto(true)
+        setShouldDeletePhotosFromServer(false)
     }
     //endregion
 
@@ -108,17 +133,18 @@ class ProfileScreenViewModel @Inject constructor(
         return res == PackageManager.PERMISSION_GRANTED
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun saveData() {
+        //update data
         viewModelScope.launch {
             try {
-                validateUserInfo()
-                if (uiState.photo.hasPhoto && !uiState.photo.photoIsInUrl) {
-                    setPhotoUrl(uiState.username)
-                    val photoDownloadUrl = photoRepository.uploadUserPhoto(uiState.photo)
-                    setPhotoUrl(photoDownloadUrl)
+                if (!uiState.isDataDirty) {
+                    setSuccessMessage("All good, nothing to change.")
+                    isEditMode = false
+                    return@launch
                 }
+                validationHelper.validateUserCredentials(uiState.toValidationModel())
                 usersRepository.updateUserData(uiState.userId, uiState.getUserData())
-                // save password
                 isEditMode = false
                 setSuccessMessage("Profile successfully updated.")
             }
@@ -126,10 +152,38 @@ class ProfileScreenViewModel @Inject constructor(
                 ex.message?.let { setErrorMessage(it) }
             }
         }
-    }
-
-    private fun validateUserInfo() {
-        validationHelper.validateUserCredentials(uiState.toValidationModel())
+        // TODO - create foreground service and upload image there
+        // TODO - cache photo locally
+        // TODO - turn back to view model scope when create service
+        GlobalScope.launch {
+            try {
+                val originalFilename = uiState.username
+                val photo = uiState.photo
+                val previousPhoto = uiState.previousPhoto
+                val shouldUpdate = photo.hasPhoto && !photo.photoIsInUrl && photo.uri != previousPhoto.uri
+                if (shouldUpdate) {
+                    photoRepository.uploadUserPhoto(uiState.photo)
+                    photoRepository.updateUserPhotos(uiState.userId, originalFilename)
+                    return@launch
+                }
+                if (uiState.shouldDeletePhotosFromServer) {
+                    launch {
+                        try {
+                            photoRepository.deleteOldImages(originalFilename)
+                        }
+                        catch (ex: Exception) {
+                            ex.message?.let { setErrorMessage(it) }
+                        }
+                    }
+                    launch {
+                        usersRepository.updateUserPhotos(uiState.userId, UserModel())
+                    }
+                }
+            }
+            catch (ex: Exception) {
+                ex.message?.let { setErrorMessage(it) }
+            }
+        }
     }
 
     private suspend fun loadData() {
@@ -141,8 +195,8 @@ class ProfileScreenViewModel @Inject constructor(
         withContext(Dispatchers.IO) {
             user = usersRepository.getUserData(id!!)
         }
-        if (user.photoUrl.isNotBlank()) {
-            setPhotoUri(Uri.parse(user.photoUrl))
+        if (user.profilePhotoUrl.isNotBlank()) {
+            setPhotoUri(Uri.parse(user.profilePhotoUrl))
             setHasPhoto(true)
             setPhotoIsInUrl(true)
         } else {
@@ -153,6 +207,7 @@ class ProfileScreenViewModel @Inject constructor(
         setUserAuthId(user.authId)
         setFullname(user.fullname)
         setUsername(user.username)
+        setPhotoOriginalFilename(user.username)
         setPhoneNumber(user.phoneNumber)
         setEmail(user.email)
     }
@@ -186,5 +241,4 @@ class ProfileScreenViewModel @Inject constructor(
             ex.message?.let { setErrorMessage(it) }
         }
     }
-
 }

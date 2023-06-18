@@ -83,13 +83,7 @@ fun ProfileScreen(
     val context = LocalContext.current
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture(),
-        onResult = { success ->
-            if (!success) {
-                viewModel.setPhotoUri(viewModel.uiState.previousPhoto.uri)
-            }
-            viewModel.setHasPhoto(true)
-            viewModel.setPhotoIsInUrl(false)
-        }
+        onResult = viewModel::handleCameraLauncherResult
     )
     var permissionAlreadyRequested by rememberSaveable {
         mutableStateOf(false)
@@ -157,7 +151,6 @@ fun ProfileScreen(
                     }
                     Icon(
                         modifier = Modifier
-//                            .align(Alignment.TopEnd)
                             .clip(CircleShape)
                             .padding(10.dp)
                             .size(32.dp)
@@ -170,7 +163,6 @@ fun ProfileScreen(
                     )
                     AnimatedVisibility(viewModel.isEditMode) {
                         Icon(modifier = Modifier
-                            //                            .align(Alignment.TopEnd)
                             .clip(CircleShape)
                             .padding(10.dp)
                             .size(32.dp)
@@ -178,7 +170,7 @@ fun ProfileScreen(
                                 showResetPasswordDialog = true
                             },
                             imageVector = Icons.Filled.Lock,
-                            contentDescription = stringResource(id = R.string.edit_profile),
+                            contentDescription = stringResource(id = R.string.change_password),
                             tint = MaterialTheme.colors.primary
                         )
                     }
@@ -212,9 +204,7 @@ fun ProfileScreen(
                            if (!viewModel.isEditMode) return@ProfileImage
                            if (viewModel.uiState.photo.hasPhoto) {
                                // remove current photo
-                               viewModel.setHasPhoto(false)
-                               viewModel.setPhotoIsInUrl(false)
-                               viewModel.setPhotoUri(null)
+                               viewModel.removeCurrentPhoto()
                                Toasty.info(context, context.getString(R.string.image_removed)).show()
                            }
                        }
@@ -226,6 +216,7 @@ fun ProfileScreen(
                         enabled = viewModel.isEditMode,
                         text = viewModel.uiState.fullname,
                         onTextChanged = { fullname ->
+                            viewModel.setDirty(viewModel.uiState.fullname != fullname)
                             viewModel.setFullname(fullname)
                         },
                         label = stringResource(id = R.string.fullname) + ":",
@@ -244,6 +235,7 @@ fun ProfileScreen(
                         enabled = viewModel.isEditMode,
                         text = viewModel.uiState.username,
                         onTextChanged = { username ->
+                            viewModel.setDirty(viewModel.uiState.username != username)
                             viewModel.setUsername(username.trim())
                         },
                         label = stringResource(id = R.string.username) + ":",
@@ -262,6 +254,7 @@ fun ProfileScreen(
                         enabled = viewModel.isEditMode,
                         text = viewModel.uiState.phoneNumber,
                         onTextChanged = { phoneNumber ->
+                            viewModel.setDirty(viewModel.uiState.phoneNumber != phoneNumber)
                             viewModel.setPhoneNumber(phoneNumber.trim())
                         },
                         label = stringResource(id = R.string.phone_number) + ":",
@@ -280,6 +273,7 @@ fun ProfileScreen(
                         enabled = viewModel.isEditMode,
                         text = viewModel.uiState.email,
                         onTextChanged = { email ->
+                            viewModel.setDirty(viewModel.uiState.email != email)
                             viewModel.setEmail(email.trim())
                         },
                         label = stringResource(id = R.string.email) + ":",

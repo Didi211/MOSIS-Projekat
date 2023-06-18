@@ -18,33 +18,22 @@ data class ProfileScreenUiState(
 
     val photo: Photo = Photo(),
     val previousPhoto: Photo = Photo(),
-
+    val shouldDeletePhotosFromServer: Boolean = false,
 
     val toastData: ToastData = ToastData(),
     val inProgress: Boolean = false,
-) {
 
+    val isDataDirty: Boolean = false
+) {
     fun getUserData(): UserModel {
         return UserModel(
-            id = "",
+//            id = "",
             authId = userAuthId,
             fullname = fullname,
             username = username,
             email = email,
-//            password = password,
             phoneNumber = phoneNumber,
-            photoUrl = getPhotoUrl()
         )
-    }
-
-    private fun getPhotoUrl():String {
-        if (photo.hasPhoto) {
-            if (photo.photoIsInUrl) {
-                return photo.uri.toString()
-            }
-            return photo.filename
-        }
-        return ""
     }
 
     fun toValidationModel(): UserCredentials {
@@ -52,8 +41,6 @@ data class ProfileScreenUiState(
             fullname = fullname,
             username = username,
             email = email,
-//            password = password,
-//            confirmPassword = confirmPassword,
             phoneNumber = phoneNumber,
         )
     }
