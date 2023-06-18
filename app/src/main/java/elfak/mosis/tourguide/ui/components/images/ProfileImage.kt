@@ -50,20 +50,9 @@ fun ProfileImage(
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
-
     ) {
         val hasPhoto = photo.hasPhoto && photo.uri != null
-        if (!hasPhoto) {
-            Icon(
-                imageVector = Icons.Outlined.AddAPhoto,
-                contentDescription = stringResource(id = R.string.add_profile_photo),
-                tint = MaterialTheme.colors.primary,
-                modifier = Modifier
-                    .size(80.dp)
-                    .scale(scaleX = -1f, scaleY = 1f)
-            )
-        }
-        else {
+        if (hasPhoto) {
             AsyncImage(
                 model = photo.uri,
                 modifier = Modifier
@@ -71,6 +60,16 @@ fun ProfileImage(
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop,
                 contentDescription = stringResource(id = R.string.user_photo)
+            )
+        }
+        else {
+            Icon(
+                imageVector = Icons.Outlined.AddAPhoto,
+                contentDescription = stringResource(id = R.string.add_profile_photo),
+                tint = MaterialTheme.colors.primary,
+                modifier = Modifier
+                    .size(80.dp)
+                    .scale(scaleX = -1f, scaleY = 1f)
             )
         }
     }

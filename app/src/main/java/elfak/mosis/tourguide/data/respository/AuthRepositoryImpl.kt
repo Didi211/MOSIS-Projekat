@@ -43,12 +43,13 @@ class AuthRepositoryImpl @Inject constructor(
         saveLocal(USER_ID,userId)
     }
 
-    override suspend fun register(user: UserModel, password: String) {
+    override suspend fun register(user: UserModel, password: String): String {
         val result = firebaseAuth.createUserWithEmailAndPassword(user.email, password).await()
         saveLocal(USER_AUTH_ID,result.user!!.uid) // uid is id from authentication not document id
         user.authId = result.user!!.uid
         val userId = usersRef.add(user).await().id
         saveLocal(USER_ID,userId)
+        return userId
     }
 
     override suspend fun tryRegister(username: String): Boolean {

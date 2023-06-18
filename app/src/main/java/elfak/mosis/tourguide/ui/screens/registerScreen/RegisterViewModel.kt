@@ -72,12 +72,13 @@ class RegisterViewModel  @Inject constructor(
                 if (!authRepository.tryRegister(uiState.username)) {
                     throw Exception("Username is already taken.")
                 }
+                val userId = authRepository.register(uiState.getUserData(), uiState.password)
+
                 if (uiState.photo.hasPhoto) {
-                    setPhotoUrl(uiState.username)
-                    val photoDownloadUrl = photoRepository.uploadUserPhoto(uiState.photo)
-                    setPhotoUrl(photoDownloadUrl)
+                    val originalFilename = uiState.username
+                    photoRepository.uploadUserPhoto(uiState.photo)
+                    photoRepository.updateUserPhotos(userId, originalFilename)
                 }
-                authRepository.register(uiState.getUserData(), uiState.password)
                 onSuccess()
             }
             catch (err:Exception) {
@@ -91,16 +92,12 @@ class RegisterViewModel  @Inject constructor(
         validationHelper.validatePasswords(uiState.password,uiState.confirmPassword)
     }
 
-
     fun clearErrorMessage() {
         uiState = uiState.copy(hasErrors = false)
     }
-
-
 
     fun checkPermissions(context: Context): Boolean {
         val res = context.checkCallingOrSelfPermission(Manifest.permission.CAMERA)
         return res == PackageManager.PERMISSION_GRANTED
     }
-
 }

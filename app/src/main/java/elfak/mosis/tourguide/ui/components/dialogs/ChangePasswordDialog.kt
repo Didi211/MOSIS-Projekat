@@ -42,14 +42,14 @@ fun ChangePasswordDialog(onAcceptClick: (String, String) -> Unit, onDismiss: () 
     Dialog(onDismissRequest = onDismiss) {
         Column(
             Modifier
-            .wrapContentHeight()
-            .background(Color.White, RoundedCornerShape(10.dp))
-            .padding(10.dp),
+                .wrapContentHeight()
+                .background(Color.White, RoundedCornerShape(10.dp))
+                .padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 modifier = Modifier.align(Alignment.Start),
-                text = "Change password: ",
+                text = stringResource(id = R.string.change_password) + ":",
                 style = MaterialTheme.typography.h3,
                 color = MaterialTheme.colors.primary
             )
