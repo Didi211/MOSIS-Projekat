@@ -17,13 +17,11 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import elfak.mosis.tourguide.R
-import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 
 @Composable
 fun ButtonComponent(text: String, width: Dp, onClick: () -> Unit) {
@@ -94,7 +92,7 @@ fun CancelButton(onClick: () -> Unit = { }) {
     ) {
         Icon(
             Icons.Filled.Close,
-            stringResource(id = R.string.cancel),
+            stringResource(id = R.string.cancel_icon_description),
             modifier = Modifier
                 .size(30.dp),
             tint = MaterialTheme.colors.onPrimary

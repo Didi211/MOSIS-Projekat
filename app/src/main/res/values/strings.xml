@@ -1,11 +1,18 @@
 <resources>
-    <!--  image descriptions  -->
+    <!--  content descriptions  -->
     <string name="logo_description">Tour Guide Logo</string>
     <string name="travelers_description">Travelers image</string>
     <string name="no_tours_image_description">No tours image</string>
     <string name="check">Checkmark</string>
-    <string name="cancel">Cancel</string>
+    <string name="cancel_icon_description">Cancel</string>
     <string name="edit">Edit</string>
+    <string name="back_arrow_button">Back Arrow Button</string>
+    <string name="my_location_button">My location Button</string>
+    <string name="add_profile_photo">Add profile photo</string>
+    <string name="user_photo">User\'s profile image</string>
+    <string name="edit_profile">Edit profile</string>
+    <string name="no_notifications_image">No notifications Image</string>
+    <string name="delete_notification_icon">Delete notification icon</string>
 
 
     <!--  titles  -->
@@ -13,7 +20,7 @@
     <string name="welcome_screen_title">Tour Guide</string>
     <string name="welcome_screen_subtitle">Make your travels easier</string>
     <string name="no_tours_created">No tours created</string>
-
+    <string name="no_new_notifications">No new notifications</string>
 
     <!--  input fields  -->
     <string name="username">Username</string>
@@ -26,11 +33,17 @@
     <string name="destination">Destination</string>
     <string name="title">Title</string>
     <string name="summary">Summary</string>
+    <string name="phone_number">Phone number</string>
 
     <!--  Screen titles   -->
     <string name="home">Home</string>
     <string name="tour">Tour</string>
     <string name="profile">Profile</string>
+    <string name="notifications">Notifications</string>
+
+    <!--  dialog titles  -->
+    <string name="change_password">Change password</string>
+
 
     <!--  button description  -->
     <string name="add">Add</string>
@@ -38,8 +51,6 @@
     <string name="login">Login</string>
     <string name="register">Register</string>
     <string name="forgot_password">Forgot password?</string>
-    <string name="back_arrow_button">Back Arrow Button</string>
-    <string name="my_location_button">My location Button</string>
 
     <!--  permissions  -->
     <string name="permission_granted">Permission granted</string>
@@ -63,12 +74,9 @@
 
     <!--  validation  -->
     <string name="tour_details_empty_validation_error">None of the fields are filled. Fill at least one field</string>
-    <string name="add_profile_photo">Add profile photo</string>
-    <string name="phone_number">Phone number</string>
-    <string name="user_photo">User\'s profile image</string>
+
+    <!--  toast messages  -->
     <string name="image_removed">Photo removed.</string>
-    <string name="edit_profile">Edit profile</string>
-    <string name="change_password">Change password</string>
 
 
 </resources>
