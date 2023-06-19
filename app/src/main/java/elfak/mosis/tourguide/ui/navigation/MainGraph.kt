@@ -16,6 +16,8 @@ import elfak.mosis.tourguide.ui.screens.notificationScreen.NotificationScreen
 import elfak.mosis.tourguide.ui.screens.notificationScreen.NotificationScreenViewModel
 import elfak.mosis.tourguide.ui.screens.profileScreen.ProfileScreen
 import elfak.mosis.tourguide.ui.screens.profileScreen.ProfileScreenViewModel
+import elfak.mosis.tourguide.ui.screens.settingsScreen.SettingsScreen
+import elfak.mosis.tourguide.ui.screens.settingsScreen.SettingsScreenViewModel
 import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreenViewModel
 
 fun NavGraphBuilder.mainGraph(navController: NavController) {
@@ -89,6 +91,10 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
                     navController.navigate(Screen.ProfileScreen.route + "?userId=$friendId")
                 }
             )
+        }
+        composable(Screen.SettingScreen.route){
+            val viewModel = hiltViewModel<SettingsScreenViewModel>()
+            SettingsScreen(navController = navController, viewModel = viewModel)
         }
     }
 }

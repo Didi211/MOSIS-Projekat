@@ -50,6 +50,7 @@
     <string name="profile">Profile</string>
     <string name="notifications">Notifications</string>
     <string name="friends">Friends</string>
+    <string name="settings">Settings</string>
 
     <!--  dialog titles  -->
     <string name="change_password">Change password</string>
@@ -91,6 +92,11 @@
 
     <!--  toast messages  -->
     <string name="image_removed">Photo removed.</string>
+
+    <!--  location tracking service  -->
+    <string name="location_tracking_service_enable">Use location in background to receive notifications about tours\' locations.</string>
+    <string name="location_tracking_service_disable">Disable location tracking service. You won\'t be able to receive notifications.</string>
+    <string name="location_tracking_service">Location Tracking Service</string>
 
 
 
