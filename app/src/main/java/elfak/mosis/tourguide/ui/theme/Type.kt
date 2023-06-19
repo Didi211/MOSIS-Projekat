@@ -1,5 +1,6 @@
 package elfak.mosis.tourguide.ui.theme
 
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -35,6 +36,11 @@ val Typography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 22.sp,
     ),
+    h4 = TextStyle(
+        fontFamily = Ubuntu,
+        fontWeight = FontWeight.Normal,
+        fontSize = 20.sp,
+    ),
     button = TextStyle(
         fontFamily = Ubuntu,
         fontWeight = FontWeight.Normal,
@@ -44,6 +50,11 @@ val Typography = Typography(
         fontFamily = Ubuntu,
         fontWeight = FontWeight.Thin,
         fontSize = 18.sp,
+    ),
+    body2 = TextStyle(
+        fontFamily = Ubuntu,
+        fontWeight = FontWeight.Thin,
+        fontSize = 15.sp,
     ),
     caption = TextStyle(
         fontFamily = Ubuntu,

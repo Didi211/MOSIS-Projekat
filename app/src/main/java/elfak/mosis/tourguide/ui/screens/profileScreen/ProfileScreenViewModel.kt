@@ -21,6 +21,7 @@ import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.handleCoroutineException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.internal.wait
@@ -66,6 +67,9 @@ class ProfileScreenViewModel @Inject constructor(
     }
     fun setEmail(email: String) {
         uiState = uiState.copy(email = email)
+    }
+    fun setInProgress(value: Boolean) {
+        uiState = uiState.copy(inProgress = value)
     }
 
     fun setDirty(dirty: Boolean) {
@@ -132,9 +136,6 @@ class ProfileScreenViewModel @Inject constructor(
     fun clearSuccessMessage() {
         uiState = uiState.copy(toastData = uiState.toastData.copy(hasSuccessMessage = false))
         setInProgress(false)
-    }
-    fun setInProgress(value: Boolean) {
-        uiState = uiState.copy(inProgress = value)
     }
     //endregion
 
@@ -211,29 +212,34 @@ class ProfileScreenViewModel @Inject constructor(
     }
 
     private suspend fun loadData() {
-        var id = getUserIdFromPath()
-        if (id == null) {
-            id = authRepository.getUserIdLocal()
+        try {
+            var id = getUserIdFromPath()
+            if (id == null) {
+                id = authRepository.getUserIdLocal()
+            }
+            var user: UserModel
+            withContext(Dispatchers.IO) {
+                user = usersRepository.getUserData(id!!)
+            }
+            if (user.profilePhotoUrl.isNotBlank()) {
+                setPhotoUri(Uri.parse(user.profilePhotoUrl))
+                setHasPhoto(true)
+    //            setPhotoIsInUrl(true)
+            } else {
+                setHasPhoto(false)
+    //            setPhotoIsInUrl(false)
+            }
+            setUserId(user.id)
+            setUserAuthId(user.authId)
+            setFullname(user.fullname)
+            setUsername(user.username)
+            setPhotoOriginalFilename(user.username)
+            setPhoneNumber(user.phoneNumber)
+            setEmail(user.email)
         }
-        var user: UserModel
-        withContext(Dispatchers.IO) {
-            user = usersRepository.getUserData(id!!)
+        catch (ex: Exception) {
+            ex.message?.let { setErrorMessage(it) }
         }
-        if (user.profilePhotoUrl.isNotBlank()) {
-            setPhotoUri(Uri.parse(user.profilePhotoUrl))
-            setHasPhoto(true)
-//            setPhotoIsInUrl(true)
-        } else {
-            setHasPhoto(false)
-//            setPhotoIsInUrl(false)
-        }
-        setUserId(user.id)
-        setUserAuthId(user.authId)
-        setFullname(user.fullname)
-        setUsername(user.username)
-        setPhotoOriginalFilename(user.username)
-        setPhoneNumber(user.phoneNumber)
-        setEmail(user.email)
     }
 
     private suspend fun canEdit(): Boolean {
@@ -253,16 +259,16 @@ class ProfileScreenViewModel @Inject constructor(
     }
 
     fun changePassword(password: String, confirmPassword: String, onSuccess: () -> Unit) {
-        try {
-            validationHelper.validatePasswords(password, confirmPassword)
-            viewModelScope.launch {
+        viewModelScope.launch {
+            try {
+                validationHelper.validatePasswords(password, confirmPassword)
                 authRepository.changePassword(password)
                 onSuccess()
                 setSuccessMessage("Password successfully changed.")
             }
-        }
-        catch (ex: Exception) {
-            ex.message?.let { setErrorMessage(it) }
+            catch (ex: Exception) {
+                ex.message?.let { setErrorMessage(it) }
+            }
         }
     }
 

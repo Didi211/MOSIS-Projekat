@@ -26,7 +26,9 @@ fun BasicInputComponent(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     inputType: InputTypes = InputTypes.Text,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    placeholder: String = "",
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     Column {
         OutlinedTextField(
@@ -45,6 +47,8 @@ fun BasicInputComponent(
             keyboardOptions = keyboardOptions,
             visualTransformation = if (inputType == InputTypes.Password) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardActions = keyboardActions,
+            trailingIcon = trailingIcon,
+            placeholder = { Text(placeholder) }
         )
 
     }
@@ -64,6 +68,7 @@ fun basicInputColors(enabled: Boolean): TextFieldColors {
         disabledTextColor = colors.onSecondary,
         disabledBorderColor = Color.Transparent,
         disabledLabelColor = colors.onSecondary,
+        placeholderColor = colors.onSecondary
     )
 }
 

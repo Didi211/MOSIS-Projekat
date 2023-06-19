@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import elfak.mosis.tourguide.ui.screens.friendsScreen.FriendsScreen
+import elfak.mosis.tourguide.ui.screens.friendsScreen.FriendsScreenViewModel
 import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreen
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreenViewModel
@@ -79,9 +80,14 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
                 navController
             )
         }
-        composable(Screen.FriendsScreen.route){
+        composable(Screen.FriendsScreen.route) {
+            val viewModel = hiltViewModel<FriendsScreenViewModel>()
             FriendsScreen(
-
+                navController = navController,
+                viewModel = viewModel,
+                onCardClick = { friendId ->
+                    navController.navigate(Screen.ProfileScreen.route + "?userId=$friendId")
+                }
             )
         }
     }

@@ -13,14 +13,21 @@
     <string name="edit_profile">Edit profile</string>
     <string name="no_notifications_image">No notifications Image</string>
     <string name="delete_notification_icon">Delete notification icon</string>
+    <string name="no_friends_image">No friends image</string>
 
 
-    <!--  titles  -->
+
+    <!--  titles and subtitles -->
     <string name="app_name">Tour Guide</string>
     <string name="welcome_screen_title">Tour Guide</string>
     <string name="welcome_screen_subtitle">Make your travels easier</string>
     <string name="no_tours_created">No tours created</string>
     <string name="no_new_notifications">No new notifications</string>
+    <string name="no_friends">Friends list is empty</string>
+    <string name="no_friend_requests">No friend requests</string>
+    <string name="no_friends_available">No friends available</string>
+    <string name="find_friends">Go to Search tab and find friends to explore the world together.</string>
+
 
     <!--  input fields  -->
     <string name="username">Username</string>
@@ -29,17 +36,20 @@
     <string name="fullname">Full name</string>
     <string name="email">Email</string>
     <string name="search_here">Search here</string>
+    <string name="search_friends">Search friends</string>
     <string name="origin">Origin</string>
     <string name="destination">Destination</string>
     <string name="title">Title</string>
     <string name="summary">Summary</string>
     <string name="phone_number">Phone number</string>
+    <string name="search_by_username_or_fullname">Fullname/username</string>
 
     <!--  Screen titles   -->
     <string name="home">Home</string>
     <string name="tour">Tour</string>
     <string name="profile">Profile</string>
     <string name="notifications">Notifications</string>
+    <string name="friends">Friends</string>
 
     <!--  dialog titles  -->
     <string name="change_password">Change password</string>
@@ -51,6 +61,10 @@
     <string name="login">Login</string>
     <string name="register">Register</string>
     <string name="forgot_password">Forgot password?</string>
+    <string name="invite_to_tour">Invite to tour</string>
+    <string name="accept">Accept</string>
+    <string name="decline">Decline</string>
+    <string name="add_friend">Add friend</string>
 
     <!--  permissions  -->
     <string name="permission_granted">Permission granted</string>
@@ -77,6 +91,9 @@
 
     <!--  toast messages  -->
     <string name="image_removed">Photo removed.</string>
+
+
+
 
 
 </resources>

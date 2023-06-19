@@ -2,8 +2,10 @@ package elfak.mosis.tourguide.ui.components.buttons
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -17,6 +19,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -115,5 +119,27 @@ fun EditButton(onClick: () -> Unit = { }) {
                 .size(30.dp),
             tint = MaterialTheme.colors.onPrimary
         )
+    }
+}
+
+@Composable
+fun CircleButton(
+    icon: ImageVector,
+    backgroundColor: Color = MaterialTheme.colors.primary,
+    iconColor: Color = MaterialTheme.colors.onPrimary,
+    onClick: () -> Unit = { }
+) {
+    Button(
+      modifier = Modifier.size(40.dp),
+      shape = CircleShape,
+      colors = ButtonDefaults.buttonColors(backgroundColor = backgroundColor),
+      onClick = onClick,
+    ) {
+     Icon(
+         icon,
+         contentDescription = null,
+         modifier = Modifier.requiredSize(30.dp),
+         tint = iconColor
+     )
     }
 }

@@ -18,20 +18,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
-import androidx.compose.material.DropdownMenu
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
@@ -41,8 +36,6 @@ import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.rememberScaffoldState
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +44,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -59,14 +51,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.domain.models.menu.MenuData
 import elfak.mosis.tourguide.domain.models.tour.TourCard
 import elfak.mosis.tourguide.ui.components.images.NoToursImage
-import elfak.mosis.tourguide.ui.components.scaffold.MenuData
+import elfak.mosis.tourguide.ui.components.menu.Menu
+import elfak.mosis.tourguide.ui.components.menu.MenuIcon
 import elfak.mosis.tourguide.ui.components.scaffold.MenuViewModel
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
 import es.dmoral.toasty.Toasty
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
@@ -95,7 +90,12 @@ fun HomeScreen(
         drawerContent = {
             TourGuideNavigationDrawer(
                 navController = navController,
-                menuViewModel = menuViewModel
+                menuViewModel = menuViewModel,
+                hideDrawer = {
+                    coroutineScope.launch {
+                        scaffoldState.drawerState.close()
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -121,9 +121,9 @@ fun HomeScreen(
                             refreshState = refreshState,
                             isRefreshing = viewModel.uiState.isRefreshing,
                             tours = viewModel.uiState.tours,
-                            onEdit = navigateToTour,
-                            onInvite = { },
-                            onDelete = viewModel::deleteTour,
+                            onTourEdit = navigateToTour,
+                            onTourInviteFriend = { },
+                            onTourDelete = viewModel::deleteTour,
                             onCardClick = navigateToTour
                         )
                     }
@@ -142,9 +142,9 @@ fun TourCardsContainer(
     refreshState: PullRefreshState,
     isRefreshing: Boolean,
     tours: List<TourCard>,
-    onEdit: (tourId: String, editMode: Boolean) -> Unit,
-    onInvite: () -> Unit,
-    onDelete: (tourId: String) -> Unit,
+    onTourEdit: (tourId: String, editMode: Boolean) -> Unit,
+    onTourInviteFriend: () -> Unit,
+    onTourDelete: (tourId: String) -> Unit,
     onCardClick: (tourId: String, editMode: Boolean) -> Unit
 ) {
     val context = LocalContext.current
@@ -160,9 +160,9 @@ fun TourCardsContainer(
                     tour = tour,
                     menuItems = createDropdownOptions(
                         tourId = tour.id,
-                        onEdit = { onEdit(tour.id, true) },
+                        onEdit = { onTourEdit(tour.id, true) },
                         onInvite = { Toasty.info(context, "Feature under development", Toast.LENGTH_SHORT,true ).show() },
-                        onDelete = { onDelete(tour.id)}
+                        onDelete = { onTourDelete(tour.id)}
                     ),
                     onClick = { onCardClick(tour.id, false) },
                 )
@@ -178,7 +178,7 @@ fun TourCard(
     menuItems: List<MenuData>,
     onClick: () -> Unit = { },
 ) {
-    var isExpanded by remember { mutableStateOf(false) }
+    var isMenuExpanded by remember { mutableStateOf(false) }
 
     Card(
         shape = RoundedCornerShape(20.dp),
@@ -187,10 +187,14 @@ fun TourCard(
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
-            .padding(10.dp)) {
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min)) {
+            .padding(10.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
@@ -216,12 +220,12 @@ fun TourCard(
 //                    contentAlignment = Alignment.Center
                 ) {
                     Box {
-                        MenuIcon(onClick = { isExpanded = true })
+                        MenuIcon(onClick = { isMenuExpanded = true })
                         Menu(
-                            isExpanded,
+                            isMenuExpanded,
                             menuItems,
-                            onDismissRequest = { isExpanded = false },
-                            onIconClick = { isExpanded = false }
+                            onDismissRequest = { isMenuExpanded = false },
+                            onIconClick = { isMenuExpanded = false }
                         )
                     }
 //                    RatingStar(
@@ -241,58 +245,9 @@ fun TourCard(
 
 
 
-@Composable
-fun MenuIcon(onClick: () -> Unit) {
-    Column(
-        Modifier
-            .clip(CircleShape)
-            .clickable {
-                onClick()
-            }
-            .size(40.dp)
-            .padding(5.dp)
-    ) {
-        Icon(
-            modifier = Modifier.fillMaxSize(),
-            imageVector = Icons.Filled.MoreVert,
-            contentDescription = null,
-            tint = MaterialTheme.colors.primary,
-        )
-    }
-}
 
-@Composable
-fun Menu(
-    expanded: Boolean,
-    menuItems: List<MenuData>,
-    onDismissRequest: () -> Unit,
-    onIconClick: () -> Unit
-) {
-    DropdownMenu(expanded = expanded, onDismissRequest = onDismissRequest) {
-        menuItems.forEach { item ->
-            DropdownMenuItem(
-                text = {
-                    Text(text = item.name)
-                },
-                onClick = {
-                    onIconClick()
-                    item.onClick()
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = item.menuIcon,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                },
-                colors = MenuDefaults.itemColors(
-                    textColor = MaterialTheme.colors.primary,
-                    leadingIconColor = MaterialTheme.colors.primary
-                )
-            )
-        }
-    }
-}
+
+
 
 private fun createDropdownOptions(
     tourId: String,

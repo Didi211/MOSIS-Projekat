@@ -32,7 +32,7 @@ class UsersRepositoryImpl @Inject constructor(
 
     override suspend fun getUserData(userId: String): UserModel {
         val user = collectionRef.document(userId).get().await()
-            ?: throw Exception("User not found in the database.")
+        if (!user.exists()) throw Exception("User not found in the database.")
         return user.toObject<UserModel>()!!
     }
 
