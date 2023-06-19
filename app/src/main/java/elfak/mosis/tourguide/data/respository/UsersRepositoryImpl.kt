@@ -40,6 +40,17 @@ class UsersRepositoryImpl @Inject constructor(
         collectionRef.document(userId).get().await()
             .toObject<UserModel>()
             ?: throw Exception("User not found in the database.")
-        collectionRef.document(userId).set(user).await()
+        collectionRef.document(userId).update(
+//            UserModel::email, user.email, // email cannot be changed
+            UserModel::phoneNumber.name, user.phoneNumber,
+            UserModel::fullname.name, user.fullname,
+//            UserModel::username.name, user.username
+        ).await()
+    }
+
+    override suspend fun updateUserPhotos(userId: String, photos: UserModel) {
+        collectionRef.document(userId).update(
+            UserModel::profilePhotoUrl.name, photos.profilePhotoUrl,
+            UserModel::thumbnailPhotoUrl.name, photos.thumbnailPhotoUrl).await()
     }
 }

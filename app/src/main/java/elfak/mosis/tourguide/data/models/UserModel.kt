@@ -12,5 +12,6 @@ data class UserModel(
     val email: String = "",
 //    val password: String = "",
     val phoneNumber: String = "",
-    val photoUrl: String = "",
+    val profilePhotoUrl: String = "",
+    val thumbnailPhotoUrl: String = ""
 )

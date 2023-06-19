@@ -25,9 +25,7 @@ data class RegisterUiState(
             fullname = fullname,
             username = username,
             email = email,
-//            password = password,
             phoneNumber = phoneNumber,
-            photoUrl = photo.filename
         )
     }
     fun toValidationModel(): UserCredentials {
