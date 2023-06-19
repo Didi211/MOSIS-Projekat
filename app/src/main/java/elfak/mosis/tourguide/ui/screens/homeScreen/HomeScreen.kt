@@ -61,6 +61,7 @@ import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
 import es.dmoral.toasty.Toasty
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
@@ -89,7 +90,12 @@ fun HomeScreen(
         drawerContent = {
             TourGuideNavigationDrawer(
                 navController = navController,
-                menuViewModel = menuViewModel
+                menuViewModel = menuViewModel,
+                hideDrawer = {
+                    coroutineScope.launch {
+                        scaffoldState.drawerState.close()
+                    }
+                }
             )
         },
         floatingActionButton = {

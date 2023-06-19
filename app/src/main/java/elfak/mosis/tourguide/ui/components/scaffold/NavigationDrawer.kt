@@ -34,13 +34,14 @@ val titleSize = 20.sp
 @Composable
 fun TourGuideNavigationDrawer(
     navController: NavController,
-    menuViewModel: MenuViewModel
+    menuViewModel: MenuViewModel,
+    hideDrawer: () -> Unit = { }// required for closing drawer after navigating (when returnig on main drawer is open)
     // content
 //    menuDefaultList: ArrayList<MenuData>
 ) {
     //ovo bi trebalo mozda drugacije da se radi, da se zove fun pre poziva TourGuideNavigationDrawer
     val menuDefaultList: ArrayList<MenuData> = ArrayList()
-    prepareMenuList(menuDefaultList, navController, menuViewModel)
+    prepareMenuList(menuDefaultList, navController, menuViewModel, hideDrawer)
 
     Row(modifier = Modifier
         .fillMaxWidth()
@@ -49,16 +50,14 @@ fun TourGuideNavigationDrawer(
             .fillMaxWidth()
             .padding(start = 121.dp)
 //            .background(color = MaterialTheme.colors.primary)
-        )
-        {
+        ) {
             LogoImage(size = logoSize)
         }
-
     }
     Row(modifier = Modifier
         .fillMaxWidth()
-        .padding(start = 105.dp) )
-    {
+        .padding(start = 105.dp)
+    ) {
         Text(
             stringResource(id = R.string.welcome_screen_title).uppercase(),
             style = MaterialTheme.typography.h1,
@@ -109,7 +108,7 @@ fun MenuItemStyle(menuItem: MenuData) {
     }
 }
 
-fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController, viewModel: MenuViewModel){
+fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController, viewModel: MenuViewModel, hideDrawer: () -> Unit){
 //    menuList.add(
 //        MenuData(
 //            android.app.res.drawable.logovectorize.xml,
@@ -129,6 +128,7 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
                 {
                     popUpTo(Screen.HomeScreen.route) { inclusive = true }
                 }
+                hideDrawer()
             }
         )
     )
@@ -141,6 +141,7 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
                 {
                     popUpTo(Screen.HomeScreen.route)
                 }
+                hideDrawer()
             }
         )
     )
@@ -153,6 +154,7 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
                 {
                     popUpTo(Screen.HomeScreen.route)
                 }
+                hideDrawer()
             }
         )
     )
@@ -165,6 +167,7 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
                 {
                     popUpTo(Screen.HomeScreen.route)
                 }
+                hideDrawer()
             }
         )
     )
@@ -177,7 +180,6 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
               navController.navigate(Screen.WelcomeScreen.route) {
                   popUpTo(Screen.Main.route) { inclusive = true }
               }
-
           }
         )
     )
