@@ -285,7 +285,7 @@ fun FriendsRequestsTab(
                             }
                             Spacer(Modifier.width(10.dp))
                             CardButton(
-                                text = stringResource(R.string.cancel),
+                                text = stringResource(R.string.cancel_icon_description),
                                 icon = Icons.Rounded.Close,
                                 backgroundColor = MaterialTheme.colors.error
                             ) {
