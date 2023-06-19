@@ -59,6 +59,9 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             NotificationScreen(
                 navController = navController,
                 viewModel = viewModel,
+                navigate = { path ->
+                    navController.navigate(path)
+                }
             )
         }
         composable(Screen.ProfileScreen.route + "?userId={userId}",

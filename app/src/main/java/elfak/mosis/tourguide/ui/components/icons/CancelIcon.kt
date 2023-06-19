@@ -16,7 +16,7 @@ import elfak.mosis.tourguide.R
 fun CancelIcon(onClick: () -> Unit = { }) {
     Icon(
         Icons.Filled.Close,
-        stringResource(id = R.string.cancel),
+        stringResource(id = R.string.cancel_icon_description),
         modifier = Modifier.clickable { onClick() }
             .size(30.dp),
         tint = MaterialTheme.colors.primary,
