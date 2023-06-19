@@ -18,7 +18,8 @@ data class ProfileScreenUiState(
 
     val photo: Photo = Photo(),
     val previousPhoto: Photo = Photo(),
-    val shouldDeletePhotosFromServer: Boolean = false,
+    val shouldDeletePhotos: Boolean = false,
+    val shouldUpdatePhotos: Boolean = false,
 
     val toastData: ToastData = ToastData(),
     val inProgress: Boolean = false,

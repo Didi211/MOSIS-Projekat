@@ -11,16 +11,19 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.data.models.UserModel
 import elfak.mosis.tourguide.domain.helper.ValidationHelper
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.PhotoRepository
 import elfak.mosis.tourguide.domain.repository.UsersRepository
+import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.internal.wait
 import javax.inject.Inject
 
 @HiltViewModel
@@ -84,28 +87,35 @@ class ProfileScreenViewModel @Inject constructor(
     private fun setPhotoOriginalFilename(originalFilename: String) {
         uiState = uiState.copy(photo = uiState.photo.copy(filename = originalFilename))
     }
-    fun setPhotoIsInUrl(value: Boolean) {
-        uiState = uiState.copy(photo = uiState.photo.copy(photoIsInUrl = value))
+
+    private fun setShouldDeletePhotos(delete: Boolean) {
+        uiState = uiState.copy(shouldDeletePhotos = delete)
     }
-    fun setShouldDeletePhotosFromServer(delete: Boolean) {
-        uiState = uiState.copy(shouldDeletePhotosFromServer = delete)
+    private fun setShouldUpdatePhoto(update: Boolean) {
+        uiState = uiState.copy(shouldUpdatePhotos = update)
     }
+//    private fun setPhotoIsInUrl(value: Boolean) {
+////        uiState = uiState.copy(photo = uiState.photo.copy(photoIsInUrl = value))
+//    }
     fun removeCurrentPhoto() {
         setHasPhoto(false)
-        setPhotoIsInUrl(false)
+//        setPhotoIsInUrl(false)
         setPhotoUri(null)
-        setShouldDeletePhotosFromServer(true)
-
+        setShouldDeletePhotos(true)
     }
 
     fun handleCameraLauncherResult(success: Boolean) {
-        if (!success) {
+        if (success) {
+            setShouldUpdatePhoto(true)
+        }
+        else {
             setPhotoUri(uiState.previousPhoto.uri)
         }
-        setPhotoIsInUrl(false)
+//        setPhotoIsInUrl(false)
         setHasPhoto(true)
-        setShouldDeletePhotosFromServer(false)
+        setShouldDeletePhotos(false)
     }
+
     //endregion
 
     //region MESSAGE HANDLER
@@ -135,17 +145,28 @@ class ProfileScreenViewModel @Inject constructor(
 
     @OptIn(DelicateCoroutinesApi::class)
     fun saveData() {
+        val originalFilename = uiState.username
+//        val photo = uiState.photo
+//        val previousPhoto = uiState.previousPhoto
+        val allGood = !uiState.isDataDirty && !uiState.shouldUpdatePhotos && !uiState.shouldDeletePhotos
+
+        if (allGood) {
+            finishLoadingAnimation()
+            setSuccessMessage("All good, nothing to change.")
+            return
+        }
         //update data
         viewModelScope.launch {
             try {
-                if (!uiState.isDataDirty) {
-                    setSuccessMessage("All good, nothing to change.")
-                    isEditMode = false
+                if (!uiState.isDataDirty ) {
+                    setSuccessMessage("User data good, nothing to change.")
+                    finishLoadingAnimation()
                     return@launch
                 }
                 validationHelper.validateUserCredentials(uiState.toValidationModel())
                 usersRepository.updateUserData(uiState.userId, uiState.getUserData())
-                isEditMode = false
+
+                finishLoadingAnimation()
                 setSuccessMessage("Profile successfully updated.")
             }
             catch (ex: Exception) {
@@ -155,18 +176,19 @@ class ProfileScreenViewModel @Inject constructor(
         // TODO - create foreground service and upload image there
         // TODO - cache photo locally
         // TODO - turn back to view model scope when create service
+        // service will have updating status notification
         GlobalScope.launch {
             try {
-                val originalFilename = uiState.username
-                val photo = uiState.photo
-                val previousPhoto = uiState.previousPhoto
-                val shouldUpdate = photo.hasPhoto && !photo.photoIsInUrl && photo.uri != previousPhoto.uri
-                if (shouldUpdate) {
+                if (uiState.shouldUpdatePhotos) {
+                    // call service - Action == Update
                     photoRepository.uploadUserPhoto(uiState.photo)
                     photoRepository.updateUserPhotos(uiState.userId, originalFilename)
+                    setShouldUpdatePhoto(false)
+                    setSuccessMessage("User photo will be uploaded on the server.")
                     return@launch
                 }
-                if (uiState.shouldDeletePhotosFromServer) {
+                if (uiState.shouldDeletePhotos) {
+                    // call service - Action == Delete
                     launch {
                         try {
                             photoRepository.deleteOldImages(originalFilename)
@@ -178,6 +200,8 @@ class ProfileScreenViewModel @Inject constructor(
                     launch {
                         usersRepository.updateUserPhotos(uiState.userId, UserModel())
                     }
+                    setShouldDeletePhotos(false)
+                    setSuccessMessage("Photo will be removed from the server.")
                 }
             }
             catch (ex: Exception) {
@@ -198,10 +222,10 @@ class ProfileScreenViewModel @Inject constructor(
         if (user.profilePhotoUrl.isNotBlank()) {
             setPhotoUri(Uri.parse(user.profilePhotoUrl))
             setHasPhoto(true)
-            setPhotoIsInUrl(true)
+//            setPhotoIsInUrl(true)
         } else {
             setHasPhoto(false)
-            setPhotoIsInUrl(false)
+//            setPhotoIsInUrl(false)
         }
         setUserId(user.id)
         setUserAuthId(user.authId)
@@ -240,5 +264,11 @@ class ProfileScreenViewModel @Inject constructor(
         catch (ex: Exception) {
             ex.message?.let { setErrorMessage(it) }
         }
+    }
+
+    private fun finishLoadingAnimation() {
+        isEditMode = false
+        setInProgress(false)
+        setDirty(false)
     }
 }

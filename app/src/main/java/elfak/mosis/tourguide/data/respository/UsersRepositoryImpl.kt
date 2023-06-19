@@ -44,7 +44,7 @@ class UsersRepositoryImpl @Inject constructor(
 //            UserModel::email, user.email, // email cannot be changed
             UserModel::phoneNumber.name, user.phoneNumber,
             UserModel::fullname.name, user.fullname,
-            UserModel::username.name, user.username
+//            UserModel::username.name, user.username
         ).await()
     }
 

@@ -205,7 +205,6 @@ fun ProfileScreen(
                            if (viewModel.uiState.photo.hasPhoto) {
                                // remove current photo
                                viewModel.removeCurrentPhoto()
-                               Toasty.info(context, context.getString(R.string.image_removed)).show()
                            }
                        }
                     )
@@ -230,25 +229,6 @@ fun ProfileScreen(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // username
-                    BasicInputComponent(
-                        enabled = viewModel.isEditMode,
-                        text = viewModel.uiState.username,
-                        onTextChanged = { username ->
-                            viewModel.setDirty(viewModel.uiState.username != username)
-                            viewModel.setUsername(username.trim())
-                        },
-                        label = stringResource(id = R.string.username) + ":",
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            autoCorrect = false,
-                            capitalization = KeyboardCapitalization.None,
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Next
-                        ),
-                        inputType = InputTypes.Text,
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-
                     // phone number
                     BasicInputComponent(
                         enabled = viewModel.isEditMode,
@@ -262,25 +242,6 @@ fun ProfileScreen(
                             autoCorrect = false,
                             capitalization = KeyboardCapitalization.None,
                             keyboardType = KeyboardType.Phone,
-                            imeAction = ImeAction.Next
-                        ),
-                        inputType = InputTypes.Text,
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // email
-                    BasicInputComponent(
-                        enabled = viewModel.isEditMode,
-                        text = viewModel.uiState.email,
-                        onTextChanged = { email ->
-                            viewModel.setDirty(viewModel.uiState.email != email)
-                            viewModel.setEmail(email.trim())
-                        },
-                        label = stringResource(id = R.string.email) + ":",
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            autoCorrect = false,
-                            capitalization = KeyboardCapitalization.None,
-                            keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Done
                         ),
                         keyboardActions = KeyboardActions(
@@ -288,6 +249,49 @@ fun ProfileScreen(
                                 focusManager.clearFocus()
                             }
                         ),
+                        inputType = InputTypes.Text,
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // username
+                    BasicInputComponent(
+                        enabled = false,
+                        text = viewModel.uiState.username,
+                        onTextChanged = { username ->
+//                            viewModel.setDirty(viewModel.uiState.username != username)
+//                            viewModel.setUsername(username.trim())
+                        },
+                        label = stringResource(id = R.string.username) + ":",
+//                        keyboardOptions = KeyboardOptions.Default.copy(
+//                            autoCorrect = false,
+//                            capitalization = KeyboardCapitalization.None,
+//                            keyboardType = KeyboardType.Text,
+//                            imeAction = ImeAction.Next
+//                        ),
+                        inputType = InputTypes.Text,
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // email
+                    BasicInputComponent(
+                        enabled = false,
+                        text = viewModel.uiState.email,
+                        onTextChanged = { email ->
+//                            viewModel.setDirty(viewModel.uiState.email != email)
+//                            viewModel.setEmail(email.trim())
+                        },
+                        label = stringResource(id = R.string.email) + ":",
+//                        keyboardOptions = KeyboardOptions.Default.copy(
+//                            autoCorrect = false,
+//                            capitalization = KeyboardCapitalization.None,
+//                            keyboardType = KeyboardType.Email,
+//                            imeAction = ImeAction.Done
+//                        ),
+//                        keyboardActions = KeyboardActions(
+//                            onDone = {
+//                                focusManager.clearFocus()
+//                            }
+//                        ),
                         inputType = InputTypes.Text,
                     )
                     Spacer(modifier = Modifier.height(10.dp))
