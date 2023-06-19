@@ -26,6 +26,7 @@ import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.PermissionHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
+import elfak.mosis.tourguide.domain.helper.ValidationHelper
 import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Viewport
@@ -53,6 +54,7 @@ class TourScreenViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val googleMapHelper: GoogleMapHelper,
     private val permissionHelper: PermissionHelper,
+    private val validationHelper: ValidationHelper,
     savedStateHandle: SavedStateHandle
 ): ViewModel() {
     var uiState by mutableStateOf(TourScreenUiState())
@@ -533,7 +535,7 @@ class TourScreenViewModel @Inject constructor(
     }
     //endregion
 
-    //region PlaceDetails
+    //region PLACE DETAILS
     private fun changePlaceDetails(id: String, place: Place) {
         uiState = uiState.copy(placeDetails = PlaceDetails.convert(place))
         uiState = uiState.copy(placeDetails = uiState.placeDetails.copy(id = id))
@@ -541,17 +543,17 @@ class TourScreenViewModel @Inject constructor(
 
     //endregion
 
-    //region TourRepository
+    //region TOUR REPOSITORY
     fun onSave() {
         // validation
-        val blankTitle = uiState.tourDetails.title.isBlank()
-        val blankSummary = uiState.tourDetails.summary.isBlank()
-        val blankOrigin = uiState.tourDetails.origin.id.isBlank()
-        val blankDestination = uiState.tourDetails.destination.id.isBlank()
-        if (blankTitle && blankSummary && blankOrigin && blankDestination) {
-            setErrorMessage("None of the fields are filled. Fill at least one field")
+        try {
+            if (uiState.tourDetails.title.isBlank()) throw Exception("Title cannot be empty.")
+        }
+        catch (ex: Exception) {
+            ex.message?.let { setErrorMessage(it) }
             return
         }
+
         viewModelScope.launch {
             try {
                 val userId = authRepository.getUserIdLocal()!!
@@ -571,7 +573,7 @@ class TourScreenViewModel @Inject constructor(
     }
     //endregion
 
-    //region Message Handler
+    //region MESSAGE HANDLER
     fun clearErrorMessage() {
         uiState = uiState.copy(toastData = uiState.toastData.copy(hasErrors = false))
     }
@@ -584,6 +586,7 @@ class TourScreenViewModel @Inject constructor(
     fun clearSuccessMessage() {
         uiState = uiState.copy(toastData = uiState.toastData.copy(hasSuccessMessage = false))
     }
+    //endregion
 
     private fun handleError (ex: Exception) {
         if (ex.message != null) {

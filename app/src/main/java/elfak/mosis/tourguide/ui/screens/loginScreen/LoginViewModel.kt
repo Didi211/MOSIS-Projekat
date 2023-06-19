@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import elfak.mosis.tourguide.domain.helper.ValidationHelper
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -13,6 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val validationHelper: ValidationHelper
 ) : ViewModel() {
 
     var uiState by mutableStateOf(LoginUiState())
@@ -45,16 +47,6 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun validateCredentials() {
-        val emailRegex = Regex("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+\$")
-
-        if (uiState.email.isBlank()) {
-            throw Exception("Email cannot be empty")
-        }
-        if (!uiState.email.matches(emailRegex)) {
-            throw Exception("Email not valid. Proper form: 'tour@tourguide.com'")
-        }
-        if (uiState.password.isBlank()) {
-            throw Exception("Password cannot be empty")
-        }
+        validationHelper.validateLoginCredentials(uiState.toValidationModel())
     }
 }

@@ -53,6 +53,7 @@ import com.google.maps.android.compose.Polyline
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.LocationType
 import elfak.mosis.tourguide.domain.helper.BitmapHelper
+import elfak.mosis.tourguide.ui.components.ToastHandler
 import elfak.mosis.tourguide.ui.components.bottomsheet.PlaceDetails
 import elfak.mosis.tourguide.ui.components.bottomsheet.TourDetails
 import elfak.mosis.tourguide.ui.components.maps.ListOfPlaces
@@ -96,16 +97,11 @@ fun TourScreen(
         viewModel.setSearchBarVisibility(false)
     }
 
-    // region TOAST MESSAGES HANDLING
-    if (viewModel.uiState.toastData.hasErrors) {
-        Toasty.error(LocalContext.current, viewModel.uiState.toastData.errorMessage, Toast.LENGTH_LONG, true).show()
-        viewModel.clearErrorMessage()
-    }
-    if (viewModel.uiState.toastData.hasSuccessMessage) {
-        Toasty.info(LocalContext.current, viewModel.uiState.toastData.successMessage, Toast.LENGTH_SHORT, false).show()
-        viewModel.clearSuccessMessage()
-    }
-    // endregion
+    ToastHandler(
+        toastData = viewModel.uiState.toastData,
+        clearErrorMessage = viewModel::clearErrorMessage,
+        clearSuccessMessage = viewModel::clearSuccessMessage
+    )
 
 
     BottomSheetScaffold(
