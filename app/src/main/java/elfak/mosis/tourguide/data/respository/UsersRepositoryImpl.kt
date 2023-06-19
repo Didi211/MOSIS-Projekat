@@ -1,6 +1,8 @@
 package elfak.mosis.tourguide.data.respository
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.toObject
+import elfak.mosis.tourguide.data.models.UserModel
 import elfak.mosis.tourguide.domain.repository.UsersRepository
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -26,5 +28,29 @@ class UsersRepositoryImpl @Inject constructor(
         catch (ex: Exception) {
             throw ex
         }
+    }
+
+    override suspend fun getUserData(userId: String): UserModel {
+        val user = collectionRef.document(userId).get().await()
+        if (!user.exists()) throw Exception("User not found in the database.")
+        return user.toObject<UserModel>()!!
+    }
+
+    override suspend fun updateUserData(userId: String, user: UserModel) {
+        collectionRef.document(userId).get().await()
+            .toObject<UserModel>()
+            ?: throw Exception("User not found in the database.")
+        collectionRef.document(userId).update(
+//            UserModel::email, user.email, // email cannot be changed
+            UserModel::phoneNumber.name, user.phoneNumber,
+            UserModel::fullname.name, user.fullname,
+//            UserModel::username.name, user.username
+        ).await()
+    }
+
+    override suspend fun updateUserPhotos(userId: String, photos: UserModel) {
+        collectionRef.document(userId).update(
+            UserModel::profilePhotoUrl.name, photos.profilePhotoUrl,
+            UserModel::thumbnailPhotoUrl.name, photos.thumbnailPhotoUrl).await()
     }
 }

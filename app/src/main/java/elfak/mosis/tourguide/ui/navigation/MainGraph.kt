@@ -13,7 +13,9 @@ import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreen
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreen
 import elfak.mosis.tourguide.ui.screens.homeScreen.HomeScreenViewModel
 import elfak.mosis.tourguide.ui.screens.notificationScreen.NotificationScreen
+import elfak.mosis.tourguide.ui.screens.notificationScreen.NotificationScreenViewModel
 import elfak.mosis.tourguide.ui.screens.profileScreen.ProfileScreen
+import elfak.mosis.tourguide.ui.screens.profileScreen.ProfileScreenViewModel
 import elfak.mosis.tourguide.ui.screens.settingsScreen.SettingsScreen
 import elfak.mosis.tourguide.ui.screens.settingsScreen.SettingsScreenViewModel
 import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreenViewModel
@@ -56,18 +58,38 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             )
         }
         composable(Screen.NotificationScreen.route) {
+            val viewModel = hiltViewModel<NotificationScreenViewModel>()
             NotificationScreen(
-
+                navController = navController,
+                viewModel = viewModel,
+                navigate = { path ->
+                    navController.navigate(path)
+                }
             )
         }
-        composable(Screen.ProfileScreen.route){
+        composable(Screen.ProfileScreen.route + "?userId={userId}",
+            arguments = listOf(
+                navArgument("userId") {
+                    nullable = true
+                    type = NavType.StringType
+                    defaultValue = null
+                }
+            )
+        ){
+            val viewModel = hiltViewModel<ProfileScreenViewModel>()
             ProfileScreen(
+                viewModel,
                 navController
             )
         }
-        composable(Screen.FriendsScreen.route){
+        composable(Screen.FriendsScreen.route) {
+            val viewModel = hiltViewModel<FriendsScreenViewModel>()
             FriendsScreen(
-
+                navController = navController,
+                viewModel = viewModel,
+                onCardClick = { friendId ->
+                    navController.navigate(Screen.ProfileScreen.route + "?userId=$friendId")
+                }
             )
         }
         composable(Screen.SettingScreen.route){

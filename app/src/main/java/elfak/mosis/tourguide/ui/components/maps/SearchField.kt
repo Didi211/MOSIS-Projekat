@@ -1,11 +1,16 @@
 package elfak.mosis.tourguide.ui.components.maps
 
 import android.content.Context
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusTarget
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -20,6 +25,8 @@ fun SearchField(
     text: String,
     onTextChanged: (String) -> Unit,
     label: String,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    placeholder: String = "",
 ) {
     val focusManager = LocalFocusManager.current
     val context: Context = LocalContext.current
@@ -39,8 +46,11 @@ fun SearchField(
         ),
         keyboardActions = KeyboardActions(
             onSearch = {
+                focusManager.clearFocus()
                 onSearch()
             }
         ),
+        trailingIcon = trailingIcon,
+        placeholder = placeholder
     )
 }
