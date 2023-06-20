@@ -10,12 +10,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,18 +37,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.recyclerview.widget.DividerItemDecoration
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.data.models.UserModel
 import elfak.mosis.tourguide.domain.models.tour.TourSelectionDisplay
 import elfak.mosis.tourguide.ui.components.buttons.ButtonRowContainer
 import elfak.mosis.tourguide.ui.components.buttons.CancelButton
 import elfak.mosis.tourguide.ui.components.buttons.SaveButton
+import elfak.mosis.tourguide.ui.components.images.UserAvatar
 import es.dmoral.toasty.Toasty
 
-
 @Composable
-fun ChooseTourDialog(tours: List<TourSelectionDisplay>, onDismiss: () -> Unit, onOkButtonClick: (String) -> Unit) {
-    var selectedTourId by remember { mutableStateOf<String>("") }
+fun ChooseFriendDialog(users: List<UserModel>, onDismiss: () -> Unit, onOkButtonClick: (String) -> Unit) {
+    var selectedUserId by remember { mutableStateOf<String>("") }
 
     Dialog(onDismissRequest = onDismiss) {
         Column(
@@ -71,57 +71,60 @@ fun ChooseTourDialog(tours: List<TourSelectionDisplay>, onDismiss: () -> Unit, o
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (tours.isEmpty()) {
+                if (users.isEmpty()) {
                     Column(
                         Modifier.wrapContentSize(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = stringResource(id = R.string.you_have_no_tours),
+                            text = stringResource(id = R.string.no_friends),
                             style = MaterialTheme.typography.body1,
                             color = MaterialTheme.colors.primary
                         )
                     }
                     return@Dialog
                 }
-                // tour list
+                // users list
                 LazyColumn(
                     Modifier
                         .fillMaxWidth()
                         .fillMaxHeight(0.7f),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(15.dp)
+                    contentPadding = PaddingValues(8.dp)
                 ) {
-                    items(tours) { tour ->
+                    items(users) { user ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(start = 10.dp)
-                                .clickable { selectedTourId = tour.id },
+                                .clickable { selectedUserId = user.id },
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Column(Modifier.fillMaxWidth()) {
-                                Text(
-                                    modifier = Modifier
-                                        .fillMaxWidth(0.7f),
-                                    text = tour.title,
-                                    style = MaterialTheme.typography.body1
-                                )
-                                if (tour.summary.isNotBlank()) {
+                            Row(Modifier.fillMaxWidth(0.8f),horizontalArrangement = Arrangement.Start) {
+                                Column(
+                                    Modifier.fillMaxHeight(),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    UserAvatar(photoSize = 40.dp)
+                                }
+                                Spacer(Modifier.width(10.dp))
+                                Column(Modifier.fillMaxWidth()) {
                                     Text(
-                                        modifier = Modifier.fillMaxWidth(0.7f),
+                                        text = user.fullname,
+                                        style = MaterialTheme.typography.body1
+                                    )
+                                    Text(
+                                        text = "@${user.username}",
                                         overflow = TextOverflow.Ellipsis,
-                                        text = tour.summary,
                                         maxLines = 1,
                                         style = MaterialTheme.typography.body2
                                     )
                                 }
                             }
-
                             RadioButton(
-                                selected = selectedTourId == tour.id,
-                                onClick = { selectedTourId = tour.id },
+                                selected = selectedUserId == user.id,
+                                onClick = { selectedUserId = user.id },
                                 colors = RadioButtonDefaults.colors(
                                     selectedColor = MaterialTheme.colors.primary
                                 )
@@ -134,11 +137,11 @@ fun ChooseTourDialog(tours: List<TourSelectionDisplay>, onDismiss: () -> Unit, o
                 ButtonRowContainer {
                     val context = LocalContext.current
                     SaveButton {
-                        if (selectedTourId.isBlank()) {
-                             Toasty.error(context, "Tour not selected.").show()
+                        if (selectedUserId.isBlank()) {
+                            Toasty.error(context, "Tour not selected.").show()
                             return@SaveButton
                         }
-                        onOkButtonClick(selectedTourId)
+                        onOkButtonClick(selectedUserId)
                         onDismiss()
                     }
                     Spacer(Modifier.width(10.dp))

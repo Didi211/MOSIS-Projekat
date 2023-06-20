@@ -143,7 +143,10 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideUsersRepository(firestore: FirebaseFirestore): UsersRepository = UsersRepositoryImpl(firestore)
+    fun provideUsersRepository(
+        firestore: FirebaseFirestore,
+        notificationRepository: NotificationRepository
+        ): UsersRepository = UsersRepositoryImpl(firestore,notificationRepository)
 
     @Singleton
     @Provides

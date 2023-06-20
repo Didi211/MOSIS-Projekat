@@ -11,14 +11,17 @@ import elfak.mosis.tourguide.data.respository.NotificationResponseType
 import elfak.mosis.tourguide.domain.models.notification.NotificationCard
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.NotificationRepository
+import elfak.mosis.tourguide.domain.repository.TourRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class NotificationScreenViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val notificationRepository: NotificationRepository
+    private val notificationRepository: NotificationRepository,
+    private val tourRepository: TourRepository
 ): ViewModel() {
     var uiState by mutableStateOf(NotificationScreenUiState())
         private set
@@ -34,12 +37,17 @@ class NotificationScreenViewModel @Inject constructor(
     }
 
     private fun setAnswered(notificationId: String, answered: NotificationResponseType) {
+//        val notification = uiState.notifications.filter { notif -> notif.id == notificationId}[0]
+//        val otherNotifications = uiState.notifications.filter { notif -> notif.id != notificationId }
+//        notification.answered = answered
+//        val newList = otherNotifications + notification
+//        uiState = uiState.copy(notifications = newList)
+
         val notifications = uiState.notifications.map { notif ->
-            if (notif.id == notificationId) {
-                notif.answered = answered
-            }
-            return@map notif
+            if (notif.id == notificationId) notif.copy(answered = answered)
+            else notif
         }
+
         uiState = uiState.copy(notifications = notifications)
     }
 
@@ -98,10 +106,14 @@ class NotificationScreenViewModel @Inject constructor(
         }
     }
 
-    fun acceptTourInvite(id: String) {
+    fun acceptTourInvite(notificationId: String) {
         viewModelScope.launch {
-            notificationRepository.sendTourNotificationResponse(id, NotificationResponseType.Accepted)
-            setAnswered(id, NotificationResponseType.Accepted)
+            launch { notificationRepository.sendTourNotificationResponse(notificationId, NotificationResponseType.Accepted) }
+            val tourId = async { notificationRepository.getTourNotification(notificationId).tourId }
+            val userId = async { authRepository.getUserIdLocal() }
+
+            tourRepository.addFriendToTour(tourId.await(), userId.await()!!)
+            setAnswered(notificationId, NotificationResponseType.Accepted)
         }
     }
 
@@ -125,8 +137,5 @@ class NotificationScreenViewModel @Inject constructor(
     fun clearSuccessMessage() {
         uiState = uiState.copy(toastData = uiState.toastData.copy(hasSuccessMessage = false))
     }
-
-
-
     //endregion
 }

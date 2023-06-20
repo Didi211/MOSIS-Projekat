@@ -1,6 +1,7 @@
-package elfak.mosis.tourguide.data.models
+package elfak.mosis.tourguide.data.models.tour
 
 import com.google.firebase.firestore.DocumentId
+import elfak.mosis.tourguide.data.models.PlaceModel
 import elfak.mosis.tourguide.domain.models.tour.TourCard
 import elfak.mosis.tourguide.domain.models.tour.TourSelectionDisplay
 

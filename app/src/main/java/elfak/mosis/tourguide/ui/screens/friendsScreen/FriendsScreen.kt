@@ -57,6 +57,7 @@ import androidx.navigation.NavController
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.models.friends.FriendCard
 import elfak.mosis.tourguide.domain.models.menu.MenuData
+import elfak.mosis.tourguide.ui.components.ToastHandler
 import elfak.mosis.tourguide.ui.components.buttons.CircleButton
 import elfak.mosis.tourguide.ui.components.dialogs.ChooseTourDialog
 import elfak.mosis.tourguide.ui.components.icons.CancelIcon
@@ -80,15 +81,11 @@ fun FriendsScreen(
     val coroutineScope = rememberCoroutineScope()
     val menuViewModel = hiltViewModel<MenuViewModel>()
 
-    // region TOAST MESSAGES HANDLING
-    if (viewModel.uiState.toastData.hasErrors) {
-        Toasty.error(LocalContext.current, viewModel.uiState.toastData.errorMessage, Toast.LENGTH_LONG, true).show()
-        viewModel.clearErrorMessage()
-    }
-    if (viewModel.uiState.toastData.hasSuccessMessage) {
-        Toasty.info(LocalContext.current, viewModel.uiState.toastData.successMessage, Toast.LENGTH_SHORT, false).show()
-        viewModel.clearSuccessMessage()
-    }
+    ToastHandler(
+        toastData = viewModel.uiState.toastData,
+        clearErrorMessage = viewModel::clearErrorMessage,
+        clearSuccessMessage = viewModel::clearSuccessMessage
+    )
     // endregion
 
 
@@ -180,7 +177,6 @@ fun FriendsScreen(
                         }
 
                     },
-                    placeholder = stringResource(id = R.string.search_by_username_or_fullname)
                 )
             }
 
@@ -192,15 +188,14 @@ fun FriendsScreen(
                             tours = viewModel.uiState.tours,
                             onDismiss = { showTourDialog = false },
                             onOkButtonClick = { tourId: String ->
-                                viewModel.uiState.friendListFunctions
-                                    .sendTourInvitation(tourId, viewModel.uiState.inviteUserId)
+                                viewModel.sendTourInvitation(tourId, viewModel.uiState.inviteUserId)
                             }
                         )
                     }
                     FriendsTab(
                         viewModel.uiState.filteredFriends,
                         onCardClick = onCardClick,
-                        onUnfriend = { friendId -> viewModel.uiState.friendListFunctions.unfriendUser(friendId) },
+                        onUnfriend = { friendId -> viewModel.unfriendUser(friendId) },
                         onInviteToTour = { friendId ->
                             showTourDialog = true
                             viewModel.setInviteUserId(friendId)
@@ -211,15 +206,15 @@ fun FriendsScreen(
                     FriendsRequestsTab(
                         viewModel.uiState.requests,
                         onCardClick = onCardClick,
-                        onAccept = { friendId -> viewModel.uiState.requestListFunctions.acceptRequest(friendId) },
-                        onDecline = { friendId -> viewModel.uiState.requestListFunctions.declineRequest(friendId) },
+                        onAccept = { friendId -> viewModel.acceptFriendRequest(friendId) },
+                        onDecline = { friendId -> viewModel.declineFriendRequest(friendId) },
                     )
                 }
                 FriendsScreenState.Search -> {
                     SearchFriendsTab(
                         viewModel.uiState.searchResults,
                         onCardClick = onCardClick,
-                        onSendRequest = { friendId -> viewModel.uiState.searchListFunctions.sendRequest(friendId) },
+                        onSendRequest = { friendId -> viewModel.sendFriendRequest(friendId) },
                     )
                 }
             }
@@ -331,7 +326,6 @@ fun SearchFriendsTab(
                                 backgroundColor = MaterialTheme.colors.primary
                             ) {
                                 onSendRequest(friendId)
-
                             }
                         }
                     }

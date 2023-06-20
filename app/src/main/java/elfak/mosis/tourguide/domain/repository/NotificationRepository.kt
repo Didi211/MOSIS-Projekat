@@ -12,5 +12,11 @@ interface NotificationRepository {
     suspend fun getFriendRequestNotifications(userId: String): List<FriendRequestNotificationModel>
     suspend fun getBasicNotifications(userId: String): List<NotificationModel>
     suspend fun deleteTourNotification(notificationId: String)
+    suspend fun isUserInvitedToTour(userId: String, tourId: String): Boolean
+    suspend fun getTourNotification(notificationId: String): TourNotificationModel
+    suspend fun sendFriendRequestNotification(notification: FriendRequestNotificationModel)
+    suspend fun sendFriendRequestResponse(notificationId: String, accepted: NotificationResponseType)
+    suspend fun getFriendRequestNotification(receiverId: String, friendId: String): FriendRequestNotificationModel
+    suspend fun deleteFriendRequestNotification(notificationId: String)
 
 }

@@ -2,7 +2,7 @@ package elfak.mosis.tourguide.domain.models.tour
 
 import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.data.models.PlaceModel
-import elfak.mosis.tourguide.data.models.TourModel
+import elfak.mosis.tourguide.data.models.tour.TourModel
 import elfak.mosis.tourguide.data.models.toPlace
 import elfak.mosis.tourguide.domain.models.Place
 import elfak.mosis.tourguide.domain.models.toPlaceModel

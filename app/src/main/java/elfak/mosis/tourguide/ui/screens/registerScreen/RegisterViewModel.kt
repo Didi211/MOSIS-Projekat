@@ -13,7 +13,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.domain.helper.ValidationHelper
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.PhotoRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,6 +28,9 @@ class RegisterViewModel  @Inject constructor(
 
     var uiState by mutableStateOf(RegisterUiState())
         private set
+    init {
+//        mockRegisterUsers()
+    }
 
 
     // region UI STATE METHODS
@@ -83,6 +89,42 @@ class RegisterViewModel  @Inject constructor(
             }
             catch (err:Exception) {
                 uiState = uiState.copy(hasErrors = true, errorMessage = err.message ?: "Error occurred")
+            }
+        }
+    }
+
+    private fun mockRegisterUsers() {
+        val emails = listOf(
+            "user1@example.com",
+            "user2@example.com",
+            "user3@example.com",
+            "user4@example.com",
+            "user5@example.com"
+        )
+        val fullnames = listOf(
+            "John Doe",
+            "Jane Smith",
+            "Michael Johnson",
+            "Emily Williams",
+            "David Brown"
+        )
+        val usernames = listOf(
+            "user1",
+            "user2",
+            "user3",
+            "user4",
+            "user5",
+        )
+
+        viewModelScope.launch {
+            for (i in 0..4) {
+                setUsername(usernames[i])
+                setEmail(emails[i])
+                setFullname(fullnames[i])
+                setPassword("111222")
+                setConfirmPassword("111222")
+                register { }
+                delay(300)
             }
         }
     }

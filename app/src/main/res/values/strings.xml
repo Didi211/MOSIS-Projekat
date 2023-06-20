@@ -27,6 +27,8 @@
     <string name="no_friend_requests">No friend requests</string>
     <string name="no_friends_available">No friends available</string>
     <string name="find_friends">Go to Search tab and find friends to explore the world together.</string>
+    <string name="you_have_no_tours">You have no tour created.</string>
+
 
 
     <!--  input fields  -->
@@ -42,7 +44,6 @@
     <string name="title">Title</string>
     <string name="summary">Summary</string>
     <string name="phone_number">Phone number</string>
-    <string name="search_by_username_or_fullname">Fullname/username</string>
 
     <!--  Screen titles   -->
     <string name="home">Home</string>

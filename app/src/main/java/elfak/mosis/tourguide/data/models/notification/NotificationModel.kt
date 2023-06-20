@@ -10,5 +10,4 @@ data class NotificationModel(
     val receiverId: String = "",
     val message: String = "",
     val photoUrl: String = "",
-    val status: NotificationResponseType = NotificationResponseType.Waiting
 )
