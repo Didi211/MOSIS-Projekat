@@ -31,7 +31,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
@@ -59,6 +58,7 @@ import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.models.friends.FriendCard
 import elfak.mosis.tourguide.domain.models.menu.MenuData
 import elfak.mosis.tourguide.ui.components.buttons.CircleButton
+import elfak.mosis.tourguide.ui.components.dialogs.ChooseTourDialog
 import elfak.mosis.tourguide.ui.components.icons.CancelIcon
 import elfak.mosis.tourguide.ui.components.images.NoFriendsImage
 import elfak.mosis.tourguide.ui.components.images.UserAvatar
@@ -186,14 +186,24 @@ fun FriendsScreen(
 
             when (viewModel.uiState.screenState) {
                 FriendsScreenState.Friends -> {
+                    var showTourDialog by remember { mutableStateOf(false)}
+                    if (showTourDialog && viewModel.uiState.inviteUserId.isNotBlank()) {
+                        ChooseTourDialog(
+                            tours = viewModel.uiState.tours,
+                            onDismiss = { showTourDialog = false },
+                            onOkButtonClick = { tourId: String ->
+                                viewModel.uiState.friendListFunctions
+                                    .sendTourInvitation(tourId, viewModel.uiState.inviteUserId)
+                            }
+                        )
+                    }
                     FriendsTab(
-                        viewModel.uiState.friends,
                         viewModel.uiState.filteredFriends,
                         onCardClick = onCardClick,
                         onUnfriend = { friendId -> viewModel.uiState.friendListFunctions.unfriendUser(friendId) },
                         onInviteToTour = { friendId ->
-                            // open dialog for choosing tours
-                            viewModel.uiState.friendListFunctions.inviteFriendToTour(friendId)
+                            showTourDialog = true
+                            viewModel.setInviteUserId(friendId)
                         }
                     )
                 }
@@ -217,6 +227,7 @@ fun FriendsScreen(
     }
 }
 
+
 // varibales for containers
 val modifier = Modifier.fillMaxSize()
 val verticalAlignment = Alignment.CenterVertically
@@ -225,7 +236,6 @@ val horizontalArrangement = Arrangement.End
 @Composable
 fun FriendsTab(
     friends: List<FriendCard>,
-    filteredFriends: List<FriendCard>,
     onCardClick: (friendId: String) -> Unit = { },
     onUnfriend: (friendId: String) -> Unit ,
     onInviteToTour: (friendId: String) -> Unit,
@@ -238,7 +248,7 @@ fun FriendsTab(
             ) }
             false -> {
                 FriendCardContainer(
-                    friends = filteredFriends.ifEmpty { friends },
+                    friends = friends,
                     screenState = FriendsScreenState.Friends,
                     onCardClick = onCardClick,
                     onUnfriend = onUnfriend,
@@ -379,7 +389,6 @@ fun FriendCard(
 
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
-    val context = LocalContext.current
     Card(
         shape = RoundedCornerShape(20.dp),
         elevation = 5.dp,

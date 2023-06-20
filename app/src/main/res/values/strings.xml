@@ -54,6 +54,7 @@
 
     <!--  dialog titles  -->
     <string name="change_password">Change password</string>
+    <string name="choose_tour">Choose tour</string>
 
 
     <!--  button description  -->
@@ -97,9 +98,6 @@
     <string name="location_tracking_service_enable">Use location in background to receive notifications about tours\' locations.</string>
     <string name="location_tracking_service_disable">Disable location tracking service. You won\'t be able to receive notifications.</string>
     <string name="location_tracking_service">Location Tracking Service</string>
-
-
-
 
 
 </resources>

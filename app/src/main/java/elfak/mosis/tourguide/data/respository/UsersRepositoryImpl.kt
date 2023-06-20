@@ -53,4 +53,12 @@ class UsersRepositoryImpl @Inject constructor(
             UserModel::profilePhotoUrl.name, photos.profilePhotoUrl,
             UserModel::thumbnailPhotoUrl.name, photos.thumbnailPhotoUrl).await()
     }
+
+    override suspend fun getUserFriends(userId: String): List<UserModel> {
+        return emptyList()
+    }
+
+    override suspend fun getUserFriendRequests(userId: String): List<UserModel> {
+        return emptyList()
+    }
 }
