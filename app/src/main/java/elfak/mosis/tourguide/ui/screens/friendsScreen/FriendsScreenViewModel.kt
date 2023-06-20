@@ -4,12 +4,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import elfak.mosis.tourguide.data.models.notification.NotificationModel
+import elfak.mosis.tourguide.data.models.notification.TourNotificationModel
+import elfak.mosis.tourguide.data.models.notification.TourNotificationType
 import elfak.mosis.tourguide.domain.models.friends.FriendCard
+import elfak.mosis.tourguide.domain.models.tour.TourSelectionDisplay
+import elfak.mosis.tourguide.domain.repository.AuthRepository
+import elfak.mosis.tourguide.domain.repository.NotificationRepository
+import elfak.mosis.tourguide.domain.repository.TourRepository
+import elfak.mosis.tourguide.domain.repository.UsersRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class FriendsScreenViewModel @Inject constructor(): ViewModel() {
+class FriendsScreenViewModel @Inject constructor(
+    private val tourRepository: TourRepository,
+    private val authRepository: AuthRepository,
+    private val usersRepository: UsersRepository,
+    private val notificationRepository: NotificationRepository
+): ViewModel() {
     var uiState by mutableStateOf(FriendsScreenUiState())
         private set
 
@@ -18,10 +36,32 @@ class FriendsScreenViewModel @Inject constructor(): ViewModel() {
         setRequestListFunctions()
         setSearchListFunctions()
 
-        //mocking
-        uiState = uiState.copy(
-            friends = mockUsers()
-        )
+        setFilteredFriendList(mockUsers())
+        setFriends(mockUsers())
+
+        viewModelScope.launch {
+            val userId = async { authRepository.getUserIdLocal() }.await()
+
+            // fetch users' tours
+            withContext(Dispatchers.IO) {
+                val tours = tourRepository.getAllTours(userId!!)
+                setTours(tours.map { tour -> tour.toTourSelectionDisplay() })
+            }
+
+//            // fetch friends
+//            launch(Dispatchers.IO) {
+//                val userId = authRepository.getUserIdLocal()
+//                val friends = usersRepository.getUserFriends(userId!!)
+//                setFriends(friends.map { friend -> friend.toFriendCard() })
+//            }
+//
+//            // fetch friend requests
+//            launch(Dispatchers.IO) {
+//                val requests = usersRepository.getUserFriendRequests(userId!!)
+//                setRequests(requests.map { request -> request.toFriendCard() })
+//            }
+
+        }
     }
 
     //region UI STATE METHODS
@@ -33,12 +73,21 @@ class FriendsScreenViewModel @Inject constructor(): ViewModel() {
         uiState = uiState.copy(searchText = text)
 
     }
+    private fun setTours(tours: List<TourSelectionDisplay>) {
+        uiState = uiState.copy(tours = tours)
+    }
+
     //endregion
 
     //region FRIENDS TAB
+    private fun setFriends(friends: List<FriendCard>) {
+        uiState = uiState.copy(friends = friends)
+    }
     private fun setFriendListFunctions() {
         uiState = uiState.copy(friendListFunctions = uiState.friendListFunctions.copy(
-            inviteFriendToTour = { id -> inviteFriendToTour(id) },
+            sendTourInvitation = { tourId, friendId ->
+                sendTourInvitation(tourId, friendId)
+            },
             unfriendUser = { id -> unfriendUser(id)}
         ))
     }
@@ -51,17 +100,40 @@ class FriendsScreenViewModel @Inject constructor(): ViewModel() {
     private fun setFilteredFriendList(filteredList: List<FriendCard>) {
         uiState = uiState.copy(filteredFriends = filteredList)
     }
-    private fun inviteFriendToTour(id: String) {
-        // send invitation
-        setSuccessMessage("Invitation sent.")
+    private fun sendTourInvitation(tourId: String, friendId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val userId = async { authRepository.getUserIdLocal() }.await()
+            var sender = async { usersRepository.getUserData(userId!!) }
+            var tour = async { tourRepository.getTour(tourId) }
+
+            val notification = TourNotificationModel(
+                notification = NotificationModel(
+                    senderId = userId!!,
+                    receiverId = friendId,
+                    message = "${sender.await().fullname} invited you to tour '${tour.await().title}.'",
+                    photoUrl = sender.await().thumbnailPhotoUrl
+                ),
+                notificationType = TourNotificationType.Invite,
+                tourId = tourId
+            )
+            notificationRepository.sendTourNotification(notification)
+            setSuccessMessage("Invitation sent.")
+
+        }
     }
     private fun unfriendUser(id: String) {
         removeFromFriendList(id)
         // unfriend on firestore
     }
+    fun setInviteUserId(id: String) {
+        uiState = uiState.copy(inviteUserId = id)
+    }
     //endregion
 
     //region REQUESTS TAB
+    private fun setRequests(requests: List<FriendCard>) {
+        uiState = uiState.copy(requests = requests)
+    }
     private fun setRequestListFunctions() {
         uiState = uiState.copy(requestListFunctions = uiState.requestListFunctions.copy(
             acceptRequest = { id -> acceptFriendRequest(id) },
@@ -84,6 +156,10 @@ class FriendsScreenViewModel @Inject constructor(): ViewModel() {
     //endregion
 
     //region SEARCH TAB
+    private fun setSearchResults(results: List<FriendCard>) {
+        uiState = uiState.copy(searchResults = results)
+
+    }
     private fun setSearchListFunctions() {
         uiState = uiState.copy(searchListFunctions = uiState.searchListFunctions.copy(
             sendRequest = { id -> sendFriendRequest(id) },
@@ -99,12 +175,11 @@ class FriendsScreenViewModel @Inject constructor(): ViewModel() {
     fun startSearch() {
         val searchText = uiState.searchText
         if (uiState.screenState == FriendsScreenState.Friends) {
-            if (searchText.isBlank()) return setFilteredFriendList(emptyList())
+            if (searchText.isBlank()) return setFilteredFriendList(uiState.friends)
             val newList = uiState.friends.filter { friend ->
                 friend.fullname.contains(searchText) || friend.username.contains(searchText)
             }
             setFilteredFriendList(newList)
-            if (newList.isEmpty()) { setSuccessMessage("No friend found.") }
         }
         else {
             // search on firebase
@@ -117,9 +192,9 @@ class FriendsScreenViewModel @Inject constructor(): ViewModel() {
         for (i in 0..5) {
             var photoUrl: String? = null
             if (i in 1..3)
-                photoUrl = "https://firebasestorage.googleapis.com/v0/b/tour-guide-375011.appspot.com/o/profiles%2Fmiticd99?alt=media&token=fe22f942-7b10-4029-aa6c-5a3253238dd5"
+                photoUrl = "https://firebasestorage.googleapis.com/v0/b/tour-guide-375011.appspot.com/o/images%2Fmiticd99%40gmail.com_250x250?alt=media&token=1d698c7f-a19b-4c6f-b69f-d2c39f0cebcb"
             users.add(FriendCard(
-                id = i.toString(),
+                id = "cociJfcajd0ABHKBMj1g",
                 fullname = "Friend no:$i",
                 username = "username",
                 photoUrl =  photoUrl
