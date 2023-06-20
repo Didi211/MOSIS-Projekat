@@ -183,7 +183,11 @@ fun TourCard(
     Card(
         shape = RoundedCornerShape(20.dp),
         elevation = 5.dp,
-        modifier = Modifier.height(150.dp)
+        modifier = Modifier
+            .height(150.dp)
+            .clickable {
+                onClick()
+            }
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -200,9 +204,7 @@ fun TourCard(
                         .fillMaxHeight()
                         .fillMaxWidth(0.8f)
                         .padding(10.dp)
-                        .clickable {
-                            onClick()
-                        }
+
                 ) {
                     Text(text = tour.title, style = MaterialTheme.typography.h1, color = MaterialTheme.colors.primary)
                     Spacer(Modifier.height(5.dp))

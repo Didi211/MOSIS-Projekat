@@ -45,7 +45,7 @@ data class TourDetails(
     }
     fun update(tour: TourModel): TourDetails {
         return this.copy(
-            title = tour.title ?: "",
+            title = tour.title,
             summary = tour.summary ?: "",
             origin = if(tour.origin != null) tour.origin.toPlace() else Place(),
             destination = if(tour.destination != null) tour.destination.toPlace() else Place(),
