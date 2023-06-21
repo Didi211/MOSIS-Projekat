@@ -1,8 +1,6 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
 import android.location.Location
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -20,10 +18,11 @@ import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
 import com.google.android.libraries.places.api.net.PlacesClient
-import dagger.assisted.Assisted
 import dagger.hilt.android.lifecycle.HiltViewModel
+import elfak.mosis.tourguide.data.models.MyLatLng
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.data.models.PlaceDetails
+import elfak.mosis.tourguide.data.models.UserLocation
 import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
 import elfak.mosis.tourguide.domain.helper.GoogleMapHelper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
@@ -37,9 +36,11 @@ import elfak.mosis.tourguide.domain.models.google.Viewport
 import elfak.mosis.tourguide.domain.models.tour.toTourModel
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.TourRepository
+import elfak.mosis.tourguide.domain.repository.UsersRepository
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -58,6 +59,7 @@ class TourScreenViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val googleMapHelper: GoogleMapHelper,
     private val permissionHelper: PermissionHelper,
+    private val usersRepository: UsersRepository,
     savedStateHandle: SavedStateHandle,
 ): ViewModel(), TourGuideLocationListener {
     var uiState by mutableStateOf(TourScreenUiState())
@@ -268,6 +270,7 @@ class TourScreenViewModel @Inject constructor(
     //region CAMERA ANIMATION
 
     fun onLocationChanged(mustMove: Boolean = true) {
+
         if (isLocated()) {
             changeLocation(uiState.myLocation)
             // mustMove - user is requesting repositioning
@@ -587,6 +590,13 @@ class TourScreenViewModel @Inject constructor(
             changeMyLocation(LatLng(location.latitude, location.longitude))
             if (!isLocated()) return@launch //skip animation
             onLocationChanged()
+        }
+        // also update user location since gps is on
+        viewModelScope.launch {
+            val userId = async { authRepository.getUserIdLocal()!! }.await()
+            usersRepository.updateUserLocation(userId, UserLocation(
+                location = MyLatLng(location.latitude, location.longitude)
+            ))
         }
     }
 
