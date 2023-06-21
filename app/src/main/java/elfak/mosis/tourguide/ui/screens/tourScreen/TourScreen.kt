@@ -235,6 +235,7 @@ fun TourScreen(
             if ((viewModel.uiState.cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE)
                 && (viewModel.isLocated())
             ) {
+                // change icon if user moved map
                 viewModel.changeLocationState(LocationState.LocationOn)
             }
 
@@ -248,18 +249,17 @@ fun TourScreen(
                 ),
                 cameraPositionState = viewModel.uiState.cameraPositionState,
                 onMapLoaded = {
-                    viewModel.setLocationCallbacks()
                     if (!viewModel.checkPermissions()) {
                         return@GoogleMap
                     }
                     if (!viewModel.checkGps()) {
                         return@GoogleMap
                     }
-                    viewModel.changeLocationState(LocationState.LocationOn)
+                    viewModel.startLocationUpdates()
                     if (viewModel.uiState.tourDetails.bothLocationsSet) {
+                        viewModel.changeLocationState(LocationState.LocationOn)
                         return@GoogleMap
                     }
-                    viewModel.startLocationUpdates()
                     viewModel.changeLocationState(LocationState.Located)
                 },
                 onMapClick = { latlng ->
