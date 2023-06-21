@@ -3,7 +3,7 @@ package elfak.mosis.tourguide.domain.models
 import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.data.models.MyLatLng
 import elfak.mosis.tourguide.data.models.PlaceModel
-import elfak.mosis.tourguide.data.models.toGoogleLatLng
+
 
 
 data class Place(

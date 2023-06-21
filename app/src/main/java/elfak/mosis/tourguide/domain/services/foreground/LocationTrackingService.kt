@@ -8,19 +8,24 @@ import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.os.IBinder
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import dagger.hilt.android.AndroidEntryPoint
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.data.models.MyLatLng
+import elfak.mosis.tourguide.data.models.UserLocation
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.PermissionHelper
 import elfak.mosis.tourguide.domain.models.TourGuideLocationListener
+import elfak.mosis.tourguide.domain.repository.AuthRepository
+import elfak.mosis.tourguide.domain.repository.UsersRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
@@ -34,20 +39,39 @@ class LocationTrackingService @Inject constructor(
         private const val NOTIFICATION_CHANNEL_ID = "LocationTrackingChannel"
         private const val NOTIFICATION_ID = 1
     }
+    override val name: String
+        get() = this::class.simpleName.toString()
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private  var serviceState by mutableStateOf(LocationServiceState())
 
+    //region DI
     @Inject
     lateinit var permissionHelper: PermissionHelper
     @Inject
     lateinit var locationHelper: LocationHelper
+    @Inject
+    lateinit var usersRepository: UsersRepository
+    @Inject
+    lateinit var authRepository: AuthRepository
+    //endregion
 
-    private var isListenerRegistered by mutableStateOf(false)
-    override val name: String
-        get() = this::class.simpleName.toString()
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    //region UiState Methods
+    private fun setIsListenerRegistered(value: Boolean) {
+        serviceState = serviceState.copy(isListenerRegistered = value)
+    }
+    private fun setUserId(userId: String) {
+        serviceState = serviceState.copy(userId = userId)
+    }
+    //endregion
 
     // region LocationListener
     override fun onLocationResult(location: Location) {
         // persist location
+        serviceScope.launch {
+            usersRepository.updateUserLocation(serviceState.userId, UserLocation(
+                location = MyLatLng(location.latitude, location.latitude)
+            ))
+        }
         val notification = createNotification("New location: LAT:${location.latitude}, LONG:${location.longitude}")
         updateNotification(notification)
     }
@@ -78,13 +102,20 @@ class LocationTrackingService @Inject constructor(
             ACTION_START -> startService()
             ACTION_STOP -> stopService()
         }
+        serviceScope.launch {
+            val userId = authRepository.getUserIdLocal()
+                ?: throw Exception("User not authenticated.")
+            setUserId(userId)
+        }
         return START_STICKY
     }
+
+
 
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
-        if (isListenerRegistered) {
+        if (serviceState.isListenerRegistered) {
             locationHelper.unregisterListener(this.name)
         }
 
@@ -97,9 +128,9 @@ class LocationTrackingService @Inject constructor(
         if (!permissionHelper.hasAllowedLocationPermissions()) {
             throw Exception("Permissions not allowed. Go in settings to allow.")
         }
-        if (!isListenerRegistered) {
+        if (!serviceState.isListenerRegistered) {
             locationHelper.registerListener(this)
-            isListenerRegistered = true
+            setIsListenerRegistered(true)
         }
         val notification = createNotification("Location tracking service is running...")
         startForeground(NOTIFICATION_ID, notification)

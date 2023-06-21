@@ -2,7 +2,9 @@ package elfak.mosis.tourguide.data.respository
 
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.toObject
+import elfak.mosis.tourguide.data.models.UserLocation
 import elfak.mosis.tourguide.data.models.UserModel
 import elfak.mosis.tourguide.data.models.user.FriendsModel
 import elfak.mosis.tourguide.domain.repository.NotificationRepository
@@ -160,6 +162,13 @@ class UsersRepositoryImpl @Inject constructor(
 
         friendsRef.document(friends.id).delete().await()
     }
+
+    override suspend fun updateUserLocation(userId: String, location: UserLocation) {
+
+
+        usersRef.document(userId).update("location",location.toMap()).await()
+    }
+
     private suspend fun findFriendShip(userId: String, friendId: String): FriendsModel? {
         val friendShip =  friendsRef
             .whereIn("userId1", listOf(userId, friendId))
@@ -169,4 +178,3 @@ class UsersRepositoryImpl @Inject constructor(
         return friendShip.firstOrNull()
     }
 }
-

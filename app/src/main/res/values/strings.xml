@@ -103,6 +103,7 @@
     <string name="location_tracking_service">Location Tracking Service</string>
     <string name="channel_name">Tour Guide Notification channel</string>
     <string name="channel_description">Channel for background location fetching.</string>
+    <string name="choose_friend">Choose friend</string>
 
 
 </resources>

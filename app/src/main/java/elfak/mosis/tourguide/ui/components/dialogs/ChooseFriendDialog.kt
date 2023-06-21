@@ -60,7 +60,7 @@ fun ChooseFriendDialog(users: List<UserModel>, onDismiss: () -> Unit, onOkButton
         ) {
             Text(
                 modifier = Modifier.align(Alignment.Start),
-                text = stringResource(id = R.string.choose_tour) + ":",
+                text = stringResource(id = R.string.choose_friend) + ":",
                 style = MaterialTheme.typography.h3,
                 color = MaterialTheme.colors.primary
             )
