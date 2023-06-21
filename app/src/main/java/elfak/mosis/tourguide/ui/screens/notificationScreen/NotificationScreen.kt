@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,15 +34,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,7 +53,7 @@ import elfak.mosis.tourguide.ui.components.images.NoNotificationsImage
 import elfak.mosis.tourguide.ui.components.scaffold.MenuViewModel
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
-import elfak.mosis.tourguide.ui.navigation.NavigationArguments
+import elfak.mosis.tourguide.ui.navigation.NavigationArgument
 import elfak.mosis.tourguide.ui.navigation.Screen
 
 @Composable
@@ -133,7 +129,7 @@ fun NotificationCardsContainer(
                     onClick = {
                         if (notification.tourId != null) {
                             onNavigate(Screen.TourScreen.withOptionalArgs(
-                                NavigationArguments(NotificationCard::tourId.name, notification.tourId)
+                                NavigationArgument(NotificationCard::tourId.name, notification.tourId)
                             ))
                         }
                     },

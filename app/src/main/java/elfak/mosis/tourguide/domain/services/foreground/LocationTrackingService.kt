@@ -4,15 +4,14 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.location.Location
-import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.coordinatorlayout.widget.CoordinatorLayout.Behavior
-import com.google.android.gms.location.FusedLocationProviderClient
 import dagger.hilt.android.AndroidEntryPoint
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.helper.LocationHelper
@@ -46,15 +45,18 @@ class LocationTrackingService @Inject constructor(
         get() = this::class.simpleName.toString()
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-
     // region LocationListener
     override fun onLocationResult(location: Location) {
-        // persist in db
+        // persist location
+        val notification = createNotification("New location: LAT:${location.latitude}, LONG:${location.longitude}")
+        updateNotification(notification)
     }
 
     override fun onLocationAvailability(available: Boolean) {
-        // gps available -> keep listening for location
-        // gps not available -> show in notification that location is off and cant fetch location data
+        if (!available) {
+            val notification = createNotification("Gps is turned off. Service can't track location...")
+            updateNotification(notification)
+        }
 
     }
     //endregion
@@ -82,9 +84,9 @@ class LocationTrackingService @Inject constructor(
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
-//        if (isListenerRegistered) {
-//            locationHelper.unregisterListener(this.name)
-//        }
+        if (isListenerRegistered) {
+            locationHelper.unregisterListener(this.name)
+        }
 
     }
     // endregion
@@ -95,10 +97,10 @@ class LocationTrackingService @Inject constructor(
         if (!permissionHelper.hasAllowedLocationPermissions()) {
             throw Exception("Permissions not allowed. Go in settings to allow.")
         }
-//        if (!isListenerRegistered) {
-//            locationHelper.registerListener(this)
-//            isListenerRegistered = true
-//        }
+        if (!isListenerRegistered) {
+            locationHelper.registerListener(this)
+            isListenerRegistered = true
+        }
         val notification = createNotification("Location tracking service is running...")
         startForeground(NOTIFICATION_ID, notification)
     }
@@ -112,21 +114,41 @@ class LocationTrackingService @Inject constructor(
             .setContentTitle("Location Tracking Service")
             .setContentText(contentText)
             .setSmallIcon(R.drawable.my_location)
-            .set
+//            .setContentIntent(createPendingIntent())
 
         return notificationBuilder.build()
     }
+//    private fun createPendingIntent() : PendingIntent {
+//        val startActivityIntent = Intent(this, MainActivity::class.java)
+//            .putExtra("path",Screen.TourScreen.withOptionalArgs(NavigationArgument("tourId","PUyG8Mtrf1HzKfdwVfxd")))
+//        val resultPendingIntent: PendingIntent? = TaskStackBuilder.create(this).run {
+//            addNextIntentWithParentStack(startActivityIntent)
+//            getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+//        }
+//        return resultPendingIntent!!
+//
+////        return PendingIntent.getActivity(
+////            this, 1,
+////            startActivityIntent, PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+////        )
+//    }
+
     private fun createChannel() {
         // Create the NotificationChannel.
         val name = getString(R.string.channel_name)
         val descriptionText = getString(R.string.channel_description)
         val importance = NotificationManager.IMPORTANCE_LOW
-        val mChannel = NotificationChannel(Companion.NOTIFICATION_CHANNEL_ID, name, importance)
+        val mChannel = NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance)
         mChannel.description = descriptionText
         // Register the channel with the system. You can't change the importance
         // or other notification behaviors after this.
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(mChannel)
+    }
+
+    private fun updateNotification(notification: Notification) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(NOTIFICATION_ID, notification)
     }
     // endregion
 }

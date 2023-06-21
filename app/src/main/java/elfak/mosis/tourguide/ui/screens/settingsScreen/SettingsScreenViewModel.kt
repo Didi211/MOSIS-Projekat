@@ -6,7 +6,9 @@ import android.content.Intent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.saveable
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.PermissionHelper
@@ -16,11 +18,10 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsScreenViewModel @Inject constructor(
     private val permissionHelper: PermissionHelper,
-    private val locationHelper: LocationHelper
+    private val locationHelper: LocationHelper,
 ): ViewModel() {
     var uiState by mutableStateOf(SettingsScreenUiState())
         private set
-
 
 
     //region UiState Methods

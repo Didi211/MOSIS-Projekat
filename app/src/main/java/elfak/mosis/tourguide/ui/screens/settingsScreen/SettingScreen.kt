@@ -3,8 +3,6 @@
 package elfak.mosis.tourguide.ui.screens.settingsScreen
 
 import android.content.Context
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -32,14 +31,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.ui.components.ToastHandler
 import elfak.mosis.tourguide.ui.components.scaffold.MenuViewModel
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
-import es.dmoral.toasty.Toasty
 
 @Composable
 fun SettingsScreen(
@@ -51,30 +48,30 @@ fun SettingsScreen(
     val menuViewModel = hiltViewModel<MenuViewModel>()
 
     val context = LocalContext.current
-    var permissionAlreadyRequested by rememberSaveable {
-        mutableStateOf(false)
+    val key = "permissionAlreadyRequestedKey"
+    val sharedPreferences = context.getSharedPreferences("mySharedPreferences", Context.MODE_PRIVATE)
+    var permissionAlreadyRequested by remember {
+        mutableStateOf(sharedPreferences.getBoolean(key, false))
     }
     val permissionsState = rememberMultiplePermissionsState(
         permissions = viewModel.getLocationPermissions(),
         onPermissionsResult = { result ->
-            Log.i("PERMISSIONS", result.toString())
             if (!viewModel.checkPermissions()) {
-                viewModel.setErrorMessage("Permissions denied. Enable them in settings.")
+                if (permissionAlreadyRequested) {
+                    // show rationale message
+                    viewModel.setErrorMessage((context.getString(R.string.permissions_denied_twice)))
+                }
+                permissionAlreadyRequested = true
+                sharedPreferences.edit().putBoolean(key, true).apply()
                 return@rememberMultiplePermissionsState
             }
+            permissionAlreadyRequested = true
+            sharedPreferences.edit().putBoolean(key, true).apply()
             if (!viewModel.checkGps()) {
-                viewModel.setErrorMessage("Permissions denied. Enable them in settings.")
+                viewModel.setErrorMessage(context.getString(R.string.location_needed))
                 return@rememberMultiplePermissionsState
             }
             viewModel.toggleService(true, context)
-//            checkPermissionsAndGps(
-//                viewModel.checkPermissions(),
-//                permissionAlreadyRequested,
-//                permissionsState,
-//                viewModel.checkGps(),
-//                context
-//            )
-            permissionAlreadyRequested = true
         }
     )
 
@@ -154,32 +151,4 @@ fun SettingsScreen(
             Divider()
         }
     }
-}
-
-private fun checkPermissionsAndGps(
-    permissionsAllowed: Boolean,
-    permissionAlreadyRequested: Boolean,
-    permissionsState: MultiplePermissionsState,
-    gpsEnabled: Boolean,
-    context: Context
-):Boolean {
-    // check permissions
-    if (!permissionsAllowed) {
-        // ask for permissions
-        if (!permissionAlreadyRequested || permissionsState.shouldShowRationale) {
-            permissionsState.launchMultiplePermissionRequest()
-            return false
-        }
-        val message = context.getString(R.string.permissions_denied_twice)
-        Toasty.error(context, message, Toast.LENGTH_LONG).show()
-        return false
-    }
-    // check gps
-    if (!gpsEnabled) {
-        // ask for gps
-        val message = context.getString(R.string.location_needed)
-        Toasty.error(context, message).show()
-        return false
-    }
-    return true
 }
