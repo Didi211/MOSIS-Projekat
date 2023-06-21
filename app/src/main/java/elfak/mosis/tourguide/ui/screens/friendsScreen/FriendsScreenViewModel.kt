@@ -108,7 +108,12 @@ class FriendsScreenViewModel @Inject constructor(
             val sender = async { usersRepository.getUserData(uiState.userId) }
             val tour = async { tourRepository.getTour(tourId) }
 
-            if(isUserInvitedToTour(friendId, tour.await().id)) {
+            if (tour.await().createdBy == friendId) {
+                setErrorMessage("Can't invite the creator.")
+                return@launch
+            }
+
+            if(notificationRepository.isUserInvitedToTour(friendId, tour.await().id)) {
                 setSuccessMessage("User is already invited.")
                 return@launch
             }
@@ -128,9 +133,7 @@ class FriendsScreenViewModel @Inject constructor(
 
         }
     }
-    private suspend fun isUserInvitedToTour(receiverId: String, tourId: String): Boolean {
-        return notificationRepository.isUserInvitedToTour(receiverId, tourId)
-    }
+
     fun unfriendUser(friendId: String) {
         viewModelScope.launch {
             usersRepository.removeFriend(uiState.userId, friendId)

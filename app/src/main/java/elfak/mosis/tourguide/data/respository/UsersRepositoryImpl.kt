@@ -66,18 +66,8 @@ class UsersRepositoryImpl @Inject constructor(
         val friends1: List<FriendsModel>
         val friends2: List<FriendsModel>
         withContext(Dispatchers.IO) {
-            friends1 = async { friendsRef
-                .whereEqualTo("userId1", userId)
-                .get().await()
-                .toObjects(FriendsModel::class.java)
-            }.await()
-
-            friends2 = async { friendsRef
-                .whereEqualTo("userId2", userId)
-                .get().await()
-                .toObjects(FriendsModel::class.java)
-            }.await()
-
+            friends1 = async { getFriendsForField("userId1", userId) }.await()
+            friends2 = async { getFriendsForField("userId2", userId) }.await()
         }
 
         val friends = friends1 + friends2
@@ -99,6 +89,13 @@ class UsersRepositoryImpl @Inject constructor(
         return usersRef.whereIn(FieldPath.documentId(), friendIds)
             .get().await()
             .toObjects(UserModel::class.java)
+    }
+
+    private suspend fun getFriendsForField(fieldName: String, userId: String): List<FriendsModel> {
+        return friendsRef
+            .whereEqualTo(fieldName, userId)
+            .get().await()
+            .toObjects(FriendsModel::class.java)
     }
 
     override suspend fun getUserFriendRequests(userId: String): List<UserModel> {

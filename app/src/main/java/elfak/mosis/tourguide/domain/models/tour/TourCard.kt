@@ -7,5 +7,6 @@ data class TourCard(
     val id: String = "",
     val title: String = "",
     val summary: String = "",
+    val createdBy: String = ""
     //    val rated: Boolean = false,
 )

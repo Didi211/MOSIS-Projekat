@@ -36,18 +36,11 @@ class NotificationScreenViewModel @Inject constructor(
 //        setNotifications(mockNotifications())
     }
 
-    private fun setAnswered(notificationId: String, answered: NotificationResponseType) {
-//        val notification = uiState.notifications.filter { notif -> notif.id == notificationId}[0]
-//        val otherNotifications = uiState.notifications.filter { notif -> notif.id != notificationId }
-//        notification.answered = answered
-//        val newList = otherNotifications + notification
-//        uiState = uiState.copy(notifications = newList)
-
+    private fun setNotificationStatus(notificationId: String, answered: NotificationResponseType) {
         val notifications = uiState.notifications.map { notif ->
-            if (notif.id == notificationId) notif.copy(answered = answered)
+            if (notif.id == notificationId) notif.copy(status = answered)
             else notif
         }
-
         uiState = uiState.copy(notifications = notifications)
     }
 
@@ -113,14 +106,14 @@ class NotificationScreenViewModel @Inject constructor(
             val userId = async { authRepository.getUserIdLocal() }
 
             tourRepository.addFriendToTour(tourId.await(), userId.await()!!)
-            setAnswered(notificationId, NotificationResponseType.Accepted)
+            setNotificationStatus(notificationId, NotificationResponseType.Accepted)
         }
     }
 
     fun declineTourInvite(id: String) {
         viewModelScope.launch {
             notificationRepository.sendTourNotificationResponse(id, NotificationResponseType.Declined)
-            setAnswered(id, NotificationResponseType.Declined)
+            setNotificationStatus(id, NotificationResponseType.Declined)
         }
     }
 

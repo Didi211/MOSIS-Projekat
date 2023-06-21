@@ -13,13 +13,13 @@ data class TourModel(
     val origin: PlaceModel? = null,
     val destination: PlaceModel? = null,
     val createdBy: String = "",
-//    val guests: List<String>? = null
 ) {
     fun toTourCard(): TourCard {
         return TourCard(
             id = id,
             title = title,
-            summary = summary?: ""
+            summary = summary?: "",
+            createdBy = createdBy
         )
     }
     fun toTourSelectionDisplay(): TourSelectionDisplay {

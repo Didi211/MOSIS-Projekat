@@ -5,14 +5,20 @@ import com.google.firebase.firestore.ktx.toObject
 import elfak.mosis.tourguide.data.models.notification.FriendRequestNotificationModel
 import elfak.mosis.tourguide.data.models.notification.NotificationModel
 import elfak.mosis.tourguide.data.models.notification.TourNotificationModel
+import elfak.mosis.tourguide.data.models.notification.TourNotificationType
 import elfak.mosis.tourguide.domain.repository.NotificationRepository
+import elfak.mosis.tourguide.domain.repository.TourRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class NotificationRepositoryImpl @Inject constructor(
-    firestore: FirebaseFirestore
+    firestore: FirebaseFirestore,
+    private val tourRepository: TourRepository
 ): NotificationRepository {
 
     private val tourNotificationsRef = firestore.collection("TourNotifications")
@@ -53,14 +59,19 @@ class NotificationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun isUserInvitedToTour(userId: String, tourId: String): Boolean {
-//        val notification =tourNotificationsRef.whereEqualTo(
-//            "notification.receiverId", userId,
-//            )
-//            .whereEqualTo("tourId", tourId)
-//            .get().await()
-//            .toObjects(TourNotificationModel::class.java)[0]
-//        return notification.notification.status != NotificationResponseType.Declined
-        return false
+        if (tourRepository.isFriendAdded(tourId,userId))
+            return true
+        val notification = tourNotificationsRef
+            .whereEqualTo("notification.receiverId", userId)
+            .whereEqualTo("tourId", tourId)
+            .whereEqualTo("notificationType", TourNotificationType.Invite)
+            .get().await()
+            .toObjects(TourNotificationModel::class.java).firstOrNull()
+            ?: return false // notification is deleted => user declined request, we can spam them hehe
+
+        if (notification.status == NotificationResponseType.Waiting)
+            return true
+        return false //spaaam hehe
     }
 
     override suspend fun getTourNotification(notificationId: String): TourNotificationModel {
@@ -90,8 +101,21 @@ class NotificationRepositoryImpl @Inject constructor(
     override suspend fun deleteFriendRequestNotification(notificationId: String) {
         friendRequestNotificationsRef.document(notificationId).delete().await()
     }
-}
 
+    override suspend fun deleteTourNotifications(tourId: String) {
+        val notifications = tourNotificationsRef.whereEqualTo("tourId", tourId)
+            .get().await()
+            .toObjects(TourNotificationModel::class.java)
+        withContext(Dispatchers.IO) {
+            if (notifications.isNotEmpty()) {
+                for(notification in notifications) {
+                    launch { tourNotificationsRef.document(notification.notification.id).delete().await() }
+                }
+            }
+        }
+
+    }
+}
 enum class NotificationResponseType {
     Waiting,
     Accepted,

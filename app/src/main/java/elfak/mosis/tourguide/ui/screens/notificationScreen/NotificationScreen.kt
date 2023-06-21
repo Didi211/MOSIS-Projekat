@@ -161,8 +161,9 @@ fun NotificationCard(
         modifier = Modifier.height(150.dp)
     ) {
         val cardModifier = Modifier.wrapContentWidth()
+        val canNavigate = notification.tourId != null && notification.status == NotificationResponseType.Accepted
         Card(
-            modifier = if (notification.tourId == null) cardModifier else cardModifier.clickable { onClick() },
+            modifier = if (canNavigate) cardModifier.clickable { onClick() } else cardModifier,
             shape = RoundedCornerShape(20.dp),
             elevation = 5.dp,
         ) {
@@ -213,10 +214,10 @@ fun NotificationCard(
                                 .fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center,
                         ) {
-                            if (notification.answered != NotificationResponseType.Waiting) {
+                            if (notification.status != NotificationResponseType.Waiting) {
                                 Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
                                     Text(
-                                        text = notification.answered.toString(),
+                                        text = notification.status.toString(),
                                         style = MaterialTheme.typography.body1,
                                         color = MaterialTheme.colors.primary
                                     )

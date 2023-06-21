@@ -11,5 +11,5 @@ data class NotificationCard(
     val photoUrl: String? = null,
     val message: String = "",
     val tourNotificationType: TourNotificationType,
-    var answered: NotificationResponseType = NotificationResponseType.Waiting
+    var status: NotificationResponseType = NotificationResponseType.Waiting
 )

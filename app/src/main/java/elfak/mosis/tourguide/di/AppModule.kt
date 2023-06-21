@@ -123,7 +123,9 @@ object AppModule {
     //region REPOSITORIES
     @Singleton
     @Provides
-    fun provideTourRepository(firestore: FirebaseFirestore): TourRepository = TourRepositoryImpl(firestore)
+    fun provideTourRepository(
+        firestore: FirebaseFirestore,
+    ): TourRepository = TourRepositoryImpl(firestore)
 
     @Singleton
     @Provides
@@ -150,8 +152,11 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideNotificationRepository(firestore: FirebaseFirestore): NotificationRepository
-        = NotificationRepositoryImpl(firestore)
+    fun provideNotificationRepository(
+        firestore: FirebaseFirestore,
+        tourRepository: TourRepository,
+    ): NotificationRepository
+        = NotificationRepositoryImpl(firestore, tourRepository)
 
     //endregion
 

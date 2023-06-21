@@ -77,10 +77,23 @@ class HomeScreenViewModel @Inject constructor(
 
     fun deleteTour(tourId: String) {
         viewModelScope.launch {
-            tourRepository.deleteTour(tourId)
+            try {
+                if (!tourRepository.canDelete(tourId, uiState.userId)) {
+                    throw Exception("Can't delete tour, you are not creator.")
+                }
+                notificationRepository.deleteTourNotifications(tourId)
+                tourRepository.deleteTourFriends(tourId)
+                tourRepository.deleteTour(tourId)
+            }
+            catch (ex: Exception) {
+                ex.message?.let { setErrorMessage(it) }
+                return@launch
+            }
+
             val tours = uiState.tours.filter { it.id != tourId }
             setTours(tours)
             setSuccessMessage("Tour deleted.")
+
         }
     }
 
@@ -88,6 +101,11 @@ class HomeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val tour = uiState.inviteTour
             val sender = async { usersRepository.getUserData(uiState.userId) }
+
+            if (tour.createdBy == inviteUserId) {
+                setErrorMessage("Can't invite the creator.")
+                return@launch
+            }
             if (notificationRepository.isUserInvitedToTour(inviteUserId, tour.id)) {
                 setSuccessMessage("User is already invited.")
                 return@launch
@@ -123,6 +141,8 @@ class HomeScreenViewModel @Inject constructor(
     fun clearSuccessMessage() {
         uiState = uiState.copy(toastData = uiState.toastData.copy(hasSuccessMessage = false))
     }
+
+
     //endregion
 
 }

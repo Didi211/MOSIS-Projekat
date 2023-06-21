@@ -9,4 +9,7 @@ interface TourRepository {
     suspend fun updateTour(tourId: String, tour: TourModel)
     suspend fun deleteTour(tourId: String)
     suspend fun addFriendToTour(tourId: String, friendId: String)
+    suspend fun isFriendAdded(tourId: String, friendId: String): Boolean
+    suspend fun canDelete(tourId: String, userId: String): Boolean
+    suspend fun deleteTourFriends(tourId: String)
 }

@@ -16,7 +16,7 @@ data class TourNotificationModel(
             photoUrl = notification.photoUrl,
             message = notification.message,
             tourNotificationType = notificationType,
-            answered = status
+            status = status
         )
     }
 

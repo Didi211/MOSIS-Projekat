@@ -18,5 +18,6 @@ interface NotificationRepository {
     suspend fun sendFriendRequestResponse(notificationId: String, accepted: NotificationResponseType)
     suspend fun getFriendRequestNotification(receiverId: String, friendId: String): FriendRequestNotificationModel
     suspend fun deleteFriendRequestNotification(notificationId: String)
+    suspend fun deleteTourNotifications(tourId: String)
 
 }
