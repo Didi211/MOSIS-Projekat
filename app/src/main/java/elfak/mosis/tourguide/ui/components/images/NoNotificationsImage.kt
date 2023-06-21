@@ -29,7 +29,7 @@ fun NoNotificationsImage(imageTitle: String, additionDescription: String? = null
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = R.drawable.friend_requests),
+                painter = painterResource(id = R.drawable.notification),
                 contentDescription = stringResource(id = R.string.no_notifications_image),
             )
             Column(

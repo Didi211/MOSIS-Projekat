@@ -18,6 +18,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import elfak.mosis.tourguide.data.respository.AuthRepositoryImpl
+import elfak.mosis.tourguide.data.respository.NotificationRepositoryImpl
 import elfak.mosis.tourguide.data.respository.PhotoRepositoryImpl
 import elfak.mosis.tourguide.data.respository.TourRepositoryImpl
 import elfak.mosis.tourguide.data.respository.UsersRepositoryImpl
@@ -30,6 +31,7 @@ import elfak.mosis.tourguide.domain.helper.PermissionHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
 import elfak.mosis.tourguide.domain.repository.AuthRepository
+import elfak.mosis.tourguide.domain.repository.NotificationRepository
 import elfak.mosis.tourguide.domain.repository.PhotoRepository
 import elfak.mosis.tourguide.domain.repository.TourRepository
 import elfak.mosis.tourguide.domain.repository.UsersRepository
@@ -121,7 +123,9 @@ object AppModule {
     //region REPOSITORIES
     @Singleton
     @Provides
-    fun provideTourRepository(firestore: FirebaseFirestore): TourRepository = TourRepositoryImpl(firestore)
+    fun provideTourRepository(
+        firestore: FirebaseFirestore,
+    ): TourRepository = TourRepositoryImpl(firestore)
 
     @Singleton
     @Provides
@@ -141,7 +145,18 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideUsersRepository(firestore: FirebaseFirestore): UsersRepository = UsersRepositoryImpl(firestore)
+    fun provideUsersRepository(
+        firestore: FirebaseFirestore,
+        notificationRepository: NotificationRepository
+        ): UsersRepository = UsersRepositoryImpl(firestore,notificationRepository)
+
+    @Singleton
+    @Provides
+    fun provideNotificationRepository(
+        firestore: FirebaseFirestore,
+        tourRepository: TourRepository,
+    ): NotificationRepository
+        = NotificationRepositoryImpl(firestore, tourRepository)
 
     //endregion
 

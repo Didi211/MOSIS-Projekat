@@ -27,6 +27,8 @@
     <string name="no_friend_requests">No friend requests</string>
     <string name="no_friends_available">No friends available</string>
     <string name="find_friends">Go to Search tab and find friends to explore the world together.</string>
+    <string name="you_have_no_tours">You have no tour created.</string>
+
 
 
     <!--  input fields  -->
@@ -54,6 +56,7 @@
 
     <!--  dialog titles  -->
     <string name="change_password">Change password</string>
+    <string name="choose_tour">Choose tour</string>
 
 
     <!--  button description  -->
@@ -78,7 +81,6 @@
     <string name="permission_denied_twice">Permission has been denied more than twice. Please allow it in settings.</string>
     <string name="location_needed">App needs GPS enabled to track your location.</string>
     <string name="my_location">My location</string>
-    <string name="location_service_description">Location tracking service for Tour Guide Application</string>
 
     <!--  search box  -->
     <string name="add_checkpoint">ADD NEW CHECKPOINT</string>
@@ -95,7 +97,8 @@
     <string name="image_removed">Photo removed.</string>
 
     <!--  location tracking service  -->
-    <string name="location_tracking_service_enable">Use location in background to receive notifications about tours\' locations.</string>
+    <string name="location_service_description">Location tracking service for Tour Guide Application</string>
+    <string name="location_tracking_service_enable">Use location in background to receive notifications about near tour locations.</string>
     <string name="location_tracking_service_disable">Disable location tracking service. You won\'t be able to receive notifications.</string>
     <string name="location_tracking_service">Location Tracking Service</string>
     <string name="channel_name">Tour Guide Notification channel</string>
