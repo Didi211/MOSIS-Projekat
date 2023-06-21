@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
-import elfak.mosis.tourguide.domain.LocationType
+import elfak.mosis.tourguide.domain.models.tour.LocationType
 import elfak.mosis.tourguide.domain.models.Place
 import elfak.mosis.tourguide.domain.models.tour.TourDetails
 import elfak.mosis.tourguide.ui.components.TransparentTextField
@@ -142,7 +142,7 @@ fun TourDetailsContainer(
     tourState: TourState,
     tourDetails: TourDetails,
     enabledInputs: Boolean = true,
-    chooseLocation: (LocationType, String) -> Unit = {_, _ ->  },
+    chooseLocation: (LocationType, String) -> Unit = { _, _ ->  },
     buttons: @Composable () -> Unit,
 ) {
     var openDialog by remember { mutableStateOf(false) }

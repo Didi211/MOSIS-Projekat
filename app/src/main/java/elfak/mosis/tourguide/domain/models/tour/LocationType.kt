@@ -1,4 +1,4 @@
-package elfak.mosis.tourguide.domain
+package elfak.mosis.tourguide.domain.models.tour
 
 //enum class LocationType {
 //    Origin,

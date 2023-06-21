@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.gowtham.ratingbar.RatingBar
 import elfak.mosis.tourguide.data.models.PlaceDetails
-import elfak.mosis.tourguide.domain.LocationType
+import elfak.mosis.tourguide.domain.models.tour.LocationType
 import elfak.mosis.tourguide.domain.models.Place
 import elfak.mosis.tourguide.ui.components.buttons.AddToTourButton
 import elfak.mosis.tourguide.ui.components.buttons.ButtonRowContainer
@@ -37,7 +37,7 @@ fun PlaceDetails(
     tourState: TourState,
     placeDetails: PlaceDetails,
     onCancel: () -> Unit = { },
-    onAddToTour: (Place, LocationType) -> Unit = {_,_ -> }
+    onAddToTour: (Place, LocationType) -> Unit = { _, _ -> }
 ) {
     PlaceDetailsContainer(tourState,placeDetails, onCancel, onAddToTour)
 }
@@ -47,7 +47,7 @@ fun PlaceDetailsContainer(
     tourState: TourState,
     placeDetails: PlaceDetails,
     onCancel: () -> Unit = { },
-    onAddToTour: (Place, LocationType) -> Unit = {_,_ ->  }
+    onAddToTour: (Place, LocationType) -> Unit = { _, _ ->  }
 ) {
     Column(
         modifier = Modifier

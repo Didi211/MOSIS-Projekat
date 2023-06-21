@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import elfak.mosis.tourguide.domain.LocationType
+import elfak.mosis.tourguide.domain.models.tour.LocationType
 import elfak.mosis.tourguide.ui.components.buttons.ButtonRowContainer
 import elfak.mosis.tourguide.ui.components.buttons.CancelButton
 import elfak.mosis.tourguide.ui.components.buttons.SaveButton
