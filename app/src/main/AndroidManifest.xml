@@ -5,9 +5,11 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <uses-feature android:name="android.hardware.camera.any"/>
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:name=".TourGuideApplication"
         android:allowBackup="true"
@@ -35,7 +37,6 @@
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
@@ -43,12 +44,16 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
-
+        <service
+            android:name=".domain.services.foreground.LocationTrackingService"
+            android:foregroundServiceType="location"
+            android:exported="false"
+            android:description="@string/location_service_description"/>
         <provider
             android:name=".domain.helper.CameraFileProvider"
             android:authorities="elfak.mosis.tourguide"
             android:grantUriPermissions="true"
-            android:exported="false">
+            android:exported="false" >
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/image_file_path" />

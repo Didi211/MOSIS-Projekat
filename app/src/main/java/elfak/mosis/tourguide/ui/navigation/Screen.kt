@@ -18,7 +18,7 @@ sealed class Screen(val route: String)  {
     object SettingScreen: Screen("settings_screen")
 
 
-    fun withOptionalArgs(vararg args: NavigationArguments): String {
+    fun withOptionalArgs(vararg args: NavigationArgument): String {
         return buildString {
             append("$route?")
             args.forEach { arg ->
@@ -28,7 +28,7 @@ sealed class Screen(val route: String)  {
     }
 }
 
-data class NavigationArguments(
+data class NavigationArgument(
     val key: String,
     val value: String
 )

@@ -20,9 +20,9 @@ class PermissionHelper @Inject constructor(
             return locationPermissions!!
         }
         locationPermissions =  listOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-            )
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+        )
         return this.locationPermissions!!
     }
 

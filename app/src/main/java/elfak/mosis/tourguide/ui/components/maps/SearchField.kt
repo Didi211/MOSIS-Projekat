@@ -29,7 +29,6 @@ fun SearchField(
     placeholder: String = "",
 ) {
     val focusManager = LocalFocusManager.current
-    val context: Context = LocalContext.current
 
 
     BasicInputComponent(

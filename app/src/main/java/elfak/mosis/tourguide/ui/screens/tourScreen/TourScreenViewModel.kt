@@ -1,5 +1,6 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
+import android.location.Location
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -18,24 +19,28 @@ import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRe
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
 import com.google.android.libraries.places.api.net.PlacesClient
 import dagger.hilt.android.lifecycle.HiltViewModel
+import elfak.mosis.tourguide.data.models.MyLatLng
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.data.models.PlaceDetails
+import elfak.mosis.tourguide.data.models.UserLocation
 import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
 import elfak.mosis.tourguide.domain.helper.GoogleMapHelper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.PermissionHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
-import elfak.mosis.tourguide.domain.helper.ValidationHelper
+import elfak.mosis.tourguide.domain.models.TourGuideLocationListener
 import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Viewport
 import elfak.mosis.tourguide.domain.models.tour.toTourModel
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.TourRepository
+import elfak.mosis.tourguide.domain.repository.UsersRepository
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -54,11 +59,17 @@ class TourScreenViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val googleMapHelper: GoogleMapHelper,
     private val permissionHelper: PermissionHelper,
-    private val validationHelper: ValidationHelper,
-    savedStateHandle: SavedStateHandle
-): ViewModel() {
+    private val usersRepository: UsersRepository,
+    savedStateHandle: SavedStateHandle,
+): ViewModel(), TourGuideLocationListener {
     var uiState by mutableStateOf(TourScreenUiState())
         private set
+
+    private var isListenerRegistered by mutableStateOf(false)
+    override val name: String
+        get() = this::class.simpleName.toString()
+
+
 
     val locationAutofill = mutableStateListOf<PlaceAutocompleteResult>()
     val locationAutofillDialog = mutableStateListOf<PlaceAutocompleteResult>()
@@ -74,6 +85,7 @@ class TourScreenViewModel @Inject constructor(
 
     private var job: Job? = null
     private var textInputJob: Job? = null
+
     init {
         //region get tours
         val editMode: Boolean = savedStateHandle["editMode"]!!
@@ -160,14 +172,15 @@ class TourScreenViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        this.stopLocationUpdates()
+        if (isListenerRegistered) {
+            locationHelper.unregisterListener(this.name)
+        }
     }
 
     //region TOUR DETAILS
     fun setTourState(state: TourState) {
         uiState = uiState.copy(tourState = state)
     }
-
     private fun setTitle(title: String) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(title = title))
     }
@@ -180,16 +193,16 @@ class TourScreenViewModel @Inject constructor(
     fun setDestination(destination: elfak.mosis.tourguide.domain.models.Place) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(destination = destination))
     }
-    fun setDistance(distance: String) {
+    private fun setDistance(distance: String) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(distance = distance))
     }
-    fun setTime(time: String) {
+    private fun setTime(time: String) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(time = time))
     }
-    fun setBothLocationsSet(value: Boolean) {
+    private fun setBothLocationsSet(value: Boolean) {
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(bothLocationsSet = value))
     }
-    fun setTourDetails(tourDetails: TourDetails1) {
+    private fun setTourDetails(tourDetails: TourDetails1) {
         uiState = uiState.copy(tourDetails = tourDetails)
     }
 
@@ -240,46 +253,24 @@ class TourScreenViewModel @Inject constructor(
         //used for detecting if the device's location is being tracked
         return uiState.locationState == LocationState.Located
     }
-
-
     //endregion
 
     //region LOCATION HELPER
-    fun setLocationCallbacks() {
-        locationHelper.setOnLocationResultListener {
-            viewModelScope.launch {
-                changeMyLocation(LatLng(it.latitude, it.longitude))
-                if (!isLocated()) return@launch //skip animation
-                onLocationChanged()
-            }
-        }
-        locationHelper.setonLocationAvailabilityListener { gpsEnabled ->
-            setGps(gpsEnabled)
-            if (gpsEnabled) {
-                startLocationUpdates()
-                changeLocationState(LocationState.Located)
-            }
-            else {
-                changeLocationState(LocationState.LocationOff)
-            }
-        }
-    }
 
     fun startLocationUpdates() {
-        if(isLocated()) {
+        if(isLocated() || isListenerRegistered) {
            return
         }
-        locationHelper.startLocationTracking()
+        locationHelper.registerListener(this)
+        isListenerRegistered = true
     }
 
-    private fun stopLocationUpdates() {
-        locationHelper.stopLocationTracking()
-    }
     //endregion
 
     //region CAMERA ANIMATION
 
     fun onLocationChanged(mustMove: Boolean = true) {
+
         if (isLocated()) {
             changeLocation(uiState.myLocation)
             // mustMove - user is requesting repositioning
@@ -546,11 +537,8 @@ class TourScreenViewModel @Inject constructor(
     //region TOUR REPOSITORY
     fun onSave() {
         // validation
-        try {
-            if (uiState.tourDetails.title.isBlank()) throw Exception("Title cannot be empty.")
-        }
-        catch (ex: Exception) {
-            ex.message?.let { setErrorMessage(it) }
+        if (uiState.tourDetails.title.isBlank()) {
+            setErrorMessage("Title cannot be empty.")
             return
         }
 
@@ -586,8 +574,6 @@ class TourScreenViewModel @Inject constructor(
     fun clearSuccessMessage() {
         uiState = uiState.copy(toastData = uiState.toastData.copy(hasSuccessMessage = false))
     }
-    //endregion
-
     private fun handleError (ex: Exception) {
         if (ex.message != null) {
             setErrorMessage(ex.message!!)
@@ -595,5 +581,34 @@ class TourScreenViewModel @Inject constructor(
         }
         setErrorMessage("Error has occurred")
     }
+    //endregion
 
+
+    // region LocationListener
+    override fun onLocationResult(location: Location) {
+        viewModelScope.launch {
+            changeMyLocation(LatLng(location.latitude, location.longitude))
+            if (!isLocated()) return@launch //skip animation
+            onLocationChanged()
+        }
+        // also update user location since gps is on
+        viewModelScope.launch {
+            val userId = async { authRepository.getUserIdLocal()!! }.await()
+            usersRepository.updateUserLocation(userId, UserLocation(
+                location = MyLatLng(location.latitude, location.longitude)
+            ))
+        }
+    }
+
+    override fun onLocationAvailability(available: Boolean) {
+        setGps(available)
+        if (available) {
+            startLocationUpdates()
+            changeLocationState(LocationState.Located)
+        }
+        else {
+            changeLocationState(LocationState.LocationOff)
+        }
+    }
+    //endregion
 }

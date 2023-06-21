@@ -49,7 +49,7 @@ import elfak.mosis.tourguide.ui.components.images.UserAvatar
 import elfak.mosis.tourguide.ui.components.scaffold.MenuViewModel
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
-import elfak.mosis.tourguide.ui.navigation.NavigationArguments
+import elfak.mosis.tourguide.ui.navigation.NavigationArgument
 import elfak.mosis.tourguide.ui.navigation.Screen
 import elfak.mosis.tourguide.ui.screens.friendsScreen.CardButton
 
@@ -134,7 +134,7 @@ fun NotificationCardsContainer(
                     onClick = {
                         if (notification.tourId != null) {
                             onNavigate(Screen.TourScreen.withOptionalArgs(
-                                NavigationArguments(NotificationCard::tourId.name, notification.tourId)
+                                NavigationArgument(NotificationCard::tourId.name, notification.tourId)
                             ))
                         }
                     },

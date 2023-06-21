@@ -1,5 +1,6 @@
 package elfak.mosis.tourguide.domain.repository
 
+import elfak.mosis.tourguide.data.models.UserLocation
 import elfak.mosis.tourguide.data.models.UserModel
 
 interface UsersRepository {
@@ -14,4 +15,5 @@ interface UsersRepository {
     suspend fun areFriends(userId: String, friendId: String): Boolean
     suspend fun removeFriend(userId: String, friendId: String)
 
+    suspend fun updateUserLocation(userId: String, location: UserLocation)
 }

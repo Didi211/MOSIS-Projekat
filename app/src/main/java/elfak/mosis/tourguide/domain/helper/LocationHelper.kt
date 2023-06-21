@@ -2,12 +2,11 @@ package elfak.mosis.tourguide.domain.helper
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.location.Location
 import android.location.LocationManager
 import android.os.Looper
-import android.util.Log
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.Task
+import elfak.mosis.tourguide.domain.models.TourGuideLocationListener
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -21,12 +20,35 @@ class LocationHelper @Inject constructor(
     private var timeInterval: Long = 1500
     private var minimalDistance: Float = 10f
     private var request: LocationRequest
-    private var onLocationResultListener: (location: Location) -> Unit = { }
-    private var onLocationAvailabilityListener: (gpsEnabled: Boolean) -> Unit = { }
     private var isRequesting: Boolean = false
+    private val listeners: MutableList<TourGuideLocationListener> = mutableListOf()
 
     init {
         request = createRequest()
+    }
+
+    fun registerListener(newListener: TourGuideLocationListener) {
+        if (findListener(newListener.name) != null) {
+            throw Exception("Can't register. Listener: ${newListener.name} is already registered.")
+        }
+        listeners.add(newListener)
+        if (isRequesting) {
+            return
+        }
+        startLocationTracking()
+    }
+
+    fun unregisterListener(name: String) {
+        val listener = findListener(name)
+            ?: throw Exception("Can't unregister. Listener: $name is not found.")
+        listeners.remove(listener)
+        if (listeners.isEmpty()) {
+            stopLocationTracking()
+        }
+    }
+
+    private fun findListener(name: String): TourGuideLocationListener? {
+        return listeners.find { listener -> listener.name == name }
     }
 
     private fun createRequest(): LocationRequest {
@@ -39,11 +61,8 @@ class LocationHelper @Inject constructor(
         return request
     }
 
-    fun startLocationTracking() {
+    private fun startLocationTracking() {
         try {
-            if (isRequesting) {
-                stopLocationTracking()
-            }
             val builder = LocationSettingsRequest.Builder()
                 .addLocationRequest(this.request)
             val client: SettingsClient = LocationServices.getSettingsClient(context)
@@ -52,68 +71,40 @@ class LocationHelper @Inject constructor(
                 fusedLocationProviderClient.requestLocationUpdates(this.request, this, Looper.getMainLooper())
                 this.isRequesting = true
             }
-            task.addOnFailureListener {
-            }
         }
         catch(e: Exception) {
-            Log.e("ERROR",e.message!!)
+            throw e
         }
     }
 
-    fun stopLocationTracking() {
+    private fun stopLocationTracking() {
         this.isRequesting = false
-//        fusedLocationProviderClient.flushLocations()
         fusedLocationProviderClient.removeLocationUpdates(this)
-    }
-
-    fun setOnLocationResultListener(listener: (location: Location) -> Unit) {
-        this.onLocationResultListener = listener
     }
 
     override fun onLocationResult(locationResult: LocationResult) {
         super.onLocationResult(locationResult)
-        locationResult ?: return
-        for (location in locationResult.locations) {
-            this.onLocationResultListener(location)
+        if (locationResult.lastLocation == null) {
+            return
         }
-    }
-
-    fun setonLocationAvailabilityListener(listener: (gpsEnabled: Boolean) -> Unit) {
-        this.onLocationAvailabilityListener = listener
+        for (listener in listeners) {
+            listener.onLocationResult(locationResult.lastLocation!!)
+        }
     }
 
     override fun onLocationAvailability(result: LocationAvailability) {
         super.onLocationAvailability(result)
-//        Toasty.info(context, "GPS - ${result.isLocationAvailable}").show()
-        this.onLocationAvailabilityListener(result.isLocationAvailable)
+        for (listener in listeners) {
+            listener.onLocationAvailability(result.isLocationAvailable)
+        }
+//        if (!result.isLocationAvailable) {
+//            stopLocationTracking()
+//        }
     }
-
-//    fun enableGps() {
-//        val builder = LocationSettingsRequest.Builder()
-//            .addLocationRequest(this.request)
-//        val client: SettingsClient = LocationServices.getSettingsClient(context)
-//        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
-//        task.addOnSuccessListener {
-////            Toasty.info(context, "GPS ON ").show()
-////            fusedLocationProviderClient.requestLocationUpdates(this.request, this, Looper.getMainLooper())
-//        }
-//        task.addOnFailureListener {
-//            Toasty.error(context, R.string.location_needed).show()
-//        }
-//    }
 
     fun isGpsOn(): Boolean {
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
+
 }
-
-
-
-
-
-
-
-
-
-
