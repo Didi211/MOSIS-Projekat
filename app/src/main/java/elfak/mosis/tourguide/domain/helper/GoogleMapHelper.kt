@@ -18,7 +18,7 @@ class GoogleMapHelper @Inject constructor() {
             var result = 0
 
             while (true) {
-                val byte = encodedPolyline[index++].toInt() - 63
+                val byte = encodedPolyline[index++].code - 63
                 result = result or ((byte and 0x1F) shl shift)
                 shift += 5
                 if (byte < 0x20) break
@@ -31,7 +31,7 @@ class GoogleMapHelper @Inject constructor() {
             result = 0
 
             while (true) {
-                val byte = encodedPolyline[index++].toInt() - 63
+                val byte = encodedPolyline[index++].code - 63
                 result = result or ((byte and 0x1F) shl shift)
                 shift += 5
                 if (byte < 0x20) break

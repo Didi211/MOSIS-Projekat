@@ -379,7 +379,6 @@ fun FriendCard(
 
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
-    val context = LocalContext.current
     Card(
         shape = RoundedCornerShape(20.dp),
         elevation = 5.dp,
