@@ -260,7 +260,7 @@ fun TourScreen(
                         return@GoogleMap
                     }
                     viewModel.startLocationUpdates()
-                    viewModel.changeLocationState(LocationState.LocationOn)
+                    viewModel.changeLocationState(LocationState.Located)
                 },
                 onMapClick = { latlng ->
                     viewModel.clearSearchBar()
