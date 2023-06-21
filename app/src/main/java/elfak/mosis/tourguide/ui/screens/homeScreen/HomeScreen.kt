@@ -2,7 +2,6 @@
 
 package elfak.mosis.tourguide.ui.screens.homeScreen
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
@@ -51,8 +50,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import elfak.mosis.tourguide.R
+import elfak.mosis.tourguide.data.models.tour.TourModel
 import elfak.mosis.tourguide.domain.models.menu.MenuData
 import elfak.mosis.tourguide.domain.models.tour.TourCard
+import elfak.mosis.tourguide.ui.components.ToastHandler
+import elfak.mosis.tourguide.ui.components.dialogs.ChooseFriendDialog
 import elfak.mosis.tourguide.ui.components.images.NoToursImage
 import elfak.mosis.tourguide.ui.components.menu.Menu
 import elfak.mosis.tourguide.ui.components.menu.MenuIcon
@@ -60,7 +62,6 @@ import elfak.mosis.tourguide.ui.components.scaffold.MenuViewModel
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
-import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.launch
 
 @Composable
@@ -76,6 +77,24 @@ fun HomeScreen(
         refreshing = viewModel.uiState.isRefreshing,
         onRefresh = { viewModel.refreshTours() }
     )
+    var showFriendsDialog by remember { mutableStateOf(false)}
+
+    if (showFriendsDialog) {
+        ChooseFriendDialog(
+            users = viewModel.uiState.friends,
+            onDismiss = { showFriendsDialog = false },
+            onOkButtonClick = { friendId: String ->
+                viewModel.sendTourInvitation(friendId)
+            }
+        )
+    }
+
+    ToastHandler(
+        toastData = viewModel.uiState.toastData,
+        clearErrorMessage = viewModel::clearErrorMessage,
+        clearSuccessMessage = viewModel::clearSuccessMessage
+    )
+
     Scaffold(
         scaffoldState = scaffoldState,
         // top navigation bar with menu button
@@ -122,7 +141,10 @@ fun HomeScreen(
                             isRefreshing = viewModel.uiState.isRefreshing,
                             tours = viewModel.uiState.tours,
                             onTourEdit = navigateToTour,
-                            onTourInviteFriend = { },
+                            onTourInviteFriend = { tour ->
+                                showFriendsDialog = true
+                                viewModel.setTourForInvite(tour)
+                            },
                             onTourDelete = viewModel::deleteTour,
                             onCardClick = navigateToTour
                         )
@@ -143,11 +165,13 @@ fun TourCardsContainer(
     isRefreshing: Boolean,
     tours: List<TourCard>,
     onTourEdit: (tourId: String, editMode: Boolean) -> Unit,
-    onTourInviteFriend: () -> Unit,
+    onTourInviteFriend: (tour: TourCard) -> Unit,
     onTourDelete: (tourId: String) -> Unit,
     onCardClick: (tourId: String, editMode: Boolean) -> Unit
 ) {
     val context = LocalContext.current
+
+
 
     Box(modifier = Modifier.pullRefresh(refreshState)) {
         LazyColumn(
@@ -161,7 +185,7 @@ fun TourCardsContainer(
                     menuItems = createDropdownOptions(
                         tourId = tour.id,
                         onEdit = { onTourEdit(tour.id, true) },
-                        onInvite = { Toasty.info(context, "Feature under development", Toast.LENGTH_SHORT,true ).show() },
+                        onInvite = { onTourInviteFriend(tour) },
                         onDelete = { onTourDelete(tour.id)}
                     ),
                     onClick = { onCardClick(tour.id, false) },
@@ -183,7 +207,11 @@ fun TourCard(
     Card(
         shape = RoundedCornerShape(20.dp),
         elevation = 5.dp,
-        modifier = Modifier.height(150.dp)
+        modifier = Modifier
+            .height(150.dp)
+            .clickable {
+                onClick()
+            }
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -200,9 +228,7 @@ fun TourCard(
                         .fillMaxHeight()
                         .fillMaxWidth(0.8f)
                         .padding(10.dp)
-                        .clickable {
-                            onClick()
-                        }
+
                 ) {
                     Text(text = tour.title, style = MaterialTheme.typography.h1, color = MaterialTheme.colors.primary)
                     Spacer(Modifier.height(5.dp))
@@ -243,12 +269,6 @@ fun TourCard(
     }
 }
 
-
-
-
-
-
-
 private fun createDropdownOptions(
     tourId: String,
     onEdit: (String) -> Unit,
@@ -257,7 +277,7 @@ private fun createDropdownOptions(
 ): List<MenuData> {
     return listOf(
         MenuData(Icons.Rounded.Edit, "Edit", onClick = { onEdit(tourId) }),
-        MenuData(Icons.Rounded.GroupAdd, "Invite friends", onClick = onInvite),
+        MenuData(Icons.Rounded.GroupAdd, "Invite friends", onClick = { onInvite() }),
         MenuData(Icons.Rounded.Delete, "Delete", onClick = { onDelete(tourId) })
     )
 }

@@ -2,7 +2,7 @@ package elfak.mosis.tourguide.domain.models.tour
 
 import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.data.models.PlaceModel
-import elfak.mosis.tourguide.data.models.TourModel
+import elfak.mosis.tourguide.data.models.tour.TourModel
 import elfak.mosis.tourguide.data.models.toPlace
 import elfak.mosis.tourguide.domain.models.Place
 import elfak.mosis.tourguide.domain.models.toPlaceModel
@@ -45,7 +45,7 @@ data class TourDetails(
     }
     fun update(tour: TourModel): TourDetails {
         return this.copy(
-            title = tour.title ?: "",
+            title = tour.title,
             summary = tour.summary ?: "",
             origin = if(tour.origin != null) tour.origin.toPlace() else Place(),
             destination = if(tour.destination != null) tour.destination.toPlace() else Place(),

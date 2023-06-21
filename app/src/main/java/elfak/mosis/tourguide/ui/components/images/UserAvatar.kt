@@ -19,17 +19,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import elfak.mosis.tourguide.R
 import java.security.AllPermission
 
 @Composable
-fun UserAvatar(photoUrl: String? = null) {
+fun UserAvatar(photoUrl: String? = null, photoSize: Dp = 80.dp) {
     Column(
         modifier = Modifier
             .clip(CircleShape)
-            .size(80.dp)
+            .size(photoSize)
             .border(3.dp, MaterialTheme.colors.primary, CircleShape)
             .background(Color.White),
         verticalArrangement = Arrangement.Center,
