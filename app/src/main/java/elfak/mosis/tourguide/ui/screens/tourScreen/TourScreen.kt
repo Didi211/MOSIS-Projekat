@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +20,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PersonPinCircle
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
@@ -32,15 +35,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.RoundCap
 import com.google.maps.android.compose.CameraMoveStartedReason
 import com.google.maps.android.compose.GoogleMap
@@ -72,8 +79,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun TourScreen(
     viewModel: TourScreenViewModel,
-    navController: NavController,
-    tourId: String? = null
+    navController: NavController
 ) {
     val menuViewModel = hiltViewModel<MenuViewModel>()
     val context = LocalContext.current
@@ -165,68 +171,9 @@ fun TourScreen(
             )
         },
         drawerGesturesEnabled = bottomSheetScaffoldState.drawerState.isOpen,
-        floatingActionButton = {
-            Column(
-                modifier = Modifier.padding(start = 30.dp),
-                horizontalAlignment = Alignment.End,
-            ) {
-                Box(
-                    contentAlignment = Alignment.BottomEnd
-                ) {
-                    ListOfPlaces(
-                        placesList = viewModel.locationAutofill,
-                        onPlaceClick = { place ->
-                            viewModel.onSearchPlaceCLick(place)
-                            focusManager.clearFocus()
-                        },
-                    )
-
-                    // my location button
-                    MyLocationButton(viewModel.uiState.locationState) {
-                        coroutineScope.launch { bottomSheetScaffoldState.bottomSheetState.collapse() }
-                        locateMe(
-                            viewModel,
-                            permissionAlreadyRequested,
-                            permissionsState,
-                            context,
-                        )
-                    }
-                }
-                Spacer(Modifier.height(15.dp))
-
-                // search button
-                AnimatedContent(
-                    targetState = viewModel.uiState.showSearchBar,
-                ) { showBar ->
-                    when (showBar) {
-                        false -> TourGuideFloatingButton(
-                            contentDescription = stringResource(id = R.string.search),
-                            icon = Icons.Rounded.Search,
-                            onClick = {
-                                coroutineScope.launch {
-                                    bottomSheetScaffoldState.bottomSheetState.collapse()
-                                    viewModel.setSearchBarVisibility(true)
-                                }
-                            },
-                        )
-                        true -> SearchField(
-                            onSearch = {
-                                viewModel.searchOnMap()
-                            },
-                            text = viewModel.uiState.searchValue,
-                            onTextChanged = {
-                                viewModel.changeSearchValue(it)
-                                viewModel.findPlacesFromInput(it)
-                            },
-                            label = stringResource(id = R.string.search_here) + ":"
-                        )
-                    }
-                }
-            }
-
-        }
     ) {
         /** MAIN CONTENT */
+
 
         Box(
             modifier = Modifier
@@ -239,6 +186,104 @@ fun TourScreen(
                 // change icon if user moved map
                 viewModel.changeLocationState(LocationState.LocationOn)
             }
+
+            // buttons
+            val columnArrangement = if (viewModel.uiState.friends.isEmpty()) {
+                Arrangement.Bottom
+            } else {
+                Arrangement.SpaceBetween
+            }
+
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .zIndex(100f),
+                verticalArrangement = columnArrangement,
+                horizontalAlignment = Alignment.End
+            ) {
+                if (viewModel.uiState.friends.isNotEmpty()) {
+                    //show friends button
+                    AnimatedContent(
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .padding(start = 30.dp, top = 10.dp, end = 10.dp),
+                        targetState = viewModel.uiState.showFriends
+                    ) { showFriends ->
+                        val contentColor: Color = when(showFriends) {
+                            true -> MaterialTheme.colors.primary
+                            false -> Color.LightGray
+                        }
+                        TourGuideFloatingButton(
+                            icon = Icons.Rounded.PersonPinCircle,
+                            contentDescription = stringResource(id = R.string.show_friends),
+                            backgroundColor = Color.White,
+                            contentColor = contentColor,
+                        ) {
+                            viewModel.toggleShowFriends()
+                        }
+                    }
+                }
+                // location and search button
+                Column(
+                    modifier = Modifier.padding(start = 30.dp, bottom = 10.dp, end = 10.dp),
+                    horizontalAlignment = Alignment.End,
+                ) {
+                    Box(
+                        contentAlignment = Alignment.BottomEnd
+                    ) {
+                        ListOfPlaces(
+                            placesList = viewModel.locationAutofill,
+                            onPlaceClick = { place ->
+                                viewModel.onSearchPlaceCLick(place)
+                                focusManager.clearFocus()
+                            },
+                        )
+
+                        // my location button
+                        MyLocationButton(viewModel.uiState.locationState) {
+                            coroutineScope.launch { bottomSheetScaffoldState.bottomSheetState.collapse() }
+                            locateMe(
+                                viewModel,
+                                permissionAlreadyRequested,
+                                permissionsState,
+                                context,
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(15.dp))
+
+                    // search button
+                    AnimatedContent(
+                        targetState = viewModel.uiState.showSearchBar,
+                    ) { showBar ->
+                        when (showBar) {
+                            false -> TourGuideFloatingButton(
+                                contentDescription = stringResource(id = R.string.search),
+                                icon = Icons.Rounded.Search,
+                                onClick = {
+                                    coroutineScope.launch {
+                                        bottomSheetScaffoldState.bottomSheetState.collapse()
+                                        viewModel.setSearchBarVisibility(true)
+                                    }
+                                },
+                            )
+                            true -> SearchField(
+                                onSearch = {
+                                    viewModel.searchOnMap()
+                                },
+                                text = viewModel.uiState.searchValue,
+                                onTextChanged = { searchValue ->
+                                    viewModel.changeSearchValue(searchValue)
+                                    viewModel.findPlacesFromInput(searchValue)
+                                },
+                                label = stringResource(id = R.string.search_here) + ":"
+                            )
+                        }
+                    }
+                }
+            }
+
+
 
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
@@ -263,9 +308,9 @@ fun TourScreen(
                     }
                     viewModel.changeLocationState(LocationState.Located)
                 },
-                onMapClick = { latlng ->
+                onMapClick = { latLng ->
                     viewModel.clearSearchBar()
-                    viewModel.findLocationId(latlng)
+                    viewModel.findLocationId(latLng)
                 },
                 onPOIClick = { poi ->
                     viewModel.clearSearchBar()
@@ -319,6 +364,17 @@ fun TourScreen(
                         state = MarkerState(position = viewModel.uiState.tourDetails.destination.location),
                     )
                  }
+                if (viewModel.uiState.friends.isNotEmpty()) {
+                    for (friend in viewModel.uiState.friends) {
+                        val latLng = LatLng(friend.location.coordinates.latitude, friend.location.coordinates.longitude)
+                        Marker(
+                            MarkerState(position = latLng),
+                            visible = viewModel.uiState.showFriends,
+                            title =  "Current location: ${friend.location.coordinates}",
+                            icon = BitmapDescriptorFactory.defaultMarker(87f)
+                        )
+                    }
+                }
             }
         }
     }

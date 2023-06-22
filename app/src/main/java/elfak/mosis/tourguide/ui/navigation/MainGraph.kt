@@ -57,8 +57,7 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             val viewModel = hiltViewModel<TourScreenViewModel>()
             TourScreen(
                 viewModel = viewModel,
-                navController = navController,
-                tourId = it.arguments?.getString("tourId")
+                navController = navController
             )
         }
         composable(Screen.NotificationScreen.route) {

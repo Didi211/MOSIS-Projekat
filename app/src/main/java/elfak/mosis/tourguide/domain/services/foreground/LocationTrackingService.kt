@@ -77,7 +77,7 @@ class LocationTrackingService @Inject constructor(
         // persist location
         serviceScope.launch {
             usersRepository.updateUserLocation(serviceState.userId, UserLocation(
-                location = MyLatLng(location.latitude, location.latitude)
+                coordinates = MyLatLng(location.latitude, location.longitude)
             ))
         }
         val notification = createNotification(TOUR_CHANNEL_ID,"New location: LAT:${location.latitude}, LONG:${location.longitude}")

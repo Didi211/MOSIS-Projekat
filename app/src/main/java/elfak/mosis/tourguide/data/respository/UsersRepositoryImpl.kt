@@ -2,7 +2,6 @@ package elfak.mosis.tourguide.data.respository
 
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.toObject
 import elfak.mosis.tourguide.data.models.UserLocation
 import elfak.mosis.tourguide.data.models.UserModel
@@ -11,6 +10,9 @@ import elfak.mosis.tourguide.domain.repository.NotificationRepository
 import elfak.mosis.tourguide.domain.repository.UsersRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -23,6 +25,7 @@ class UsersRepositoryImpl @Inject constructor(
 ): UsersRepository {
     private val usersRef = firestore.collection("Users")
     private val friendsRef = firestore.collection("Friends")
+
 
     override suspend fun deleteTestUsers(fullname: String) {
         // TODO - delete user from auth and delete its images
@@ -54,7 +57,7 @@ class UsersRepositoryImpl @Inject constructor(
 //            UserModel::email, user.email, // email cannot be changed
             UserModel::phoneNumber.name, user.phoneNumber,
             UserModel::fullname.name, user.fullname,
-//            UserModel::username.name, user.username
+//            UserModel::username.name, user.username //same
         ).await()
     }
 
@@ -147,11 +150,6 @@ class UsersRepositoryImpl @Inject constructor(
     }
 
     override suspend fun areFriends(userId: String, friendId: String): Boolean {
-//        val friends = friendsRef
-//            .whereIn("userId1", listOf(userId, friendId))
-//            .whereIn("userId2", listOf(userId, friendId))
-//            .get().await()
-//            .toObjects(FriendsModel::class.java)
         val friends = findFriendShip(userId, friendId)
         return friends != null
     }
@@ -174,5 +172,19 @@ class UsersRepositoryImpl @Inject constructor(
             .get().await()
             .toObjects(FriendsModel::class.java)
         return friendShip.firstOrNull()
+    }
+
+    override suspend fun getUsers(ids: List<String>): Flow<List<UserModel>> = callbackFlow {
+        val snapshotListener = usersRef.whereIn(FieldPath.documentId(), ids)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    return@addSnapshotListener
+                }
+                val users = snapshot?.toObjects(UserModel::class.java) ?: emptyList()
+                trySend(users)
+            }
+        awaitClose {
+            snapshotListener.remove()
+        }
     }
 }

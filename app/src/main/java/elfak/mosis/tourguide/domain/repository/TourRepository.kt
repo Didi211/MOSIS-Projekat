@@ -12,4 +12,5 @@ interface TourRepository {
     suspend fun isFriendAdded(tourId: String, friendId: String): Boolean
     suspend fun canDelete(tourId: String, userId: String): Boolean
     suspend fun deleteTourFriends(tourId: String)
+    suspend fun getFriendsIds(tourId: String, userId: String): List<String>
 }

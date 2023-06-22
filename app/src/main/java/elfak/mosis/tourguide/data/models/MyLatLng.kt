@@ -17,4 +17,8 @@ data class MyLatLng(
         )
     }
 
+    override fun toString(): String {
+        return "Lat: ${latitude.toString().takeLast(3)}, Long: ${longitude.toString().takeLast(3)}"
+    }
+
 }
