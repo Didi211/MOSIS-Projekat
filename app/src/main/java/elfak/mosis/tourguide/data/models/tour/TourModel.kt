@@ -29,6 +29,14 @@ data class TourModel(
             summary = summary ?: ""
         )
     }
+    fun toUpdateMap(): Map<String, Any?> {
+        return mapOf(
+            "title" to title,
+            "summary" to summary,
+            "origin" to origin?.toMap(),
+            "destination" to destination?.toMap()
+        )
+    }
 }
 
 

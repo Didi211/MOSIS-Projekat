@@ -164,8 +164,6 @@ class UsersRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateUserLocation(userId: String, location: UserLocation) {
-
-
         usersRef.document(userId).update("location",location.toMap()).await()
     }
 
