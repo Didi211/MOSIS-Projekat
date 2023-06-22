@@ -178,6 +178,7 @@ class ProfileScreenViewModel @Inject constructor(
         // TODO - cache photo locally
         // TODO - turn back to view model scope when create service
         // service will have updating status notification
+        // cascade update photo url for notifications
         GlobalScope.launch {
             try {
                 if (uiState.shouldUpdatePhotos) {
