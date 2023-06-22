@@ -158,7 +158,7 @@ class LocationTrackingService @Inject constructor(
         val notificationBuilder = Notification.Builder(this, channelId)
             .setContentTitle("Location Tracking Service")
             .setContentText(contentText)
-            .setSmallIcon(R.drawable.my_location)
+            .setSmallIcon(R.drawable.ic_stat_onesignal_default)
         if (tourId != null) {
             notificationBuilder.setContentIntent(createPendingIntent(tourId))
         }
