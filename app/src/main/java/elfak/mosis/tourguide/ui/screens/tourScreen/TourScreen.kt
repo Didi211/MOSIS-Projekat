@@ -73,6 +73,7 @@ import kotlinx.coroutines.launch
 fun TourScreen(
     viewModel: TourScreenViewModel,
     navController: NavController,
+    tourId: String? = null
 ) {
     val menuViewModel = hiltViewModel<MenuViewModel>()
     val context = LocalContext.current

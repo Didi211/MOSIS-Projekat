@@ -104,6 +104,10 @@
     <string name="channel_name">Tour Guide Notification channel</string>
     <string name="channel_description">Channel for background location fetching.</string>
     <string name="choose_friend">Choose friend</string>
+    <string name="tour_channel_description">Channel for notifications about near tour places.</string>
+    <string name="tour_channel_name">Tour Guide Near Place Channel</string>
+    <string name="location_service_gps_on">Location tracking service is running.</string>
+    <string name="location_service_gps_off">Gps is turned off. Service can\'t track location.</string>
 
 
 </resources>

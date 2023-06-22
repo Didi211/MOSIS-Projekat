@@ -6,6 +6,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
 import elfak.mosis.tourguide.ui.screens.friendsScreen.FriendsScreen
 import elfak.mosis.tourguide.ui.screens.friendsScreen.FriendsScreenViewModel
@@ -22,6 +23,7 @@ import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreenViewModel
 
 fun NavGraphBuilder.mainGraph(navController: NavController) {
 
+    val uri = "https://www.example.com"
 
     navigation(startDestination = Screen.HomeScreen.route, route = Screen.Main.route) {
         composable(Screen.HomeScreen.route) {
@@ -40,6 +42,7 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             )
         }
         composable(Screen.TourScreen.route + "?tourId={tourId}&editMode={editMode}",
+            deepLinks = listOf(navDeepLink { uriPattern = "$uri/{tourId}" }),
             arguments = listOf(
                 navArgument("tourId") {
                     nullable = true
@@ -55,6 +58,7 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             TourScreen(
                 viewModel = viewModel,
                 navController = navController,
+                tourId = it.arguments?.getString("tourId")
             )
         }
         composable(Screen.NotificationScreen.route) {
