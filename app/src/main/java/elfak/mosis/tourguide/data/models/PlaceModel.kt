@@ -6,7 +6,15 @@ data class PlaceModel(
     val id: String = "",
     val location: MyLatLng = MyLatLng(),
     val address: String = ""
-)
+) {
+    fun toMap(): Map<String, Any> {
+        return mutableMapOf(
+            "id" to id,
+            "location" to location.toMap(),
+            "address" to address
+        )
+    }
+}
 
 fun PlaceModel.toPlace(): Place {
     return Place(

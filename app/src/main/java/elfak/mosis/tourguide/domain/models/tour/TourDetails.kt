@@ -57,13 +57,13 @@ data class TourDetails(
     }
 }
 
-fun TourDetails.toTourModel(createdBy: String): TourModel {
+fun TourDetails.toTourModel(createdBy: String? = null): TourModel {
     return TourModel(
         title = title,
         summary = summary,
         origin = origin.toPlaceModel(),
         destination = destination.toPlaceModel(),
-        createdBy = createdBy
+        createdBy = createdBy ?: ""
     )
 }
 

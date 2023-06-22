@@ -550,7 +550,8 @@ class TourScreenViewModel @Inject constructor(
                     tourRepository.updateTour(uiState.tourId!!, uiState.tourDetails.toTourModel(userId))
                 }
                 else {
-                    tourRepository.createTour(uiState.tourDetails.toTourModel(userId))
+                    val tourId = tourRepository.createTour(uiState.tourDetails.toTourModel(userId))
+                    tourRepository.addFriendToTour(tourId, userId)
                 }
                 setTourState(TourState.VIEWING)
                 setSuccessMessage("Tour successfully $successMessage")

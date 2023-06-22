@@ -8,3 +8,11 @@ data class TourFriendModel(
     val tourId: String = "",
     val userId: String = ""
 )
+
+
+data class TourFriendsModel(
+    @DocumentId
+    val id: String = "",
+    val tourId: String = "",
+    val users: List<String> = emptyList()
+)
