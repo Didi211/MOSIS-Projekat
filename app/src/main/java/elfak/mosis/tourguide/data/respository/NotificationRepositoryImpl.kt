@@ -115,6 +115,31 @@ class NotificationRepositoryImpl @Inject constructor(
         }
 
     }
+
+    override suspend fun updatePhotoUrls(userId: String, photoUrl: String) {
+
+        val tourNotifications = tourNotificationsRef
+            .whereEqualTo("notification.senderId", userId)
+            .get().await()
+            .toObjects(TourNotificationModel::class.java)
+        val friendRequests = friendRequestNotificationsRef
+            .whereEqualTo("notification.senderId", userId)
+            .get().await()
+            .toObjects(FriendRequestNotificationModel::class.java)
+        if (tourNotifications.isNotEmpty()) {
+            for(notif in tourNotifications) {
+                tourNotificationsRef.document(notif.notification.id)
+                    .update("notification.photoUrl", photoUrl)
+            }
+        }
+        if (friendRequests.isNotEmpty()) {
+            for(notif in friendRequests) {
+                friendRequestNotificationsRef.document(notif.notification.id)
+                    .update("notification.photoUrl", photoUrl)
+            }
+        }
+
+    }
 }
 enum class NotificationResponseType {
     Waiting,

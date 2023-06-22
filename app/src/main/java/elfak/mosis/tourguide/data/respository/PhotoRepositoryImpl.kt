@@ -10,11 +10,13 @@ import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storageMetadata
 import elfak.mosis.tourguide.data.models.UserModel
 import elfak.mosis.tourguide.domain.models.Photo
+import elfak.mosis.tourguide.domain.repository.NotificationRepository
 import elfak.mosis.tourguide.domain.repository.PhotoRepository
 import elfak.mosis.tourguide.domain.repository.UsersRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -27,7 +29,8 @@ import javax.inject.Singleton
 class PhotoRepositoryImpl @Inject constructor(
     private val context: Context,
     firebaseStorage: FirebaseStorage,
-    private val usersRepository: UsersRepository
+    private val usersRepository: UsersRepository,
+    private val notificationRepository: NotificationRepository
 ): PhotoRepository {
 
     private val storageRef: StorageReference = firebaseStorage.reference
@@ -70,10 +73,15 @@ class PhotoRepositoryImpl @Inject constructor(
 
         // linking urls with user
         withContext(Dispatchers.IO) {
-            usersRepository.updateUserPhotos(userId, UserModel(
-                profilePhotoUrl = profilePhotoUrl,
-                thumbnailPhotoUrl = thumbnailPhotoUrl
-            ))
+            launch {
+                usersRepository.updateUserPhotos(userId, UserModel(
+                    profilePhotoUrl = profilePhotoUrl,
+                    thumbnailPhotoUrl = thumbnailPhotoUrl
+                ))
+            }
+            launch {
+                notificationRepository.updatePhotoUrls(userId, thumbnailPhotoUrl)
+            }
         }
         return profilePhotoUrl
     }

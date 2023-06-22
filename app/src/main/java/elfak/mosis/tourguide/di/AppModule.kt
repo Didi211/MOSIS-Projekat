@@ -140,8 +140,9 @@ object AppModule {
     fun providePhotoRepository(
         @ApplicationContext context: Context,
         firebaseStorage: FirebaseStorage,
-        usersRepository: UsersRepository
-    ) : PhotoRepository = PhotoRepositoryImpl(context, firebaseStorage, usersRepository)
+        usersRepository: UsersRepository,
+        notificationRepository: NotificationRepository
+    ) : PhotoRepository = PhotoRepositoryImpl(context, firebaseStorage, usersRepository, notificationRepository)
 
     @Singleton
     @Provides
