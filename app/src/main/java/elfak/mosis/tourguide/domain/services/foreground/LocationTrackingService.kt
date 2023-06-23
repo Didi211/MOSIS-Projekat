@@ -24,6 +24,7 @@ import elfak.mosis.tourguide.domain.helper.PermissionHelper
 import elfak.mosis.tourguide.domain.models.TourGuideLocationListener
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.UsersRepository
+import elfak.mosis.tourguide.ui.navigation.NavigationConstants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -80,17 +81,19 @@ class LocationTrackingService @Inject constructor(
                 coordinates = MyLatLng(location.latitude, location.longitude)
             ))
         }
-        val notification = createNotification(TOUR_CHANNEL_ID,"New location: LAT:${location.latitude}, LONG:${location.longitude}")
+        val notificationMessage = "New location: LAT:${location.latitude}, LONG:${location.longitude}"
+        // TODO - remove hardcoded tour
+        val notification = createTourNotification(notificationMessage,"QYecXIVNQZTU47kTf3hV")
         updateNotification(notification, TOUR_CHANNEL_NOTIFICATION_ID)
     }
 
     override fun onLocationAvailability(available: Boolean) {
         if (available) {
-            val notification = createNotification(SERVICE_WORKING_CHANNEL_ID, gpsOnMessage)
+            val notification = createSettingsNotification(gpsOnMessage)
             updateNotification(notification, SERVICE_WORKING_NOTIFICATION_ID)
         }
         else {
-            val notification = createNotification(SERVICE_WORKING_CHANNEL_ID, gpsOffMessage)
+            val notification = createSettingsNotification(gpsOffMessage)
             updateNotification(notification, SERVICE_WORKING_NOTIFICATION_ID)
         }
 
@@ -106,7 +109,7 @@ class LocationTrackingService @Inject constructor(
 
     override fun onCreate() {
         super.onCreate()
-        createChannel()
+        createSettingsChannel()
         createTourChannel()
         setMessages()
     }
@@ -124,13 +127,12 @@ class LocationTrackingService @Inject constructor(
         return START_STICKY
     }
 
-
-
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
         if (serviceState.isListenerRegistered) {
             locationHelper.unregisterListener(this.name)
+            setIsListenerRegistered(false)
         }
 
     }
@@ -146,29 +148,52 @@ class LocationTrackingService @Inject constructor(
             locationHelper.registerListener(this)
             setIsListenerRegistered(true)
         }
-        val notification = createNotification(SERVICE_WORKING_CHANNEL_ID, gpsOnMessage)
+        val notification = createSettingsNotification(gpsOnMessage)
         startForeground(SERVICE_WORKING_NOTIFICATION_ID, notification)
     }
 
     private  fun stopService() {
         stopSelf()
     }
+    private fun setMessages() {
+        gpsOnMessage = getString(R.string.location_service_gps_on)
+        gpsOffMessage = getString(R.string.location_service_gps_off)
+    }
 
-    private fun createNotification(channelId: String, contentText: String, tourId: String? = null): Notification {
-        val notificationBuilder = Notification.Builder(this, channelId)
+    //region Notification Functions
+    private fun createTourNotification(contentText: String, tourId: String): Notification {
+       val notification = createNotification(TOUR_CHANNEL_ID, contentText)
+           .setContentIntent(createTourPendingIntent(tourId))
+        return notification.build()
+    }
+    private fun createSettingsNotification(contentText: String): Notification {
+        val notification = createNotification(SERVICE_WORKING_CHANNEL_ID, contentText)
+            .setContentIntent(createSettingsPendingIntent())
+        return notification.build()
+    }
+    private fun createNotification(channelId: String, contentText: String): Notification.Builder {
+        return Notification.Builder(this, channelId)
             .setContentTitle("Location Tracking Service")
             .setContentText(contentText)
             .setSmallIcon(R.drawable.ic_stat_onesignal_default)
-        if (tourId != null) {
-            notificationBuilder.setContentIntent(createPendingIntent(tourId))
-        }
-
-        return notificationBuilder.build()
     }
-    private fun createPendingIntent(tourId: String) : PendingIntent {
+    private fun updateNotification(notification: Notification, notificationId: Int) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(notificationId, notification)
+    }
+    //endregion
+
+    //region Pending Intent Functions
+    private fun createTourPendingIntent(tourId: String) : PendingIntent {
+        return createPendingIntent("${NavigationConstants.TourUri}/$tourId")
+    }
+    private fun createSettingsPendingIntent() : PendingIntent {
+        return createPendingIntent(NavigationConstants.SettingsUri)
+    }
+    private fun createPendingIntent(deepLink: String): PendingIntent {
         val startActivityIntent = Intent(
             Intent.ACTION_VIEW,
-            "https://www.example.com/$tourId".toUri(),
+            deepLink.toUri(),
             this,
             MainActivity::class.java)
         val resultPendingIntent: PendingIntent? = TaskStackBuilder.create(this).run {
@@ -177,10 +202,10 @@ class LocationTrackingService @Inject constructor(
         }
         return resultPendingIntent!!
     }
+    //endregion
 
-
-
-    private fun createChannel() {
+    //region Channel Functions
+    private fun createSettingsChannel() {
         // Create the NotificationChannel.
         val name = getString(R.string.channel_name)
         val descriptionText = getString(R.string.channel_description)
@@ -206,13 +231,6 @@ class LocationTrackingService @Inject constructor(
         notificationManager.createNotificationChannel(mChannel)
     }
 
-    private fun updateNotification(notification: Notification, notificationId: Int) {
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(notificationId, notification)
-    }
-    private fun setMessages() {
-        gpsOnMessage = getString(R.string.location_service_gps_on)
-        gpsOffMessage = getString(R.string.location_service_gps_off)
-    }
+    //endregion
     // endregion
 }

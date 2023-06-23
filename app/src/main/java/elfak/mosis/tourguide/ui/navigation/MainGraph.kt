@@ -40,7 +40,7 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             )
         }
         composable(Screen.TourScreen.route + "?tourId={tourId}&editMode={editMode}",
-            deepLinks = listOf(navDeepLink { uriPattern = "$uri/{tourId}" }),
+            deepLinks = listOf(navDeepLink { uriPattern = "${NavigationConstants.TourUri}/{tourId}" }),
             arguments = listOf(
                 navArgument("tourId") {
                     nullable = true
@@ -93,7 +93,9 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
                 }
             )
         }
-        composable(Screen.SettingScreen.route){
+        composable(Screen.SettingScreen.route,
+            deepLinks = listOf(navDeepLink { uriPattern = NavigationConstants.SettingsUri })
+        ){
             val viewModel = hiltViewModel<SettingsScreenViewModel>()
             SettingsScreen(navController = navController, viewModel = viewModel)
         }
