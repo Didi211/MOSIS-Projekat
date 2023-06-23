@@ -198,7 +198,7 @@ class LocationTrackingService @Inject constructor(
             MainActivity::class.java)
         val resultPendingIntent: PendingIntent? = TaskStackBuilder.create(this).run {
             addNextIntentWithParentStack(startActivityIntent)
-            getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
+            getPendingIntent(0, PendingIntent.FLAG_IMMUTABLE)
         }
         return resultPendingIntent!!
     }
