@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
+import elfak.mosis.tourguide.data.models.notification.TourNotificationModel
 import elfak.mosis.tourguide.data.models.tour.TourFriendsModel
 import elfak.mosis.tourguide.data.models.tour.TourModel
 import elfak.mosis.tourguide.domain.repository.TourRepository
@@ -62,6 +63,16 @@ class TourRepositoryImpl @Inject constructor(
     override suspend fun getFriendsIds(tourId: String, userId: String): List<String> {
         val tour = getTourFromTourFriends(tourId) ?: throw Exception("Tour not found.")
         return tour.users.filter { id -> id != userId  }
+    }
+
+    override suspend fun leaveTour(tourId: String, userId: String) {
+        val tour = tourFriendsRef.whereEqualTo("tourId", tourId).get().await()
+            .toObjects(TourFriendsModel::class.java)
+            .singleOrNull()
+            ?: throw Exception("Tour not found.")
+
+        val newUsers = tour.users.filter { x -> x != userId }
+        tourFriendsRef.document(tour.id).update("users", newUsers).await()
     }
 
     private suspend fun getTourFromTourFriends(tourId: String): TourFriendsModel? {

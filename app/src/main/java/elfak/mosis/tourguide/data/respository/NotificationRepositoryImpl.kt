@@ -140,6 +140,20 @@ class NotificationRepositoryImpl @Inject constructor(
         }
 
     }
+
+    override suspend fun deleteTourNotificationForReceiver(tourId: String, userId: String) {
+
+        val tourNotification = tourNotificationsRef
+            .whereEqualTo("notification.receiverId", userId)
+            .whereEqualTo("tourId", tourId)
+            .get().await()
+            .toObjects(TourNotificationModel::class.java).singleOrNull()
+        withContext(Dispatchers.IO) {
+            if (tourNotification != null ){
+                tourNotificationsRef.document(tourNotification.notification.id).delete().await()
+            }
+        }
+    }
 }
 enum class NotificationResponseType {
     Waiting,

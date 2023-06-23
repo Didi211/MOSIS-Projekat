@@ -13,4 +13,5 @@ interface TourRepository {
     suspend fun canDelete(tourId: String, userId: String): Boolean
     suspend fun deleteTourFriends(tourId: String)
     suspend fun getFriendsIds(tourId: String, userId: String): List<String>
+    suspend fun leaveTour(tourId: String, userId: String)
 }

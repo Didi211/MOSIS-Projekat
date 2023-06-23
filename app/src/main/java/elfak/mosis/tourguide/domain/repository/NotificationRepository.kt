@@ -20,5 +20,6 @@ interface NotificationRepository {
     suspend fun deleteFriendRequestNotification(notificationId: String)
     suspend fun deleteTourNotifications(tourId: String)
     suspend fun updatePhotoUrls(userId: String, photoUrl: String)
+    suspend fun deleteTourNotificationForReceiver(tourId: String, userId: String)
 
 }

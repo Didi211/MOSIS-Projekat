@@ -106,7 +106,7 @@ fun ChooseFriendDialog(users: List<UserModel>, onDismiss: () -> Unit, onOkButton
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    UserAvatar(photoSize = 40.dp)
+                                    UserAvatar(user.thumbnailPhotoUrl, photoSize = 40.dp)
                                 }
                                 Spacer(Modifier.width(10.dp))
                                 Column(Modifier.fillMaxWidth()) {

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalGlideComposeApi::class)
+
 package elfak.mosis.tourguide.ui.components.images
 
 import androidx.compose.foundation.background
@@ -22,6 +24,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import elfak.mosis.tourguide.R
 
 @Composable
@@ -37,7 +41,7 @@ fun UserAvatar(photoUrl: String? = null, photoSize: Dp = 80.dp) {
     ) {
         val contentDescription = stringResource(id = R.string.user_photo)
         if (!photoUrl.isNullOrBlank()) {
-            AsyncImage(
+            GlideImage(
                 modifier = Modifier.fillMaxSize().clip(CircleShape),
                 contentScale = ContentScale.Crop,
                 model = photoUrl,

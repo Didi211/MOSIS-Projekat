@@ -43,7 +43,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -145,7 +144,8 @@ fun HomeScreen(
                                 viewModel.setTourForInvite(tour)
                             },
                             onTourDelete = viewModel::deleteTour,
-                            onCardClick = navigateToTour
+                            onCardClick = navigateToTour,
+                            checkIsUserCreator = viewModel::checkIsUserCreator
                         )
                     }
                     false -> {
@@ -166,7 +166,8 @@ fun TourCardsContainer(
     onTourEdit: (tourId: String, editMode: Boolean) -> Unit,
     onTourInviteFriend: (tour: TourCard) -> Unit,
     onTourDelete: (tourId: String) -> Unit,
-    onCardClick: (tourId: String, editMode: Boolean) -> Unit
+    onCardClick: (tourId: String, editMode: Boolean) -> Unit,
+    checkIsUserCreator: (userId: String) -> Boolean
 ) {
     Box(modifier = Modifier.pullRefresh(refreshState)) {
         LazyColumn(
@@ -178,6 +179,7 @@ fun TourCardsContainer(
                 TourCard(
                     tour = tour,
                     menuItems = createDropdownOptions(
+                        isCreator = checkIsUserCreator(tour.createdBy),
                         tourId = tour.id,
                         onEdit = { onTourEdit(tour.id, true) },
                         onInvite = { onTourInviteFriend(tour) },
@@ -265,14 +267,16 @@ fun TourCard(
 }
 
 private fun createDropdownOptions(
+    isCreator: Boolean,
     tourId: String,
     onEdit: (String) -> Unit,
     onInvite: () -> Unit,
     onDelete: (String) -> Unit,
 ): List<MenuData> {
+    val deleteText = if (isCreator) "Delete" else "Leave"
     return listOf(
         MenuData(Icons.Rounded.Edit, "Edit", onClick = { onEdit(tourId) }),
         MenuData(Icons.Rounded.GroupAdd, "Invite friends", onClick = { onInvite() }),
-        MenuData(Icons.Rounded.Delete, "Delete", onClick = { onDelete(tourId) })
+        MenuData(Icons.Rounded.Delete, deleteText, onClick = { onDelete(tourId) })
     )
 }

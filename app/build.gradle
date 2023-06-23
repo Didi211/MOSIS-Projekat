@@ -62,6 +62,7 @@ dependencies {
 
     // Images
     implementation 'io.coil-kt:coil-compose:2.4.0'
+    implementation "com.github.bumptech.glide:compose:1.0.0-alpha.1"
 
     // Rating bar
     implementation 'com.github.a914-gowtham:compose-ratingbar:1.2.5'

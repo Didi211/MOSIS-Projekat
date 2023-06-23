@@ -53,7 +53,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
@@ -86,7 +85,6 @@ import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
 import es.dmoral.toasty.Toasty
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -421,7 +419,7 @@ fun FriendMarkerCard(
                     .height(IntrinsicSize.Min)
             ) {
                 Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
-                    UserAvatar(photoUrl = null, photoSize = 50.dp) // package cant load picture,
+                    UserAvatar(photoUrl = friend.photoUrl, photoSize = 50.dp) // package cant load picture,
                 }
                 Column(
                     Modifier
@@ -457,7 +455,6 @@ fun FriendMarkerCard(
         }
     }
 }
-
 
 fun showDeniedPermissionMessage(context: Context, @StringRes message: Int) {
     Toasty.error(context, message, Toast.LENGTH_LONG).show()

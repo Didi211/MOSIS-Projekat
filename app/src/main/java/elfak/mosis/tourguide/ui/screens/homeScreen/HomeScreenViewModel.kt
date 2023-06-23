@@ -16,6 +16,7 @@ import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.NotificationRepository
 import elfak.mosis.tourguide.domain.repository.TourRepository
 import elfak.mosis.tourguide.domain.repository.UsersRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -76,14 +77,23 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun deleteTour(tourId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
+//                if (!tourRepository.canDelete(tourId, uiState.userId)) {
+//                    throw Exception("Can't delete tour, you are not creator.")
+//                }
                 if (!tourRepository.canDelete(tourId, uiState.userId)) {
-                    throw Exception("Can't delete tour, you are not creator.")
+                    //then leave
+                    notificationRepository.deleteTourNotificationForReceiver(tourId, uiState.userId)
+                    notificationRepository.deleteTourNotification(tourId)
+                    tourRepository.leaveTour(tourId, uiState.userId)
                 }
-                notificationRepository.deleteTourNotifications(tourId)
-                tourRepository.deleteTourFriends(tourId)
-                tourRepository.deleteTour(tourId)
+                else {
+                    notificationRepository.deleteTourNotifications(tourId)
+                    tourRepository.deleteTourFriends(tourId)
+                    tourRepository.deleteTour(tourId)
+                }
+
             }
             catch (ex: Exception) {
                 ex.message?.let { setErrorMessage(it) }
@@ -125,6 +135,9 @@ class HomeScreenViewModel @Inject constructor(
             setSuccessMessage("Invitation sent.")
         }
     }
+    fun checkIsUserCreator(creatorId: String): Boolean {
+        return creatorId == uiState.userId
+    }
     fun setTourForInvite(tour: TourCard) {
         uiState = uiState.copy(inviteTour = tour)
     }
@@ -141,6 +154,8 @@ class HomeScreenViewModel @Inject constructor(
     fun clearSuccessMessage() {
         uiState = uiState.copy(toastData = uiState.toastData.copy(hasSuccessMessage = false))
     }
+
+
 
 
     //endregion
