@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -51,13 +53,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.RoundCap
 import com.google.maps.android.compose.CameraMoveStartedReason
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
@@ -66,7 +68,6 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.Polyline
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.helper.BitmapHelper
 import elfak.mosis.tourguide.domain.models.tour.LocationType
@@ -79,19 +80,20 @@ import elfak.mosis.tourguide.ui.components.maps.ListOfPlaces
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import elfak.mosis.tourguide.ui.components.maps.MyLocationButton
 import elfak.mosis.tourguide.ui.components.maps.SearchField
+import elfak.mosis.tourguide.ui.components.maps.TourRoute
 import elfak.mosis.tourguide.ui.components.scaffold.MenuViewModel
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideFloatingButton
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
-import elfak.mosis.tourguide.ui.theme.RouteBlue
-import elfak.mosis.tourguide.ui.theme.RouteBorderBlue
 import es.dmoral.toasty.Toasty
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
 fun TourScreen(
     viewModel: TourScreenViewModel,
-    navController: NavController
+    navController: NavController,
+    navigateToFriendProfile: (userId: String) -> Unit = { }
 ) {
     val menuViewModel = hiltViewModel<MenuViewModel>()
     val context = LocalContext.current
@@ -200,7 +202,10 @@ fun TourScreen(
             }
 
             // buttons
-            val columnArrangement = if (viewModel.uiState.friends.isEmpty()) {
+            val friends = viewModel.uiState.friends
+            val allowShowButton = viewModel.uiState.allowShowFriendsButton
+
+            val columnArrangement = if (friends.isEmpty() || !allowShowButton) {
                 Arrangement.Bottom
             } else {
                 Arrangement.SpaceBetween
@@ -213,7 +218,7 @@ fun TourScreen(
                 verticalArrangement = columnArrangement,
                 horizontalAlignment = Alignment.End
             ) {
-                if (viewModel.uiState.friends.isNotEmpty()) {
+                if (friends.isNotEmpty() && allowShowButton) {
                     //show friends button
                     val contentColor: Color = when(viewModel.uiState.showFriends) {
                         true -> MaterialTheme.colors.primary
@@ -222,7 +227,7 @@ fun TourScreen(
                     Column(
                         modifier = Modifier
                             .align(Alignment.End)
-                            .padding(start = 30.dp, top = 10.dp, end = 10.dp),
+                            .padding(start = 10.dp, top = 10.dp, end = 10.dp),
                     ) {
                         TourGuideFloatingButton(
                             icon = Icons.Rounded.PersonPinCircle,
@@ -236,7 +241,7 @@ fun TourScreen(
                 }
                 // location and search button
                 Column(
-                    modifier = Modifier.padding(start = 30.dp, bottom = 10.dp, end = 10.dp),
+                    modifier = Modifier.padding(start = 10.dp, bottom = 10.dp, end = 10.dp),
                     horizontalAlignment = Alignment.End,
                 ) {
                     Box(
@@ -307,21 +312,25 @@ fun TourScreen(
                 cameraPositionState = viewModel.uiState.cameraPositionState,
                 onMapLoaded = {
                     if (!viewModel.checkPermissions()) {
+                        viewModel.allowShowFriendsButton(true)
                         return@GoogleMap
                     }
                     if (!viewModel.checkGps()) {
+                        viewModel.allowShowFriendsButton(true)
                         return@GoogleMap
                     }
                     viewModel.startLocationUpdates()
                     if (viewModel.uiState.tourDetails.bothLocationsSet) {
                         viewModel.changeLocationState(LocationState.LocationOn)
+                        viewModel.allowShowFriendsButton(true)
                         return@GoogleMap
                     }
+                    viewModel.allowShowFriendsButton(true)
                     viewModel.changeLocationState(LocationState.Located)
                 },
                 onMapClick = { latLng ->
-                    viewModel.clearSearchBar()
                     viewModel.findLocationId(latLng)
+                    viewModel.clearSearchBar()
                 },
                 onPOIClick = { poi ->
                     viewModel.clearSearchBar()
@@ -353,24 +362,7 @@ fun TourScreen(
                         viewModel.setRouteChanged(false)
                     }
 //                    val pattern = listOf(Dot(), Gap(10f)) // pattern for walking mode
-                    //border of the route
-                    Polyline(
-                        points = viewModel.uiState.tourDetails.polylinePoints,
-//                        pattern = pattern
-                        color = RouteBorderBlue,
-                        width = 25f,
-                        startCap = RoundCap(),
-                        endCap = RoundCap()
-                    )
-                    //route
-                    Polyline(
-                        points = viewModel.uiState.tourDetails.polylinePoints,
-//                        pattern = pattern
-                        color = RouteBlue,
-                        width = 15f,
-                        startCap = RoundCap(),
-                        endCap = RoundCap()
-                    )
+                   TourRoute(viewModel.uiState.tourDetails.polylinePoints)
                     Marker(
                         state = MarkerState(position = viewModel.uiState.tourDetails.destination.location),
                     )
@@ -378,14 +370,22 @@ fun TourScreen(
                 if (viewModel.uiState.friends.isNotEmpty()) {
                     for (friend in viewModel.uiState.friends) {
                         val latLng = LatLng(friend.location.coordinates.latitude, friend.location.coordinates.longitude)
+                        var shouldNavigate by remember { mutableStateOf(false) }
 
+                        LaunchedEffect(key1 = shouldNavigate) {
+                            if (shouldNavigate) {
+                                navigateToFriendProfile(friend.id)
+                            }
+                        }
                         MarkerInfoWindow(
                             MarkerState(position = latLng),
                             title = friend.fullname,
                             visible = viewModel.uiState.showFriends,
                             icon = BitmapDescriptorFactory.defaultMarker(72f),
-                            onInfoWindowLongClick = { viewModel.callFriend(context, friend.phoneNumber) },
-                            onInfoWindowClick = { marker -> marker.hideInfoWindow() },
+                            onInfoWindowClick = {
+                                viewModel.callFriend(context,friend.phoneNumber)
+                            },
+                            onInfoWindowLongClick = { shouldNavigate = true }
                         ) { marker ->
                             FriendMarkerCard(friend = friend)
                         }
@@ -408,6 +408,7 @@ fun FriendMarkerCard(
         elevation = 5.dp,
         modifier = Modifier
             .height(90.dp)
+            .clickable { onClick() }
 
     ) {
         Box(modifier = Modifier

@@ -55,7 +55,10 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             val viewModel = hiltViewModel<TourScreenViewModel>()
             TourScreen(
                 viewModel = viewModel,
-                navController = navController
+                navController = navController,
+                navigateToFriendProfile = { userId ->
+                    navController.navigate(Screen.ProfileScreen.route + "?userId=$userId")
+                }
             )
         }
         composable(Screen.NotificationScreen.route) {

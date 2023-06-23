@@ -43,6 +43,7 @@ import elfak.mosis.tourguide.domain.repository.UsersRepository
 import elfak.mosis.tourguide.ui.components.maps.FriendMarker
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -133,6 +134,8 @@ class TourScreenViewModel @Inject constructor(
         if (uiState.tourId != null) {
             viewModelScope.launch {
                 val ids = tourRepository.getFriendsIds(uiState.tourId!!, uiState.userId)
+                if (ids.isEmpty())
+                    return@launch
                 val usersFlow = usersRepository.getUsers(ids)
                 usersFlow.collect { users ->
                     setFriends(users.map { user -> user.toFriendMarker() })
@@ -687,6 +690,10 @@ class TourScreenViewModel @Inject constructor(
         val intent = Intent(Intent.ACTION_DIAL)
         intent.data = Uri.parse("tel:$phone")
         context.startActivity(intent)
+    }
+
+    fun allowShowFriendsButton(allow: Boolean) {
+        uiState = uiState.copy(allowShowFriendsButton = allow)
     }
 
 }
