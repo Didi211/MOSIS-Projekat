@@ -1,6 +1,9 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
+import android.content.Context
+import android.content.Intent
 import android.location.Location
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -37,6 +40,7 @@ import elfak.mosis.tourguide.domain.models.tour.toTourModel
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.TourRepository
 import elfak.mosis.tourguide.domain.repository.UsersRepository
+import elfak.mosis.tourguide.ui.components.maps.FriendMarker
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -44,9 +48,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import elfak.mosis.tourguide.domain.models.tour.TourDetails as TourDetails1
+
 
 @HiltViewModel
 class TourScreenViewModel @Inject constructor(
@@ -87,7 +93,12 @@ class TourScreenViewModel @Inject constructor(
     private var textInputJob: Job? = null
 
     init {
-        //region get tours
+        runBlocking {
+            setUserId(authRepository.getUserIdLocal()!!)
+        }
+
+        //region get tour details
+
         val editMode: Boolean = savedStateHandle["editMode"]!!
         if (savedStateHandle.contains("tourId")) {
             setTourId(savedStateHandle["tourId"])
@@ -115,6 +126,20 @@ class TourScreenViewModel @Inject constructor(
                 handleError(ex)
             }
         }
+        //endregion
+
+        //region get friends markers
+
+        if (uiState.tourId != null) {
+            viewModelScope.launch {
+                val ids = tourRepository.getFriendsIds(uiState.tourId!!, uiState.userId)
+                val usersFlow = usersRepository.getUsers(ids)
+                usersFlow.collect { users ->
+                    setFriends(users.map { user -> user.toFriendMarker() })
+                }
+            }
+        }
+
         //endregion
 
         //region tourdetails callbacks
@@ -150,7 +175,7 @@ class TourScreenViewModel @Inject constructor(
                         if (isLocated()) {
                             changeLocationState(LocationState.LocationOn)
                         }
-                        moveCameraWithBounds(route.viewport)
+                        moveCameraWithViewport(route.viewport)
 
                         setRouteChanged(true)
                         setDistance(convertor.formatDistance(route.distanceMeters))
@@ -166,9 +191,7 @@ class TourScreenViewModel @Inject constructor(
         //endregion
     }
 
-    private fun setTourId(tourId: String?) {
-        uiState = uiState.copy(tourId = tourId)
-    }
+
 
     override fun onCleared() {
         super.onCleared()
@@ -178,6 +201,12 @@ class TourScreenViewModel @Inject constructor(
     }
 
     //region TOUR DETAILS
+    private fun setFriends(friends: List<FriendMarker>) {
+        uiState = uiState.copy(friends = friends)
+    }
+    private fun setUserId(id: String) {
+        uiState = uiState.copy(userId = id)
+    }
     fun setTourState(state: TourState) {
         uiState = uiState.copy(tourState = state)
     }
@@ -219,6 +248,12 @@ class TourScreenViewModel @Inject constructor(
     //endregion
 
     // region UISTATE METHODS
+    private fun setTourId(tourId: String?) {
+        uiState = uiState.copy(tourId = tourId)
+    }
+    private fun setShowFriends(value: Boolean) {
+        uiState = uiState.copy(showFriends = value)
+    }
     fun setRouteChanged(value: Boolean) {
         uiState = uiState.copy(routeChanged = value)
     }
@@ -315,12 +350,26 @@ class TourScreenViewModel @Inject constructor(
             }
         }
     }
-    private fun moveCameraWithBounds(viewport: Viewport) {
+    private fun moveCameraWithViewport(viewport: Viewport) {
         viewModelScope.launch {
             try {
                 val southwest = LatLng(viewport.low.latitude, viewport.low.longitude)
                 val northeast = LatLng(viewport.high.latitude, viewport.high.longitude)
                 val bounds = LatLngBounds(southwest, northeast)
+                uiState.cameraPositionState.animate(
+                    CameraUpdateFactory.newLatLngBounds(bounds,150),1500
+                )
+            }
+            catch (e: Exception) {
+                if (e is CancellationException) {
+                    throw e
+                }
+            }
+        }
+    }
+    private fun moveCameraWithBounds(bounds: LatLngBounds) {
+        viewModelScope.launch {
+            try {
                 uiState.cameraPositionState.animate(
                     CameraUpdateFactory.newLatLngBounds(bounds,150),1500
                 )
@@ -445,7 +494,7 @@ class TourScreenViewModel @Inject constructor(
                     setSearchFlag(true)
                     // call animation
                     viewModelScope.launch {
-                        moveCameraWithBounds(Viewport(it.place.viewport!!.southwest, it.place.viewport!!.northeast))
+                        moveCameraWithViewport(Viewport(it.place.viewport!!.southwest, it.place.viewport!!.northeast))
                     }
                     sessionTokenSingleton.invalidateToken()
                 }
@@ -584,7 +633,6 @@ class TourScreenViewModel @Inject constructor(
     }
     //endregion
 
-
     // region LocationListener
     override fun onLocationResult(location: Location) {
         viewModelScope.launch {
@@ -596,7 +644,7 @@ class TourScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val userId = async { authRepository.getUserIdLocal()!! }.await()
             usersRepository.updateUserLocation(userId, UserLocation(
-                location = MyLatLng(location.latitude, location.longitude)
+                coordinates = MyLatLng(location.latitude, location.longitude)
             ))
         }
     }
@@ -611,5 +659,34 @@ class TourScreenViewModel @Inject constructor(
             changeLocationState(LocationState.LocationOff)
         }
     }
+
+
     //endregion
+
+    fun toggleShowFriends() {
+        setShowFriends(!uiState.showFriends)
+        if (uiState.friends.isEmpty() || !uiState.showFriends)
+            return
+
+        // animate to see all friends
+        val builder = LatLngBounds.Builder()
+        for (friend in uiState.friends) {
+            builder.include(friend.location.coordinates.toGoogleLatLng())
+        }
+        if (uiState.deviceSettings.gpsEnabled) {
+            builder.include(uiState.myLocation)
+        }
+
+        val bounds = builder.build()
+        moveCameraWithBounds(bounds)
+        if (uiState.locationState == LocationState.Located)
+            changeLocationState(LocationState.LocationOn)
+    }
+
+    fun callFriend(context: Context, phone: String) {
+        val intent = Intent(Intent.ACTION_DIAL)
+        intent.data = Uri.parse("tel:$phone")
+        context.startActivity(intent)
+    }
+
 }

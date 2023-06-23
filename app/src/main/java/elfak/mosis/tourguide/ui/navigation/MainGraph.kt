@@ -23,8 +23,6 @@ import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreenViewModel
 
 fun NavGraphBuilder.mainGraph(navController: NavController) {
 
-    val uri = "https://www.example.com"
-
     navigation(startDestination = Screen.HomeScreen.route, route = Screen.Main.route) {
         composable(Screen.HomeScreen.route) {
             val viewModel = hiltViewModel<HomeScreenViewModel>()
@@ -42,7 +40,7 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             )
         }
         composable(Screen.TourScreen.route + "?tourId={tourId}&editMode={editMode}",
-            deepLinks = listOf(navDeepLink { uriPattern = "$uri/{tourId}" }),
+            deepLinks = listOf(navDeepLink { uriPattern = "${NavigationConstants.TourUri}/{tourId}" }),
             arguments = listOf(
                 navArgument("tourId") {
                     nullable = true
@@ -57,8 +55,7 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             val viewModel = hiltViewModel<TourScreenViewModel>()
             TourScreen(
                 viewModel = viewModel,
-                navController = navController,
-                tourId = it.arguments?.getString("tourId")
+                navController = navController
             )
         }
         composable(Screen.NotificationScreen.route) {
@@ -96,7 +93,9 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
                 }
             )
         }
-        composable(Screen.SettingScreen.route){
+        composable(Screen.SettingScreen.route,
+            deepLinks = listOf(navDeepLink { uriPattern = NavigationConstants.SettingsUri })
+        ){
             val viewModel = hiltViewModel<SettingsScreenViewModel>()
             SettingsScreen(navController = navController, viewModel = viewModel)
         }

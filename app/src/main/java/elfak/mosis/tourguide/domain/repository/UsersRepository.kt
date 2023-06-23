@@ -1,7 +1,10 @@
 package elfak.mosis.tourguide.domain.repository
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import elfak.mosis.tourguide.data.models.UserLocation
 import elfak.mosis.tourguide.data.models.UserModel
+import kotlinx.coroutines.flow.Flow
 
 interface UsersRepository {
     suspend fun deleteTestUsers(fullname: String)
@@ -14,6 +17,6 @@ interface UsersRepository {
     suspend fun addFriend(userId: String, friendId: String)
     suspend fun areFriends(userId: String, friendId: String): Boolean
     suspend fun removeFriend(userId: String, friendId: String)
-
+    suspend fun getUsers(ids: List<String>): Flow<List<UserModel>>
     suspend fun updateUserLocation(userId: String, location: UserLocation)
 }

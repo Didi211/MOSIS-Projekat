@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import elfak.mosis.tourguide.R
-import java.security.AllPermission
 
 @Composable
 fun UserAvatar(photoUrl: String? = null, photoSize: Dp = 80.dp) {

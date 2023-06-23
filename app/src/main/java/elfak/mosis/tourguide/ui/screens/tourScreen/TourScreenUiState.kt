@@ -7,6 +7,7 @@ import elfak.mosis.tourguide.data.models.PlaceDetails
 import elfak.mosis.tourguide.domain.models.DeviceSettings
 import elfak.mosis.tourguide.domain.models.ToastData
 import elfak.mosis.tourguide.domain.models.tour.TourDetails
+import elfak.mosis.tourguide.ui.components.maps.FriendMarker
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 
 data class TourScreenUiState(
@@ -37,5 +38,8 @@ data class TourScreenUiState(
 
     val toastData: ToastData = ToastData(),
 
-    val tourId: String? = null
+    val tourId: String? = null,
+    val userId: String = "",
+    val showFriends: Boolean = false,
+    val friends: List<FriendMarker> = emptyList()
 )

@@ -176,7 +176,7 @@ fun prepareMenuList(menuList: ArrayList<MenuData>, navController: NavController,
             "Settings",
             onClick = {
                 navController.navigate(Screen.SettingScreen.route) {
-                    popUpTo(Screen.Main.route) { inclusive = true }
+                    popUpTo(Screen.HomeScreen.route)
                 }
             }
         )
