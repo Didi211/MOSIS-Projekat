@@ -5,5 +5,5 @@ import java.util.Date
 
 data class UserMarkerLocation(
     val coordinates: MyLatLng = MyLatLng(),
-    val date: Date? = null
+    val date: Date = Date()
 )

@@ -6,9 +6,8 @@ import android.graphics.Canvas
 import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import javax.inject.Singleton
 
- class BitmapHelper {
+class BitmapHelper {
 
     companion object {
         fun  bitmapDescriptorFromVector(context: Context, vectorResId: Int): BitmapDescriptor? {

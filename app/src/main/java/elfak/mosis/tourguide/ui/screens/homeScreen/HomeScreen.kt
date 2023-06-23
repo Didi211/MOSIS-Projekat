@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import elfak.mosis.tourguide.R
-import elfak.mosis.tourguide.data.models.tour.TourModel
 import elfak.mosis.tourguide.domain.models.menu.MenuData
 import elfak.mosis.tourguide.domain.models.tour.TourCard
 import elfak.mosis.tourguide.ui.components.ToastHandler
@@ -169,10 +168,6 @@ fun TourCardsContainer(
     onTourDelete: (tourId: String) -> Unit,
     onCardClick: (tourId: String, editMode: Boolean) -> Unit
 ) {
-    val context = LocalContext.current
-
-
-
     Box(modifier = Modifier.pullRefresh(refreshState)) {
         LazyColumn(
             Modifier.fillMaxSize(),

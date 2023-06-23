@@ -23,8 +23,6 @@ import elfak.mosis.tourguide.ui.screens.tourScreen.TourScreenViewModel
 
 fun NavGraphBuilder.mainGraph(navController: NavController) {
 
-    val uri = "https://www.example.com"
-
     navigation(startDestination = Screen.HomeScreen.route, route = Screen.Main.route) {
         composable(Screen.HomeScreen.route) {
             val viewModel = hiltViewModel<HomeScreenViewModel>()

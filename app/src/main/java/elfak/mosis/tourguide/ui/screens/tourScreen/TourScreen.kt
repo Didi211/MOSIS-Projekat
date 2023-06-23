@@ -12,16 +12,24 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
+import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.PersonPinCircle
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.rememberBottomSheetScaffoldState
@@ -35,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -55,6 +64,7 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import elfak.mosis.tourguide.R
@@ -63,6 +73,8 @@ import elfak.mosis.tourguide.domain.models.tour.LocationType
 import elfak.mosis.tourguide.ui.components.ToastHandler
 import elfak.mosis.tourguide.ui.components.bottomsheet.PlaceDetails
 import elfak.mosis.tourguide.ui.components.bottomsheet.TourDetails
+import elfak.mosis.tourguide.ui.components.images.UserAvatar
+import elfak.mosis.tourguide.ui.components.maps.FriendMarker
 import elfak.mosis.tourguide.ui.components.maps.ListOfPlaces
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import elfak.mosis.tourguide.ui.components.maps.MyLocationButton
@@ -203,16 +215,15 @@ fun TourScreen(
             ) {
                 if (viewModel.uiState.friends.isNotEmpty()) {
                     //show friends button
-                    AnimatedContent(
+                    val contentColor: Color = when(viewModel.uiState.showFriends) {
+                        true -> MaterialTheme.colors.primary
+                        false -> Color.LightGray
+                    }
+                    Column(
                         modifier = Modifier
                             .align(Alignment.End)
                             .padding(start = 30.dp, top = 10.dp, end = 10.dp),
-                        targetState = viewModel.uiState.showFriends
-                    ) { showFriends ->
-                        val contentColor: Color = when(showFriends) {
-                            true -> MaterialTheme.colors.primary
-                            false -> Color.LightGray
-                        }
+                    ) {
                         TourGuideFloatingButton(
                             icon = Icons.Rounded.PersonPinCircle,
                             contentDescription = stringResource(id = R.string.show_friends),
@@ -367,18 +378,85 @@ fun TourScreen(
                 if (viewModel.uiState.friends.isNotEmpty()) {
                     for (friend in viewModel.uiState.friends) {
                         val latLng = LatLng(friend.location.coordinates.latitude, friend.location.coordinates.longitude)
-                        Marker(
+
+                        MarkerInfoWindow(
                             MarkerState(position = latLng),
+                            title = friend.fullname,
                             visible = viewModel.uiState.showFriends,
-                            title =  "Current location: ${friend.location.coordinates}",
-                            icon = BitmapDescriptorFactory.defaultMarker(87f)
-                        )
+                            icon = BitmapDescriptorFactory.defaultMarker(72f),
+                            onInfoWindowLongClick = { viewModel.callFriend(context, friend.phoneNumber) },
+                            onInfoWindowClick = { marker -> marker.hideInfoWindow() },
+                        ) { marker ->
+                            FriendMarkerCard(friend = friend)
+                        }
                     }
                 }
             }
         }
     }
 }
+
+@Suppress("DEPRECATION")
+@Composable
+fun FriendMarkerCard(
+    friend: FriendMarker,
+    onClick: () -> Unit = { },
+    onPhoneClick: (phone: String) -> Unit = { },
+) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        elevation = 5.dp,
+        modifier = Modifier
+            .height(90.dp)
+
+    ) {
+        Box(modifier = Modifier
+            .fillMaxHeight()
+            .fillMaxWidth(0.7f)
+            .padding(10.dp)) {
+            Row( horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
+            ) {
+                Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
+                    UserAvatar(photoUrl = null, photoSize = 50.dp) // package cant load picture,
+                }
+                Column(
+                    Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.8f)
+                        .padding(top = 5.dp)
+                        .padding(horizontal = 8.dp),
+                     verticalArrangement = Arrangement.SpaceBetween
+
+                ) {
+                    Text(text = friend.fullname, style = MaterialTheme.typography.body1, color = MaterialTheme.colors.primary)
+                    Column {
+                        Text(text = "When:", style = MaterialTheme.typography.body2)
+                        Text(text = friend.location.date.toLocaleString(), style = MaterialTheme.typography.h5)
+                    }
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(10.dp))
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Call,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize(0.9f),
+                        tint = MaterialTheme.colors.primary
+                    )
+                }
+            }
+        }
+    }
+}
+
 
 fun showDeniedPermissionMessage(context: Context, @StringRes message: Int) {
     Toasty.error(context, message, Toast.LENGTH_LONG).show()

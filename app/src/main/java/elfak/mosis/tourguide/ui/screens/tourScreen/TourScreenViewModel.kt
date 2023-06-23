@@ -1,6 +1,9 @@
 package elfak.mosis.tourguide.ui.screens.tourScreen
 
+import android.content.Context
+import android.content.Intent
 import android.location.Location
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -49,6 +52,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import elfak.mosis.tourguide.domain.models.tour.TourDetails as TourDetails1
+
 
 @HiltViewModel
 class TourScreenViewModel @Inject constructor(
@@ -678,4 +682,11 @@ class TourScreenViewModel @Inject constructor(
         if (uiState.locationState == LocationState.Located)
             changeLocationState(LocationState.LocationOn)
     }
+
+    fun callFriend(context: Context, phone: String) {
+        val intent = Intent(Intent.ACTION_DIAL)
+        intent.data = Uri.parse("tel:$phone")
+        context.startActivity(intent)
+    }
+
 }

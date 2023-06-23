@@ -45,7 +45,7 @@ data class UserModel(
 data class UserLocation(
     val coordinates: MyLatLng = MyLatLng(),
     @ServerTimestamp
-    val date: Date? = Date()
+    val date: Date = Date()
 ) {
     fun toMap(): MutableMap<String, Any?> {
         return mutableMapOf(

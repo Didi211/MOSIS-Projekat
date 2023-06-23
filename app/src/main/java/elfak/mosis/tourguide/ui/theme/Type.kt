@@ -56,6 +56,11 @@ val Typography = Typography(
         fontWeight = FontWeight.Thin,
         fontSize = 15.sp,
     ),
+    h5 = TextStyle(
+        fontFamily = Ubuntu,
+        fontWeight = FontWeight.Thin,
+        fontSize = 12.sp,
+    ),
     caption = TextStyle(
         fontFamily = Ubuntu,
         fontWeight = FontWeight.Thin,
