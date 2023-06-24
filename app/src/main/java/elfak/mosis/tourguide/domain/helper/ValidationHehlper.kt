@@ -1,7 +1,7 @@
 package elfak.mosis.tourguide.domain.helper
 
 import androidx.core.text.isDigitsOnly
-import elfak.mosis.tourguide.domain.models.tour.TourDetails
+import elfak.mosis.tourguide.domain.models.tour.TourConstants
 import elfak.mosis.tourguide.domain.models.validation.LoginCredentials
 import elfak.mosis.tourguide.domain.models.validation.UserCredentials
 import javax.inject.Inject
@@ -55,8 +55,6 @@ class ValidationHelper @Inject constructor() {
         if (!credentials.email.matches(emailRegex)) {
             throw Exception("Email not valid. Proper form: 'tour@tourguide.com'")
         }
-
-
     }
 
     fun validatePasswords(password: String, confirmPassword: String) {
@@ -69,6 +67,21 @@ class ValidationHelper @Inject constructor() {
         }
         if (password != confirmPassword) {
             throw Exception("Passwords are not matching!")
+        }
+    }
+
+    fun validateCategoryFilter(category: String, radius: String) {
+        if (!category.matches(charsOnly)) {
+            throw Exception("Category must be only characters. Or characters are not ASCII only.")
+        }
+        if (category == TourConstants.DefaultCategory) {
+            throw Exception("Category not chosen.")
+        }
+        if (radius.isBlank()) {
+            throw Exception("Radius can't be empty.")
+        }
+        if (!radius.isDigitsOnly()) {
+            throw Exception("Radius must be only digits.")
         }
     }
 }

@@ -17,6 +17,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.PlaceTypes
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
@@ -32,6 +33,7 @@ import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.PermissionHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
+import elfak.mosis.tourguide.domain.helper.ValidationHelper
 import elfak.mosis.tourguide.domain.models.TourGuideLocationListener
 import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
@@ -43,7 +45,6 @@ import elfak.mosis.tourguide.domain.repository.UsersRepository
 import elfak.mosis.tourguide.ui.components.maps.FriendMarker
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -67,6 +68,7 @@ class TourScreenViewModel @Inject constructor(
     private val googleMapHelper: GoogleMapHelper,
     private val permissionHelper: PermissionHelper,
     private val usersRepository: UsersRepository,
+    private val validationHelper: ValidationHelper,
     savedStateHandle: SavedStateHandle,
 ): ViewModel(), TourGuideLocationListener {
     var uiState by mutableStateOf(TourScreenUiState())
@@ -388,6 +390,9 @@ class TourScreenViewModel @Inject constructor(
     //endregion
 
     //region SEARCH LOCATION
+    fun searchByCategory(category: String, radius: Int) {
+    }
+
     fun findLocationId(latLng: LatLng) {
         // Another way to show poi when id is not provided
         viewModelScope.launch {
@@ -692,8 +697,20 @@ class TourScreenViewModel @Inject constructor(
         context.startActivity(intent)
     }
 
-    fun allowShowFriendsButton(allow: Boolean) {
-        uiState = uiState.copy(allowShowFriendsButton = allow)
+    fun validateCategoryFilter(category: String, radius: String): Boolean {
+        try {
+            validationHelper.validateCategoryFilter(category, radius)
+            return true
+        }
+        catch (ex: Exception) {
+            ex.message?.let { setErrorMessage(it) }
+            return false
+        }
     }
+
+
+//    fun allowShowFriendsButton(allow: Boolean) {
+//        uiState = uiState.copy(allowShowFriendsButton = allow)
+//    }
 
 }

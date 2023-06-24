@@ -42,5 +42,5 @@ data class TourScreenUiState(
     val userId: String = "",
     val showFriends: Boolean = false,
     val friends: List<FriendMarker> = emptyList(),
-    val allowShowFriendsButton: Boolean = false
+//    val allowShowFriendsButton: Boolean = false
 )
