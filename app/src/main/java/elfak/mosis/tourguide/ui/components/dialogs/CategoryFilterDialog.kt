@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,19 +24,17 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.core.text.isDigitsOnly
 import com.google.android.libraries.places.api.model.PlaceTypes
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.models.tour.TourConstants
@@ -45,7 +42,6 @@ import elfak.mosis.tourguide.ui.components.BasicInputComponent
 import elfak.mosis.tourguide.ui.components.buttons.ButtonRowContainer
 import elfak.mosis.tourguide.ui.components.buttons.CancelButton
 import elfak.mosis.tourguide.ui.components.buttons.SaveButton
-import es.dmoral.toasty.Toasty
 import java.util.Locale
 
 
@@ -59,9 +55,6 @@ fun CategoryFilterDialog(
     var radius by remember { mutableStateOf("")}
     val categoryList by remember { mutableStateOf(createCategoryDropdownList()) }
     var showDropdown by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-
-
 
     Dialog(onDismissRequest = onDismiss) {
 
@@ -148,6 +141,7 @@ fun CategoryFilterDialog(
                             return@SaveButton
                         }
                         onClick(selectedCategory, radius.toInt())
+                        onDismiss()
                     }
                     Spacer(Modifier.width(10.dp))
                     CancelButton(onDismiss)
