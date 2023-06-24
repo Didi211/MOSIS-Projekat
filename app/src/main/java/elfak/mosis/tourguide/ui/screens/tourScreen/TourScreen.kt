@@ -70,6 +70,7 @@ import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.helper.BitmapHelper
+import elfak.mosis.tourguide.domain.models.tour.CategoryMarker
 import elfak.mosis.tourguide.domain.models.tour.LocationType
 import elfak.mosis.tourguide.ui.components.ToastHandler
 import elfak.mosis.tourguide.ui.components.bottomsheet.PlaceDetails
@@ -160,10 +161,8 @@ fun TourScreen(
                                 && viewModel.uiState.tourDetails.destination.id.isNotBlank()) {
                                 viewModel.uiState.tourDetails.onBothLocationsSet(true)
                             }
-
                         }
                     )
-
                 }
             }
         },
@@ -360,15 +359,15 @@ fun TourScreen(
                     viewModel.changeLocationState(LocationState.Located)
                 },
                 onMapClick = { latLng ->
-                    viewModel.findLocationId(latLng)
+                    viewModel.getPOIDetailsFromLatLng(latLng)
                     viewModel.clearSearchBar()
                 },
                 onPOIClick = { poi ->
                     viewModel.clearSearchBar()
-                    viewModel.getPOIDetails(poi.placeId)
+                    viewModel.getPOIDetailsFromId(poi.placeId)
                 },
             ) {
-                // my location
+                //region my location
                 Marker(
                     icon = BitmapHelper.bitmapDescriptorFromVector(
                         context,
@@ -377,16 +376,20 @@ fun TourScreen(
                     state = MarkerState(position = viewModel.uiState.myLocation),
                     visible = viewModel.uiState.deviceSettings.gpsEnabled,
                     onClick = { marker ->
-                        viewModel.findLocationId(marker.position)
+                        viewModel.getPOIDetailsFromLatLng(marker.position)
                         true
                     }
                 )
-                // point of interest
+                //endregion
+
+                // region point of interest
                 Marker(
                     state = MarkerState(position = viewModel.uiState.searchedLocation),
                     visible = viewModel.uiState.isSearching,
                 )
-                // route
+                //endregion
+
+                // region route
                 if(viewModel.uiState.tourDetails.bothLocationsSet) {
                     LaunchedEffect(viewModel.uiState.routeChanged) {
                         bottomSheetScaffoldState.bottomSheetState.collapse()
@@ -397,7 +400,10 @@ fun TourScreen(
                     Marker(
                         state = MarkerState(position = viewModel.uiState.tourDetails.destination.location),
                     )
-                 }
+                }
+                //endregion
+
+                //region friends locations
                 if (viewModel.uiState.friends.isNotEmpty()) {
                     for (friend in viewModel.uiState.friends) {
                         val latLng = LatLng(friend.location.coordinates.latitude, friend.location.coordinates.longitude)
@@ -422,6 +428,33 @@ fun TourScreen(
                         }
                     }
                 }
+                //endregion
+
+                //category places
+                if (viewModel.uiState.categorySearchResult.isNotEmpty()) {
+                    for (place in viewModel.uiState.categorySearchResult) {
+                        val iconColor = if (place.selected) {
+                                CategoryMarker.SelectedMarkerIcon
+//                            BitmapDescriptorFactory.defaultMarker(
+//                            )
+                        }
+                        else
+                                CategoryMarker.DefaultMarkerIcon
+//                            BitmapDescriptorFactory.defaultMarker(
+//                            )
+                        Marker(
+                            state = MarkerState(position = place.location.toLatLng()),
+                            icon = BitmapDescriptorFactory.defaultMarker(iconColor),
+                            title = place.toString(),
+                            onClick = {
+                                viewModel.getCategoryResultDetails(place)
+                                viewModel.selectMarker(place)
+                                true
+                            }
+                        )
+                    }
+                }
+                //
             }
         }
     }

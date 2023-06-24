@@ -2,10 +2,13 @@ package elfak.mosis.tourguide.ui.screens.tourScreen
 
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.maps.android.compose.CameraPositionState
 import elfak.mosis.tourguide.data.models.PlaceDetails
+import elfak.mosis.tourguide.data.models.tour.category.NearbyPlaceResult
 import elfak.mosis.tourguide.domain.models.DeviceSettings
 import elfak.mosis.tourguide.domain.models.ToastData
+import elfak.mosis.tourguide.domain.models.tour.CategoryMarker
 import elfak.mosis.tourguide.domain.models.tour.TourDetails
 import elfak.mosis.tourguide.ui.components.maps.FriendMarker
 import elfak.mosis.tourguide.ui.components.maps.LocationState
@@ -25,22 +28,25 @@ data class TourScreenUiState(
     var cameraPositionState: CameraPositionState = CameraPositionState(
         position = CameraPosition(currentLocation, 10f, 0f, 0f)
     ),
-    var routeChanged: Boolean = false,
 
+    var routeChanged: Boolean = false,
+    val tourId: String? = null,
     val tourDetails: TourDetails = TourDetails(),
+    val tourScreenState: TourScreenState = TourScreenState.TOUR_DETAILS,
     val tourState: TourState = TourState.VIEWING,
 
     val placeDetails: PlaceDetails = PlaceDetails(),
 
-    val deviceSettings: DeviceSettings = DeviceSettings(),
+    val categorySearchResult: List<NearbyPlaceResult> = emptyList(),
 
-    val tourScreenState: TourScreenState = TourScreenState.TOUR_DETAILS,
-
-    val toastData: ToastData = ToastData(),
-
-    val tourId: String? = null,
-    val userId: String = "",
     val showFriends: Boolean = false,
     val friends: List<FriendMarker> = emptyList(),
+
+    val toastData: ToastData = ToastData(),
+    val deviceSettings: DeviceSettings = DeviceSettings(),
+
+    val userId: String = "",
+
+
 //    val allowShowFriendsButton: Boolean = false
 )

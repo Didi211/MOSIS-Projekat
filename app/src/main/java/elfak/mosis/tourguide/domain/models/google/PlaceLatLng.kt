@@ -7,12 +7,14 @@ data class PlaceLatLng(
     val lat: String = "",
     val lng: String = "",
 ) {
-    companion object {
-        fun toLatLng(latlng: LatLng): PlaceLatLng {
-            return PlaceLatLng(
-                lat = latlng.latitude.toString(),
-                lng = latlng.longitude.toString()
-            )
-        }
+    fun toLatLng(): LatLng {
+        return LatLng(lat.toDouble(),lng.toDouble())
     }
+}
+
+fun LatLng.toPlaceLatLng(): PlaceLatLng {
+    return PlaceLatLng(
+        lat = this.latitude.toString(),
+        lng = this.longitude.toString()
+    )
 }
