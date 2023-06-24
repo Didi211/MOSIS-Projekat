@@ -64,22 +64,7 @@ fun CategoryFilterDialog(
 
 
     Dialog(onDismissRequest = onDismiss) {
-        DropdownMenu(
-            modifier = Modifier
-                .heightIn(max = 350.dp)
-                .fillMaxWidth(0.7f),
-            expanded = showDropdown,
-            onDismissRequest = { showDropdown = false }
-        ) {
-            for (category in categoryList) {
-                DropdownMenuItem(onClick = {
-                    selectedCategory = category
-                    showDropdown = false
-                }) {
-                    Text(text = category.toCategoryString())
-                }
-            }
-        }
+
         Column(
             Modifier
                 .wrapContentHeight()
@@ -139,6 +124,22 @@ fun CategoryFilterDialog(
                         tint = MaterialTheme.colors.primary,
                         modifier = Modifier.fillMaxSize()
                     )
+                    DropdownMenu(
+                        modifier = Modifier
+                            .heightIn(max = 300.dp)
+                            .fillMaxWidth(0.7f),
+                        expanded = showDropdown,
+                        onDismissRequest = { showDropdown = false }
+                    ) {
+                        for (category in categoryList) {
+                            DropdownMenuItem(onClick = {
+                                selectedCategory = category
+                                showDropdown = false
+                            }) {
+                                Text(text = category.toCategoryString())
+                            }
+                        }
+                    }
                 }
                 Spacer(Modifier.height(20.dp))
                 ButtonRowContainer {
