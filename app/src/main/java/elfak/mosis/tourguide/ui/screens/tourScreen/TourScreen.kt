@@ -118,7 +118,8 @@ fun TourScreen(
     var showCategoryDialog by remember { mutableStateOf(false) }
 
     if(bottomSheetScaffoldState.bottomSheetState.isExpanded) {
-        viewModel.setSearchBarVisibility(false)
+//        viewModel.setSearchBarVisibility(false)
+        viewModel.clearSearchBar()
     }
 
     LaunchedEffect(true) {
@@ -227,12 +228,7 @@ fun TourScreen(
                 viewModel.changeLocationState(LocationState.LocationOn)
             }
 
-            // buttons
-            val friends = viewModel.uiState.friends
-//            val allowShowButton = viewModel.uiState.allowShowFriendsButton
-
-
-            // buttons
+            // region buttons
             Column(
                 Modifier
                     .fillMaxSize()
@@ -246,6 +242,7 @@ fun TourScreen(
                         .align(Alignment.End)
                         .padding(start = 10.dp, top = 10.dp, end = 10.dp),
                 ) {
+                    val friends = viewModel.uiState.friends
                     if (friends.isNotEmpty()) {
                         val contentColor: Color = when(viewModel.uiState.showFriends) {
                             true -> MaterialTheme.colors.primary
@@ -273,14 +270,6 @@ fun TourScreen(
                     }
 
                 }
-//                if (friends.isNotEmpty() /*&& allowShowButton*/) {
-//                    //show friends button
-////                    val contentColor: Color = when(viewModel.uiState.showFriends) {
-////                        true -> MaterialTheme.colors.primary
-////                        false -> Color.LightGray
-////                    }
-//
-//                }
                 // lower buttons
                 Column(
                     modifier = Modifier.padding(start = 10.dp, bottom = 10.dp, end = 10.dp),
@@ -341,6 +330,7 @@ fun TourScreen(
                 }
             }
 
+            //endregion
 
 
             GoogleMap(

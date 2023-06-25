@@ -99,106 +99,114 @@ class TourScreenViewModel @Inject constructor(
 
     init {
         runBlocking {
-            setUserId(authRepository.getUserIdLocal()!!)
+            val userId = authRepository.getUserIdLocal()
+            if (userId == null) {
+                setUserId("")
+                return@runBlocking
+            }
+            setUserId(userId)
         }
+        if (uiState.userId.isNotBlank()) {
+            //region get tour details
 
-        //region get tour details
-
-        val editMode: Boolean = savedStateHandle["editMode"]!!
-        if (savedStateHandle.contains("tourId")) {
-            setTourId(savedStateHandle["tourId"])
-        }
-        viewModelScope.launch {
-            try {
-                if (uiState.tourId != null) {
-                    val tour = tourRepository.getTour(uiState.tourId!!)
-                    setTourDetails(uiState.tourDetails.update(tour))
-                    if (uiState.tourDetails.bothLocationsSet) {
-                        uiState.tourDetails.onBothLocationsSet(true)
+            val editMode: Boolean = savedStateHandle["editMode"]!!
+            if (savedStateHandle.contains("tourId")) {
+                setTourId(savedStateHandle["tourId"])
+            }
+            viewModelScope.launch {
+                try {
+                    if (uiState.tourId != null) {
+                        val tour = tourRepository.getTour(uiState.tourId!!)
+                        setTourDetails(uiState.tourDetails.update(tour))
+                        if (uiState.tourDetails.bothLocationsSet) {
+                            uiState.tourDetails.onBothLocationsSet(true)
+                        }
+                        if (editMode) { // user clicked option edit from dropdown
+                            setTourState(TourState.CREATING)
+                        }
+                        else { // user clicked on card
+                            setTourState(TourState.VIEWING)
+                        }
                     }
-                    if (editMode) { // user clicked option edit from dropdown
+                    else {
                         setTourState(TourState.CREATING)
                     }
-                    else { // user clicked on card
-                        setTourState(TourState.VIEWING)
-                    }
                 }
-                else {
-                    setTourState(TourState.CREATING)
+                catch (ex: Exception) {
+                    handleError(ex)
                 }
             }
-            catch (ex: Exception) {
-                handleError(ex)
-            }
-        }
-        //endregion
+            //endregion
 
-        //region get friends markers
+            //region get friends markers
 
-        if (uiState.tourId != null) {
-            viewModelScope.launch {
-                val ids = tourRepository.getFriendsIds(uiState.tourId!!, uiState.userId)
-                if (ids.isEmpty())
-                    return@launch
-                val usersFlow = usersRepository.getUsers(ids)
-                usersFlow.collect { users ->
-                    setFriends(users.map { user -> user.toFriendMarker() })
-                }
-            }
-        }
-
-        //endregion
-
-        //region tourdetails callbacks
-        uiState.tourDetails.onTitleChanged = { setTitle(it) }
-        uiState.tourDetails.onSummaryChanged = { setSummary(it) }
-        uiState.tourDetails.onOriginChanged = { setOrigin(it) }
-        uiState.tourDetails.onDestinationChanged = { setDestination(it) }
-        uiState.tourDetails.onDistanceChanged = { setDistance(it) }
-        uiState.tourDetails.onTimeChanged = { setTime(it) }
-        uiState.tourDetails.onBothLocationsSet = {
-            setBothLocationsSet(it)
-            if (it) {
+            if (uiState.tourId != null) {
                 viewModelScope.launch {
-                    try {
-                        setPolylinePoints(emptyList()) // clearing old route
-                        if (uiState.tourDetails.origin.id != uiState.tourDetails.destination.id) {
-                            setLocationsLatLng()
-                        }
-                        val originId = uiState.tourDetails.origin.id
-                        val destinationId = uiState.tourDetails.destination.id
-                        if(originId == destinationId) {
-                            throw Exception("Origin and destination can't be the same for creating a tour!")
-                        }
-
-                        val result: RouteResponse? = tourGuideApiWrapper.getRoute(originId, destinationId)
-                        // null checking if error has happened
-                        if(result?.routes == null) {
-                            throw Exception("Couldn't find route.")
-                        }
-
-                        val route = result.routes[0]
-                        decodePolyline(route.polyline.encodedPolyline)
-                        if (isLocated()) {
-                            changeLocationState(LocationState.LocationOn)
-                        }
-                        moveCameraWithViewport(route.viewport)
-
-                        setRouteChanged(true)
-                        setDistance(convertor.formatDistance(route.distanceMeters))
-                        setTime(convertor.formatTime(route.duration))
+                    val ids = tourRepository.getFriendsIds(uiState.tourId!!, uiState.userId)
+                    if (ids.isEmpty())
+                        return@launch
+                    val usersFlow = usersRepository.getUsers(ids)
+                    usersFlow.collect { users ->
+                        setFriends(users.map { user -> user.toFriendMarker() })
                     }
-                    catch(ex: Exception) {
-                        handleError(ex)
-                    }
-
                 }
             }
+
+            //endregion
+
+            //region tourdetails callbacks
+            uiState.tourDetails.onTitleChanged = { setTitle(it) }
+            uiState.tourDetails.onSummaryChanged = { setSummary(it) }
+            uiState.tourDetails.onOriginChanged = { setOrigin(it) }
+            uiState.tourDetails.onDestinationChanged = { setDestination(it) }
+            uiState.tourDetails.onDistanceChanged = { setDistance(it) }
+            uiState.tourDetails.onTimeChanged = { setTime(it) }
+            uiState.tourDetails.onBothLocationsSet = {
+                setBothLocationsSet(it)
+                if (it) {
+                    viewModelScope.launch {
+                        try {
+                            setPolylinePoints(emptyList()) // clearing old route
+                            if (uiState.tourDetails.origin.id != uiState.tourDetails.destination.id) {
+                                setLocationsLatLng()
+                            }
+                            val originId = uiState.tourDetails.origin.id
+                            val destinationId = uiState.tourDetails.destination.id
+                            if(originId == destinationId) {
+                                throw Exception("Origin and destination can't be the same for creating a tour!")
+                            }
+
+                            val result: RouteResponse? = tourGuideApiWrapper.getRoute(originId, destinationId)
+                            // null checking if error has happened
+                            if(result?.routes == null) {
+                                throw Exception("Couldn't find route.")
+                            }
+
+                            val route = result.routes[0]
+                            decodePolyline(route.polyline.encodedPolyline)
+                            if (isLocated()) {
+                                changeLocationState(LocationState.LocationOn)
+                            }
+                            moveCameraWithViewport(route.viewport)
+
+                            setRouteChanged(true)
+                            setDistance(convertor.formatDistance(route.distanceMeters))
+                            setTime(convertor.formatTime(route.duration))
+                        }
+                        catch(ex: Exception) {
+                            handleError(ex)
+                        }
+
+                    }
+                }
+            }
+            //endregion
         }
-        //endregion
     }
 
-
+    suspend fun isAuthenticated(): Boolean {
+        return authRepository.getUserIdLocal() != null
+    }
 
     override fun onCleared() {
         super.onCleared()
@@ -662,7 +670,7 @@ class TourScreenViewModel @Inject constructor(
     fun clearErrorMessage() {
         uiState = uiState.copy(toastData = uiState.toastData.copy(hasErrors = false))
     }
-    private fun setErrorMessage(message: String) {
+    fun setErrorMessage(message: String) {
         uiState = uiState.copy(toastData = uiState.toastData.copy(errorMessage = message, hasErrors = true))
     }
     private fun setSuccessMessage(message: String) {
@@ -796,6 +804,8 @@ class TourScreenViewModel @Inject constructor(
         }
         setCategoryResults(results = newList)
     }
+
+
 
     //endregion
 }
