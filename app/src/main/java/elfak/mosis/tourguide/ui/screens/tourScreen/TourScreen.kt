@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.PersonPinCircle
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.runtime.Composable
@@ -69,10 +70,12 @@ import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.helper.BitmapHelper
+import elfak.mosis.tourguide.domain.models.tour.CategoryMarker
 import elfak.mosis.tourguide.domain.models.tour.LocationType
 import elfak.mosis.tourguide.ui.components.ToastHandler
 import elfak.mosis.tourguide.ui.components.bottomsheet.PlaceDetails
 import elfak.mosis.tourguide.ui.components.bottomsheet.TourDetails
+import elfak.mosis.tourguide.ui.components.dialogs.CategoryFilterDialog
 import elfak.mosis.tourguide.ui.components.images.UserAvatar
 import elfak.mosis.tourguide.ui.components.maps.FriendMarker
 import elfak.mosis.tourguide.ui.components.maps.ListOfPlaces
@@ -111,6 +114,7 @@ fun TourScreen(
     )
 
     val focusManager = LocalFocusManager.current
+    var showCategoryDialog by remember { mutableStateOf(false) }
 
     if(bottomSheetScaffoldState.bottomSheetState.isExpanded) {
         viewModel.setSearchBarVisibility(false)
@@ -157,10 +161,8 @@ fun TourScreen(
                                 && viewModel.uiState.tourDetails.destination.id.isNotBlank()) {
                                 viewModel.uiState.tourDetails.onBothLocationsSet(true)
                             }
-
                         }
                     )
-
                 }
             }
         },
@@ -186,6 +188,20 @@ fun TourScreen(
     ) {
         /** MAIN CONTENT */
 
+        // region dialogs
+        if (showCategoryDialog) {
+            CategoryFilterDialog(
+                onDismiss = { showCategoryDialog = false },
+                onClick = { category, radius ->
+                    viewModel.searchByCategory(category, radius)
+                },
+                validate = { category: String, radius: String ->
+                    viewModel.validateCategoryFilter(category, radius)
+                }
+            )
+        }
+        //endregion
+
 
         Box(
             modifier = Modifier
@@ -201,32 +217,28 @@ fun TourScreen(
 
             // buttons
             val friends = viewModel.uiState.friends
-            val allowShowButton = viewModel.uiState.allowShowFriendsButton
+//            val allowShowButton = viewModel.uiState.allowShowFriendsButton
 
-            val columnArrangement = if (friends.isEmpty() || !allowShowButton) {
-                Arrangement.Bottom
-            } else {
-                Arrangement.SpaceBetween
-            }
 
+            // buttons
             Column(
                 Modifier
                     .fillMaxSize()
                     .zIndex(100f),
-                verticalArrangement = columnArrangement,
+                verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.End
             ) {
-                if (friends.isNotEmpty() && allowShowButton) {
-                    //show friends button
-                    val contentColor: Color = when(viewModel.uiState.showFriends) {
-                        true -> MaterialTheme.colors.primary
-                        false -> Color.LightGray
-                    }
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .padding(start = 10.dp, top = 10.dp, end = 10.dp),
-                    ) {
+                // upper buttons
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(start = 10.dp, top = 10.dp, end = 10.dp),
+                ) {
+                    if (friends.isNotEmpty()) {
+                        val contentColor: Color = when(viewModel.uiState.showFriends) {
+                            true -> MaterialTheme.colors.primary
+                            false -> Color.LightGray
+                        }
                         TourGuideFloatingButton(
                             icon = Icons.Rounded.PersonPinCircle,
                             contentDescription = stringResource(id = R.string.show_friends),
@@ -235,9 +247,29 @@ fun TourScreen(
                         ) {
                             viewModel.toggleShowFriends()
                         }
+                        Spacer(Modifier.height(15.dp))
                     }
+
+                    // filter places button
+                    TourGuideFloatingButton(
+                        icon = Icons.Rounded.Tune,
+                        contentDescription = stringResource(id = R.string.search_by_category),
+                        backgroundColor = Color.White,
+                        contentColor = MaterialTheme.colors.secondary,
+                    ) {
+                        showCategoryDialog = true
+                    }
+
                 }
-                // location and search button
+//                if (friends.isNotEmpty() /*&& allowShowButton*/) {
+//                    //show friends button
+////                    val contentColor: Color = when(viewModel.uiState.showFriends) {
+////                        true -> MaterialTheme.colors.primary
+////                        false -> Color.LightGray
+////                    }
+//
+//                }
+                // lower buttons
                 Column(
                     modifier = Modifier.padding(start = 10.dp, bottom = 10.dp, end = 10.dp),
                     horizontalAlignment = Alignment.End,
@@ -310,32 +342,32 @@ fun TourScreen(
                 cameraPositionState = viewModel.uiState.cameraPositionState,
                 onMapLoaded = {
                     if (!viewModel.checkPermissions()) {
-                        viewModel.allowShowFriendsButton(true)
+//                        viewModel.allowShowFriendsButton(true)
                         return@GoogleMap
                     }
                     if (!viewModel.checkGps()) {
-                        viewModel.allowShowFriendsButton(true)
+//                        viewModel.allowShowFriendsButton(true)
                         return@GoogleMap
                     }
                     viewModel.startLocationUpdates()
                     if (viewModel.uiState.tourDetails.bothLocationsSet) {
                         viewModel.changeLocationState(LocationState.LocationOn)
-                        viewModel.allowShowFriendsButton(true)
+//                        viewModel.allowShowFriendsButton(true)
                         return@GoogleMap
                     }
-                    viewModel.allowShowFriendsButton(true)
+//                    viewModel.allowShowFriendsButton(true)
                     viewModel.changeLocationState(LocationState.Located)
                 },
                 onMapClick = { latLng ->
-                    viewModel.findLocationId(latLng)
+                    viewModel.getPOIDetailsFromLatLng(latLng)
                     viewModel.clearSearchBar()
                 },
                 onPOIClick = { poi ->
                     viewModel.clearSearchBar()
-                    viewModel.getPOIDetails(poi.placeId)
+                    viewModel.getPOIDetailsFromId(poi.placeId)
                 },
             ) {
-                // my location
+                //region my location
                 Marker(
                     icon = BitmapHelper.bitmapDescriptorFromVector(
                         context,
@@ -344,16 +376,20 @@ fun TourScreen(
                     state = MarkerState(position = viewModel.uiState.myLocation),
                     visible = viewModel.uiState.deviceSettings.gpsEnabled,
                     onClick = { marker ->
-                        viewModel.findLocationId(marker.position)
+                        viewModel.getPOIDetailsFromLatLng(marker.position)
                         true
                     }
                 )
-                // point of interest
+                //endregion
+
+                // region point of interest
                 Marker(
                     state = MarkerState(position = viewModel.uiState.searchedLocation),
                     visible = viewModel.uiState.isSearching,
                 )
-                // route
+                //endregion
+
+                // region route
                 if(viewModel.uiState.tourDetails.bothLocationsSet) {
                     LaunchedEffect(viewModel.uiState.routeChanged) {
                         bottomSheetScaffoldState.bottomSheetState.collapse()
@@ -364,7 +400,10 @@ fun TourScreen(
                     Marker(
                         state = MarkerState(position = viewModel.uiState.tourDetails.destination.location),
                     )
-                 }
+                }
+                //endregion
+
+                //region friends locations
                 if (viewModel.uiState.friends.isNotEmpty()) {
                     for (friend in viewModel.uiState.friends) {
                         val latLng = LatLng(friend.location.coordinates.latitude, friend.location.coordinates.longitude)
@@ -389,6 +428,33 @@ fun TourScreen(
                         }
                     }
                 }
+                //endregion
+
+                //category places
+                if (viewModel.uiState.categorySearchResult.isNotEmpty()) {
+                    for (place in viewModel.uiState.categorySearchResult) {
+                        val iconColor = if (place.selected) {
+                                CategoryMarker.SelectedMarkerIcon
+//                            BitmapDescriptorFactory.defaultMarker(
+//                            )
+                        }
+                        else
+                                CategoryMarker.DefaultMarkerIcon
+//                            BitmapDescriptorFactory.defaultMarker(
+//                            )
+                        Marker(
+                            state = MarkerState(position = place.location.toLatLng()),
+                            icon = BitmapDescriptorFactory.defaultMarker(iconColor),
+                            title = place.toString(),
+                            onClick = {
+                                viewModel.getCategoryResultDetails(place)
+                                viewModel.selectMarker(place)
+                                true
+                            }
+                        )
+                    }
+                }
+                //
             }
         }
     }

@@ -18,6 +18,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import com.google.android.libraries.places.api.net.FetchPlaceResponse
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
 import com.google.android.libraries.places.api.net.PlacesClient
@@ -26,16 +27,19 @@ import elfak.mosis.tourguide.data.models.MyLatLng
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
 import elfak.mosis.tourguide.data.models.PlaceDetails
 import elfak.mosis.tourguide.data.models.UserLocation
+import elfak.mosis.tourguide.data.models.tour.category.NearbyPlaceResult
 import elfak.mosis.tourguide.domain.api.TourGuideApiWrapper
 import elfak.mosis.tourguide.domain.helper.GoogleMapHelper
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.PermissionHelper
 import elfak.mosis.tourguide.domain.helper.SessionTokenSingleton
 import elfak.mosis.tourguide.domain.helper.UnitConvertor
+import elfak.mosis.tourguide.domain.helper.ValidationHelper
 import elfak.mosis.tourguide.domain.models.TourGuideLocationListener
-import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Viewport
+import elfak.mosis.tourguide.domain.models.google.toPlaceLatLng
+import elfak.mosis.tourguide.domain.models.tour.CategoryMarker
 import elfak.mosis.tourguide.domain.models.tour.toTourModel
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.TourRepository
@@ -43,7 +47,6 @@ import elfak.mosis.tourguide.domain.repository.UsersRepository
 import elfak.mosis.tourguide.ui.components.maps.FriendMarker
 import elfak.mosis.tourguide.ui.components.maps.LocationState
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -67,6 +70,7 @@ class TourScreenViewModel @Inject constructor(
     private val googleMapHelper: GoogleMapHelper,
     private val permissionHelper: PermissionHelper,
     private val usersRepository: UsersRepository,
+    private val validationHelper: ValidationHelper,
     savedStateHandle: SavedStateHandle,
 ): ViewModel(), TourGuideLocationListener {
     var uiState by mutableStateOf(TourScreenUiState())
@@ -251,6 +255,10 @@ class TourScreenViewModel @Inject constructor(
     //endregion
 
     // region UISTATE METHODS
+
+    private fun setCategoryResults(results: List<NearbyPlaceResult>) {
+        uiState = uiState.copy(categorySearchResult = results)
+    }
     private fun setTourId(tourId: String?) {
         uiState = uiState.copy(tourId = tourId)
     }
@@ -388,14 +396,50 @@ class TourScreenViewModel @Inject constructor(
     //endregion
 
     //region SEARCH LOCATION
-    fun findLocationId(latLng: LatLng) {
+
+
+
+
+    fun getPOIDetailsFromLatLng(latLng: LatLng) {
         // Another way to show poi when id is not provided
         viewModelScope.launch {
-            val place = tourGuideApiWrapper.getPlaceId(PlaceLatLng.toLatLng(latLng)) ?: return@launch
-            getPOIDetails(place.placeId)
+            val place = tourGuideApiWrapper.getPlaceId(latLng.toPlaceLatLng()) ?: return@launch
+//            getPOIDetails(place.placeId)
+            getPlaceDetails(place.placeId) { response ->
+                changePlaceDetails(place.placeId, response.place)
+                changeSearchedLocation(response.place.latLng!!)
+                setSearchFlag(true)
+            }
         }
     }
-    fun getPOIDetails(placeId: String) {
+    fun getPOIDetailsFromId(placeId: String) {
+        viewModelScope.launch {
+            getPlaceDetails(placeId) { response ->
+                changePlaceDetails(placeId, response.place)
+                changeSearchedLocation(response.place.latLng!!)
+                setSearchFlag(true)
+            }
+        }
+//        val request = FetchPlaceRequest.builder(placeId, placeFields)
+//            .setSessionToken(sessionTokenSingleton.token)
+//            .build()
+//        // find coordinates based on placeId
+//        placesClient.fetchPlace(request)
+//            .addOnSuccessListener {
+//                if (it != null) {
+//                    changePlaceDetails(placeId, it.place)
+//                    changeSearchedLocation(it.place.latLng!!)
+//                    setSearchFlag(true)
+//                    setTourScreenState(TourScreenState.PLACE_DETAILS)
+//                    sessionTokenSingleton.invalidateToken()
+//                }
+//            }
+//            .addOnFailureListener {
+//                it.printStackTrace()
+//            }
+    }
+
+    private fun getPlaceDetails(placeId: String, onSuccess: (FetchPlaceResponse) -> Unit ) {
         val request = FetchPlaceRequest.builder(placeId, placeFields)
             .setSessionToken(sessionTokenSingleton.token)
             .build()
@@ -404,8 +448,7 @@ class TourScreenViewModel @Inject constructor(
             .addOnSuccessListener {
                 if (it != null) {
                     changePlaceDetails(placeId, it.place)
-                    changeSearchedLocation(it.place.latLng!!)
-                    setSearchFlag(true)
+                    onSuccess(it)
                     setTourScreenState(TourScreenState.PLACE_DETAILS)
                     sessionTokenSingleton.invalidateToken()
                 }
@@ -507,8 +550,6 @@ class TourScreenViewModel @Inject constructor(
             }
     }
 
-
-
     private suspend fun setLocationsLatLng() {
         var startLocationLatLng = LatLng(0.0,0.0)
         var endLocationLatLng = LatLng(0.0,0.0)
@@ -582,6 +623,9 @@ class TourScreenViewModel @Inject constructor(
     private fun changePlaceDetails(id: String, place: Place) {
         uiState = uiState.copy(placeDetails = PlaceDetails.convert(place))
         uiState = uiState.copy(placeDetails = uiState.placeDetails.copy(id = id))
+    }
+    private fun changePlaceDetailsFromNearbyResult(place: NearbyPlaceResult) {
+        uiState = uiState.copy(placeDetails = place.toPlaceDetails())
     }
 
     //endregion
@@ -666,16 +710,20 @@ class TourScreenViewModel @Inject constructor(
 
     //endregion
 
+    // region Friends
     fun toggleShowFriends() {
         setShowFriends(!uiState.showFriends)
         if (uiState.friends.isEmpty() || !uiState.showFriends)
             return
 
         // animate to see all friends
-        val builder = LatLngBounds.Builder()
-        for (friend in uiState.friends) {
-            builder.include(friend.location.coordinates.toGoogleLatLng())
-        }
+        val builder = googleMapHelper.createLatLngBounds(uiState.friends.map { friend ->
+            friend.location.coordinates.toGoogleLatLng()
+        })
+//        val builder = LatLngBounds.Builder()
+//        for (friend in uiState.friends) {
+//            builder.include(friend.location.coordinates.toGoogleLatLng())
+//        }
         if (uiState.deviceSettings.gpsEnabled) {
             builder.include(uiState.myLocation)
         }
@@ -691,9 +739,63 @@ class TourScreenViewModel @Inject constructor(
         intent.data = Uri.parse("tel:$phone")
         context.startActivity(intent)
     }
+    //endregion
 
-    fun allowShowFriendsButton(allow: Boolean) {
-        uiState = uiState.copy(allowShowFriendsButton = allow)
+    // Category Search
+    private fun mockSearchResult(): List<CategoryMarker> {
+        return listOf(
+            CategoryMarker(location = LatLng(43.317274, 21.904856)),
+            CategoryMarker(location = LatLng(43.320582, 21.911785)),
+            CategoryMarker(location = LatLng(43.317326, 21.886451)),
+            CategoryMarker(location = LatLng(43.316539, 21.921167)),
+            CategoryMarker(location = LatLng(43.318178, 21.903233)),
+        )
     }
 
+    fun searchByCategory(category: String, radius: Int) {
+        val latLng = uiState.cameraPositionState.position.target.toPlaceLatLng()
+        viewModelScope.launch {
+            val results = tourGuideApiWrapper.getNearbyPlaces(latLng, radius,category)
+            setCategoryResults(results)
+            if (uiState.categorySearchResult.isEmpty()) {
+                setErrorMessage("No places found with desired filers.")
+                return@launch
+            }
+            val builder = googleMapHelper
+                .createLatLngBounds(uiState.categorySearchResult.map { place ->
+                    place.location.toLatLng()
+            })
+            val bounds = builder.build()
+            moveCameraWithBounds(bounds)
+
+        }
+    }
+
+    fun validateCategoryFilter(category: String, radius: String): Boolean {
+        try {
+            validationHelper.validateCategoryFilter(category, radius)
+            return true
+        }
+        catch (ex: Exception) {
+            ex.message?.let { setErrorMessage(it) }
+            return false
+        }
+    }
+
+    fun getCategoryResultDetails(place: NearbyPlaceResult) {
+        changePlaceDetailsFromNearbyResult(place)
+        setTourScreenState(TourScreenState.PLACE_DETAILS)
+    }
+
+    fun selectMarker(place: NearbyPlaceResult) {
+        val newList = uiState.categorySearchResult.map { marker ->
+            if (marker.location == place.location) {
+                marker.copy(selected = true)
+            }
+            else marker.copy(selected = false)
+        }
+        setCategoryResults(results = newList)
+    }
+
+    //endregion
 }

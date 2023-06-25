@@ -2,6 +2,7 @@ package elfak.mosis.tourguide.domain.helper
 
 import android.location.Location
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -52,5 +53,13 @@ class GoogleMapHelper @Inject constructor() {
         val results = FloatArray(1)
         Location.distanceBetween(startLat,startLon,endLat,endLon,results)
         return results[0]
+    }
+
+    fun createLatLngBounds(locations: List<LatLng>): LatLngBounds.Builder {
+        val builder = LatLngBounds.Builder()
+        for (location in locations) {
+            builder.include(location)
+        }
+        return builder
     }
 }
