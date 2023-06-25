@@ -103,4 +103,8 @@ class AuthRepositoryImpl @Inject constructor(
             throw ex
         }
     }
+
+    override suspend fun sendResetEmail(email: String) {
+        firebaseAuth.sendPasswordResetEmail(email).await()
+    }
 }

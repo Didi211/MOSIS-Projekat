@@ -27,6 +27,15 @@ class ValidationHelper @Inject constructor() {
         }
     }
 
+    fun validateEmailAdress(email: String){
+        if (email.isBlank()) {
+            throw Exception("Email cannot be empty")
+        }
+        if (!email.matches(emailRegex)) {
+            throw Exception("Email not valid. Proper form: 'tour@tourguide.com'")
+        }
+    }
+
     fun validateUserCredentials(credentials: UserCredentials) {
         // fullname
         if (credentials.fullname.isBlank()) {

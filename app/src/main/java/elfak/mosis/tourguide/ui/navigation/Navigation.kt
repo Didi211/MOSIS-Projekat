@@ -10,6 +10,7 @@ import elfak.mosis.tourguide.ui.screens.loginScreen.LoginScreen
 import elfak.mosis.tourguide.ui.screens.loginScreen.LoginViewModel
 import elfak.mosis.tourguide.ui.screens.registerScreen.RegisterViewModel
 import elfak.mosis.tourguide.ui.screens.resetPasswordScreen.ResetPasswordScreen
+import elfak.mosis.tourguide.ui.screens.resetPasswordScreen.ResetPasswordViewModel
 import elfak.mosis.tourguide.ui.screens.splashScreen.SplashScreen
 import elfak.mosis.tourguide.ui.screens.splashScreen.SplashScreenViewModel
 import elfak.mosis.tourguide.ui.screens.welcomeScreen.WelcomeScreen
@@ -69,7 +70,11 @@ fun Navigation() {
             )
         }
         composable(Screen.ResetPasswordScreen.route) {
-            ResetPasswordScreen()
+            val resetPasswordViewModel = hiltViewModel<ResetPasswordViewModel>()
+            ResetPasswordScreen(
+                viewModel = resetPasswordViewModel,
+                navigateBack = { navController.popBackStack() }
+            )
         }
         mainGraph(navController = navController)
     }
