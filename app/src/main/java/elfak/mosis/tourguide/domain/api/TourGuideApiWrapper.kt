@@ -1,7 +1,8 @@
 package elfak.mosis.tourguide.domain.api
 
 import android.util.Log
-import com.google.android.gms.maps.model.LatLng
+import elfak.mosis.tourguide.data.models.tour.category.NearbyPlaceRequest
+import elfak.mosis.tourguide.data.models.tour.category.NearbyPlaceResult
 import elfak.mosis.tourguide.domain.models.google.PlaceLatLng
 import elfak.mosis.tourguide.domain.models.google.RouteRequest
 import elfak.mosis.tourguide.domain.models.google.RouteResponse
@@ -48,5 +49,20 @@ class TourGuideApiWrapper @Inject constructor(
         }
 
     }
+
+    suspend fun getNearbyPlaces(latLng: PlaceLatLng, radius: Int, categoryFilter: String): List<NearbyPlaceResult> {
+        return try {
+            apiService.getNearbyPlaces(NearbyPlaceRequest(
+                latLng = latLng,
+                radius = radius,
+                categoryFilter = categoryFilter
+            ))
+        }
+        catch (ex: Exception) {
+            ex.printStackTrace()
+            emptyList()
+        }
+    }
+
 
 }
