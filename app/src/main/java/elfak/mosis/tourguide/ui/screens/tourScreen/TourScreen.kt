@@ -141,6 +141,7 @@ fun TourScreen(
                         searchForPlaces = { query ->
                             viewModel.findPlacesFromInput(query, true)
                         },
+                        swapWaypointPlaces = viewModel::swapWaypointPlaces
                     )
                     TourScreenState.PLACE_DETAILS -> PlaceDetails(
                         tourState = viewModel.uiState.tourState,

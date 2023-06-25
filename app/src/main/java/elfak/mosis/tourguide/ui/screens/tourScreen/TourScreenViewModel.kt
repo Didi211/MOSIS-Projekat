@@ -55,6 +55,7 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import org.burnoutcrew.reorderable.ItemPosition
 import javax.inject.Inject
 import elfak.mosis.tourguide.domain.models.tour.TourDetails as TourDetails1
 
@@ -244,13 +245,16 @@ class TourScreenViewModel @Inject constructor(
         uiState = uiState.copy(tourDetails = tourDetails)
     }
     private fun addWaypointToList(place: elfak.mosis.tourguide.domain.models.Place) {
+        val newList = uiState.tourDetails.waypoints + place
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(
-            waypoints = uiState.tourDetails.waypoints + place
+            waypoints = newList
         ))
     }
     private fun removeWaypointFromList(place: elfak.mosis.tourguide.domain.models.Place) {
+//        uiState.tourDetails.waypoints.remove(place)
+        val newList = uiState.tourDetails.waypoints.filter { p -> p.id != place.id }
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(
-            waypoints = uiState.tourDetails.waypoints - place
+            waypoints = newList
         ))
     }
 
@@ -269,6 +273,14 @@ class TourScreenViewModel @Inject constructor(
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(polylinePoints = polylinePoints))
     }
 
+    fun swapWaypointPlaces(from: ItemPosition, to: ItemPosition) {
+        val reorderedList = uiState.tourDetails.waypoints.toMutableList().apply {
+            add(to.index, removeAt(from.index))
+        }
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(
+            waypoints = reorderedList.toList()
+        ))
+    }
     //endregion
 
     // region UISTATE METHODS

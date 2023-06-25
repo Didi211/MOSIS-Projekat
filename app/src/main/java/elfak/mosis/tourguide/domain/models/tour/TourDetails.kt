@@ -83,7 +83,7 @@ private fun areLocationSet(origin: PlaceModel?,  destination: PlaceModel?): Bool
 private fun mockWaypoints(): List<Place> {
     var list = mutableListOf<Place>()
     for (i in 1..5) {
-        list.add(Place(address = "Very very very very long place address."))
+        list.add(Place(id = i.toString(), address = "Text $i"))
     }
     return list.toList()
 }

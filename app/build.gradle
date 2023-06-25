@@ -56,6 +56,8 @@ android {
 }
 
 dependencies {
+    // Draggable Compose LazyList/Grid reorder
+    implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
 
     // DataStore Preferences
     implementation "androidx.datastore:datastore-preferences:1.0.0"

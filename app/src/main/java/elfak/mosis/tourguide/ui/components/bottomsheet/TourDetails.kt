@@ -70,11 +70,12 @@ fun TourDetails(
     onCancel: () -> Unit = { },
     placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
+    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit
 ) {
     when(state) {
-        TourState.CREATING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces)
+        TourState.CREATING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces, swapWaypointPlaces)
         TourState.VIEWING -> TourDetailsViewMode(tourDetails, onEdit)
-        TourState.EDITING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces)
+        TourState.EDITING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces, swapWaypointPlaces)
     }
 }
 
@@ -85,6 +86,7 @@ fun TourDetailsEditMode(
     onCancel: () -> Unit,
     placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
+    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit
 ) {
     var locationInput by remember { mutableStateOf(LocationType.Origin.name) }
     var openDialog by remember { mutableStateOf(false) }
@@ -130,7 +132,9 @@ fun TourDetailsEditMode(
             locationInput = type.name
             searchValue = searchText
             openDialog = true
-        }) {
+        },
+        swapWaypointPlaces = swapWaypointPlaces
+    ) {
         SaveButton(onClick = onSave)
         Spacer(Modifier.width(10.dp))
         CancelButton(onCancel)
@@ -149,6 +153,7 @@ fun TourDetailsContainer(
     tourDetails: TourDetails,
     enabledInputs: Boolean = true,
     chooseLocation: (LocationType, String) -> Unit = { _, _ ->  },
+    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit = {_,_ ->  },
     buttons: @Composable () -> Unit,
 ) {
     var openDialog by remember { mutableStateOf(false) }
@@ -269,7 +274,8 @@ fun TourDetailsContainer(
                     TourWaypoints(
                         waypoints = tourDetails.waypoints,
                         tourState = tourState,
-                        onRemoveFromList = { tourDetails.onWaypointRemoved(it) }
+                        onRemoveFromList = { tourDetails.onWaypointRemoved(it) },
+                        swapWaypointPlaces = swapWaypointPlaces
                     )
                 }
 
@@ -358,41 +364,48 @@ fun TourWaypoints(
         Column(
             Modifier
                 .heightIn(max = 400.dp)
-                .padding(start = 5.dp)) {
+                .padding(start = 5.dp)
+        ) {
+            DraggableLazyColumn(
+                waypoints = waypoints,
+                onMove = swapWaypointPlaces,
+                tourState = tourState,
+                onRemoveFromList = onRemoveFromList
+            )
 
-            LazyColumn(
-            ) {
-                itemsIndexed(waypoints) { index, waypoint ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp, horizontal = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        val fraction = if (tourState != TourState.VIEWING) 0.9f else 1f
-                        Row(
-                            Modifier.fillMaxWidth(fraction),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(text = "${index + 1}.",
-
-                            )
-                            Spacer(Modifier.width(3.dp))
-                            Text(
-                                text = waypoint.address, overflow = TextOverflow.Ellipsis,
-                                style = MaterialTheme.typography.body2,
-                                maxLines = 1,
-                            )
-                        }
-                        if (tourState != TourState.VIEWING) {
-                            CancelIcon(
-                                onClick = { onRemoveFromList(waypoint) }
-                            )
-                        }
-                    }
-                }
-            }
+//            LazyColumn(
+//            ) {
+//                itemsIndexed(waypoints) { index, waypoint ->
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(vertical = 4.dp, horizontal = 2.dp),
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.SpaceBetween
+//                    ) {
+//                        val fraction = if (tourState != TourState.VIEWING) 0.9f else 1f
+//                        Row(
+//                            Modifier.fillMaxWidth(fraction),
+//                            verticalAlignment = Alignment.CenterVertically,
+//                        ) {
+//                            Text(text = "${index + 1}.",
+//
+//                            )
+//                            Spacer(Modifier.width(3.dp))
+//                            Text(
+//                                text = waypoint.address, overflow = TextOverflow.Ellipsis,
+//                                style = MaterialTheme.typography.body2,
+//                                maxLines = 1,
+//                            )
+//                        }
+//                        if (tourState != TourState.VIEWING) {
+//                            CancelIcon(
+//                                onClick = { onRemoveFromList(waypoint) }
+//                            )
+//                        }
+//                    }
+//                }
+//            }
             Divider(
                 color = Color.DarkGray,
                 modifier = Modifier.widthIn(max = 280.dp)
