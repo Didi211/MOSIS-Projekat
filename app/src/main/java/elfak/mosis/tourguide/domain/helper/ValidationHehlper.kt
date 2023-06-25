@@ -83,5 +83,8 @@ class ValidationHelper @Inject constructor() {
         if (!radius.isDigitsOnly()) {
             throw Exception("Radius must be only digits.")
         }
+        if (radius.toInt() > 10000) {
+            throw Exception("Radius can't be larger than 10 kilometers.")
+        }
     }
 }
