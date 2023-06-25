@@ -40,6 +40,7 @@ import elfak.mosis.tourguide.domain.models.google.RouteResponse
 import elfak.mosis.tourguide.domain.models.google.Viewport
 import elfak.mosis.tourguide.domain.models.google.toPlaceLatLng
 import elfak.mosis.tourguide.domain.models.tour.CategoryMarker
+import elfak.mosis.tourguide.domain.models.tour.LocationType
 import elfak.mosis.tourguide.domain.models.tour.toTourModel
 import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.repository.TourRepository
@@ -156,6 +157,7 @@ class TourScreenViewModel @Inject constructor(
         uiState.tourDetails.onDestinationChanged = { setDestination(it) }
         uiState.tourDetails.onDistanceChanged = { setDistance(it) }
         uiState.tourDetails.onTimeChanged = { setTime(it) }
+        uiState.tourDetails.onWaypointRemoved = { removeWaypointFromList(it) }
         uiState.tourDetails.onBothLocationsSet = {
             setBothLocationsSet(it)
             if (it) {
@@ -241,7 +243,22 @@ class TourScreenViewModel @Inject constructor(
     private fun setTourDetails(tourDetails: TourDetails1) {
         uiState = uiState.copy(tourDetails = tourDetails)
     }
+    private fun addWaypointToList(place: elfak.mosis.tourguide.domain.models.Place) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(
+            waypoints = uiState.tourDetails.waypoints + place
+        ))
+    }
+    private fun removeWaypointFromList(place: elfak.mosis.tourguide.domain.models.Place) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(
+            waypoints = uiState.tourDetails.waypoints - place
+        ))
+    }
 
+    private fun isAddedToWaypoint(place: elfak.mosis.tourguide.domain.models.Place): Boolean {
+        val found = uiState.tourDetails.waypoints
+            .find { p -> p.id == place.id }
+        return found != null
+    }
 
 
     private fun decodePolyline(encodedPolyline: String) {
@@ -656,6 +673,52 @@ class TourScreenViewModel @Inject constructor(
 
         }
     }
+
+    fun addPlaceToTour(place: elfak.mosis.tourguide.domain.models.Place, locationType: LocationType): Boolean {
+        try {
+            when (locationType) {
+                LocationType.Origin -> {
+                    if (uiState.tourDetails.destination == place) {
+                        throw Exception("Place is already added as a destination.")
+                    }
+                    if (isAddedToWaypoint(place)) {
+                        throw Exception("Place is already added as a waypoint.")
+                    }
+                    setOrigin(place)
+                }
+                LocationType.Destination -> {
+                    if (uiState.tourDetails.origin == place) {
+                        throw Exception("Place is already added as a origin.")
+                    }
+                    if (isAddedToWaypoint(place)) {
+                        throw Exception("Place is already added as a waypoint.")
+                    }
+                    setDestination(place)
+                }
+                LocationType.Waypoint -> {
+                    if (uiState.tourDetails.origin == place) {
+                        throw Exception("Place is already added as a origin.")
+                    }
+                    if (uiState.tourDetails.destination == place) {
+                        throw Exception("Place is already added as a destination.")
+                    }
+                    if (uiState.tourDetails.waypoints.count() == 5) {
+                        throw Exception ("Max 5 stops can be added.")
+                    }
+                    if (isAddedToWaypoint(place)) {
+                        throw Exception ("Place is already added.")
+                    }
+                    addWaypointToList(place)
+                }
+            }
+            return true
+        }
+        catch(ex: Exception) {
+            ex.message?.let { setErrorMessage(it) }
+            return false
+        }
+    }
+
     //endregion
 
     //region MESSAGE HANDLER

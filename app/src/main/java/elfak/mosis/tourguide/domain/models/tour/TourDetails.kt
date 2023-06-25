@@ -20,6 +20,9 @@ data class TourDetails(
     var destination: Place = Place("","",LatLng(0.0,0.0)),
     var onDestinationChanged: (Place) -> Unit = { },
 
+    var waypoints: List<Place> = mockWaypoints(),
+    var onWaypointRemoved: (Place) -> Unit = { },
+
     var distance: String = "",
     var onDistanceChanged: (String) -> Unit = { },
 
@@ -77,3 +80,10 @@ private fun areLocationSet(origin: PlaceModel?,  destination: PlaceModel?): Bool
 
 
 
+private fun mockWaypoints(): List<Place> {
+    var list = mutableListOf<Place>()
+    for (i in 1..5) {
+        list.add(Place(address = "Very very very very long place address."))
+    }
+    return list.toList()
+}

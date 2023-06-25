@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -37,7 +35,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.recyclerview.widget.DividerItemDecoration
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.models.tour.TourSelectionDisplay
 import elfak.mosis.tourguide.ui.components.buttons.ButtonRowContainer
@@ -48,7 +45,7 @@ import es.dmoral.toasty.Toasty
 
 @Composable
 fun ChooseTourDialog(tours: List<TourSelectionDisplay>, onDismiss: () -> Unit, onOkButtonClick: (String) -> Unit) {
-    var selectedTourId by remember { mutableStateOf<String>("") }
+    var selectedTourId by remember { mutableStateOf("") }
 
     Dialog(onDismissRequest = onDismiss) {
         Column(
@@ -66,8 +63,8 @@ fun ChooseTourDialog(tours: List<TourSelectionDisplay>, onDismiss: () -> Unit, o
             )
             Column(
                 Modifier
-                    .heightIn(max = 350.dp)
-                    .padding(top = 5.dp),
+                    .heightIn(max = 350.dp),
+//                    .padding(top = 5.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -90,18 +87,17 @@ fun ChooseTourDialog(tours: List<TourSelectionDisplay>, onDismiss: () -> Unit, o
                         .fillMaxWidth()
                         .fillMaxHeight(0.7f),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(15.dp)
+                    contentPadding = PaddingValues(8.dp)
                 ) {
                     items(tours) { tour ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(start = 10.dp)
                                 .clickable { selectedTourId = tour.id },
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Column(Modifier.fillMaxWidth()) {
+                            Column(Modifier.fillMaxWidth(0.8f)) {
                                 Text(
                                     modifier = Modifier
                                         .fillMaxWidth(0.7f),

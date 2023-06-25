@@ -150,11 +150,9 @@ fun TourScreen(
                             viewModel.setSearchFlag(false)
                         },
                         onAddToTour = { place, locationType ->
-                            when (locationType) {
-                                LocationType.Origin -> { viewModel.setOrigin(place) }
-                                LocationType.Destination -> { viewModel.setDestination(place) }
-                                LocationType.Waypoint -> { Toasty.info(context,"feature_under_development").show() }
-                            }
+                            val added = viewModel.addPlaceToTour(place, locationType)
+                            if (!added) return@PlaceDetails
+
                             viewModel.setTourScreenState(TourScreenState.TOUR_DETAILS)
                             viewModel.setSearchFlag(false)
                             if(viewModel.uiState.tourDetails.origin.id.isNotBlank()
