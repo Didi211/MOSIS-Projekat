@@ -183,10 +183,10 @@ class ProfileScreenViewModel @Inject constructor(
             try {
                 if (uiState.shouldUpdatePhotos) {
                     // call service - Action == Update
+                    setSuccessMessage("User photo will be uploaded on the server.")
                     photoRepository.uploadUserPhoto(uiState.photo)
                     photoRepository.updateUserPhotos(uiState.userId, originalFilename)
                     setShouldUpdatePhoto(false)
-                    setSuccessMessage("User photo will be uploaded on the server.")
                     return@launch
                 }
                 if (uiState.shouldDeletePhotos) {

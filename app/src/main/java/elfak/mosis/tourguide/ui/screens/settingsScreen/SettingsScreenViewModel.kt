@@ -8,20 +8,25 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.saveable
 import dagger.hilt.android.lifecycle.HiltViewModel
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.PermissionHelper
+import elfak.mosis.tourguide.domain.repository.AuthRepository
 import elfak.mosis.tourguide.domain.services.foreground.LocationTrackingService
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsScreenViewModel @Inject constructor(
     private val permissionHelper: PermissionHelper,
     private val locationHelper: LocationHelper,
+    private val authRepository: AuthRepository
 ): ViewModel() {
     var uiState by mutableStateOf(SettingsScreenUiState())
         private set
+
 
 
     //region UiState Methods
@@ -74,6 +79,9 @@ class SettingsScreenViewModel @Inject constructor(
         val allowed = permissionHelper.hasAllowedLocationPermissions()
         setPermissionsAllowed(allowed)
         return allowed
+    }
+    suspend fun isAuthenticated(): Boolean {
+        return authRepository.getUserIdLocal() != null
     }
 
 

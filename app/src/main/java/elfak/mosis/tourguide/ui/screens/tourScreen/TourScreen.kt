@@ -94,7 +94,8 @@ import kotlinx.coroutines.launch
 fun TourScreen(
     viewModel: TourScreenViewModel,
     navController: NavController,
-    navigateToFriendProfile: (userId: String) -> Unit = { }
+    navigateToFriendProfile: (userId: String) -> Unit = { },
+    onAuthenticationFailed: () -> Unit = { }
 ) {
     val menuViewModel = hiltViewModel<MenuViewModel>()
     val context = LocalContext.current
@@ -118,6 +119,17 @@ fun TourScreen(
 
     if(bottomSheetScaffoldState.bottomSheetState.isExpanded) {
         viewModel.setSearchBarVisibility(false)
+    }
+
+    LaunchedEffect(true) {
+        //authenticate user
+        coroutineScope.launch {
+            if (!viewModel.isAuthenticated()) {
+                viewModel.setErrorMessage("User not authenticated. Please login.")
+                onAuthenticationFailed()
+                return@launch
+            }
+        }
     }
 
     ToastHandler(

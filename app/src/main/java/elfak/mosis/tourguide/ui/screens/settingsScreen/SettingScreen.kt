@@ -36,11 +36,13 @@ import elfak.mosis.tourguide.ui.components.ToastHandler
 import elfak.mosis.tourguide.ui.components.scaffold.MenuViewModel
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
     viewModel: SettingsScreenViewModel,
     navController: NavController,
+    onAuthenticationFailed: () -> Unit = { }
 ) {
     val scaffoldState = rememberScaffoldState()
     val coroutineScope = rememberCoroutineScope()
@@ -75,6 +77,15 @@ fun SettingsScreen(
     )
 
     LaunchedEffect(true) {
+        //authenticate user
+        coroutineScope.launch {
+            if (!viewModel.isAuthenticated()) {
+                viewModel.setErrorMessage("User not authenticated. Please login.")
+                onAuthenticationFailed()
+                return@launch
+            }
+        }
+
         val isRunning = viewModel.isServiceRunning(context)
         viewModel.setEnabledService(isRunning)
         viewModel.checkGps()

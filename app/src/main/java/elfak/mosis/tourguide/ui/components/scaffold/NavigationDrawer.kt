@@ -40,7 +40,6 @@ fun TourGuideNavigationDrawer(
     // content
 //    menuDefaultList: ArrayList<MenuData>
 ) {
-    //ovo bi trebalo mozda drugacije da se radi, da se zove fun pre poziva TourGuideNavigationDrawer
     val menuDefaultList: ArrayList<MenuData> = ArrayList()
     prepareMenuList(menuDefaultList, navController, menuViewModel, hideDrawer)
 
