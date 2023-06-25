@@ -82,6 +82,7 @@ class RegisterViewModel  @Inject constructor(
 
                 if (uiState.photo.hasPhoto) {
                     val originalFilename = uiState.username
+                    setPhotoUrl(originalFilename)
                     photoRepository.uploadUserPhoto(uiState.photo)
                     photoRepository.updateUserPhotos(userId, originalFilename)
                 }
