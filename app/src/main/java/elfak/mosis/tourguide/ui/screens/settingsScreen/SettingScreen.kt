@@ -122,7 +122,6 @@ fun SettingsScreen(
                 navController = navController,
                 menuViewModel = menuViewModel
             )
-
         }
     ) {
         Column(
@@ -132,42 +131,6 @@ fun SettingsScreen(
         ) {
             // location tracking service
             Column {
-//                Row(
-//                    Modifier
-//                        .fillMaxWidth()
-//                        .height(100.dp)
-//                        .padding(top = 5.dp)
-//                        .padding(horizontal = 10.dp),
-//                    horizontalArrangement = Arrangement.SpaceBetween
-//                ) {
-//                    val locationServiceDescription =
-//                        if (viewModel.uiState.isServiceEnabled) R.string.location_tracking_service_disable
-//                        else R.string.location_tracking_service_enable
-//                    Column(Modifier.fillMaxWidth(0.8f)) {
-//                        Text(
-//                            text = stringResource(id = R.string.location_tracking_service),
-//                            style = MaterialTheme.typography.h3,
-//                            color = MaterialTheme.colors.primary
-//                        )
-//                        Spacer(Modifier.height(5.dp))
-//                        Text(
-//                            text = stringResource(id = locationServiceDescription),
-//                            style = MaterialTheme.typography.body1,
-//                            color = MaterialTheme.colors.primary
-//                        )
-//                    }
-//                    Switch(
-//                        checked = viewModel.uiState.isServiceEnabled,
-//                        onCheckedChange = { enabled ->
-//                            if (enabled) {
-//                                permissionsState.launchMultiplePermissionRequest()
-//                            }
-//                            else {
-//                                viewModel.toggleService(false, context)
-//                            }
-//                        }
-//                    )
-//                }
                 SettingRowContainer {
                     val locationServiceDescription =
                         if (viewModel.uiState.isServiceEnabled) R.string.location_tracking_service_disable
