@@ -21,7 +21,9 @@ data class TourDetails(
     var onDestinationChanged: (Place) -> Unit = { },
 
     var waypoints: List<Place> = emptyList(),
+    var previousWaypoints: List<Place> = emptyList(),
     var onWaypointRemoved: (Place) -> Unit = { },
+    var onWaypointAdded: (Place) -> Unit = { },
 
     var distance: String = "",
     var onDistanceChanged: (String) -> Unit = { },
@@ -31,6 +33,9 @@ data class TourDetails(
 
     var bothLocationsSet:Boolean = false,
     var onBothLocationsSet: (Boolean) -> Unit = { },
+
+    var shouldRedrawRoute: Boolean = false,
+    var onRouteRedraw: (Boolean) -> Unit = { },
 
     var polylinePoints: List<LatLng> = emptyList()
 ) {
@@ -43,7 +48,8 @@ data class TourDetails(
             distance = "",
             time = "",
             bothLocationsSet = false,
-            polylinePoints = emptyList()
+            polylinePoints = emptyList(),
+            shouldRedrawRoute = false,
         )
     }
     fun update(tour: TourModel): TourDetails {
@@ -55,8 +61,18 @@ data class TourDetails(
             distance = "",
             time = "",
             bothLocationsSet = areLocationSet(tour.origin, tour.destination),
-            polylinePoints = emptyList()
+            polylinePoints = emptyList(),
+            shouldRedrawRoute = areLocationSet(tour.origin, tour.destination),
+            waypoints = if(tour.waypoints != null) tour.waypoints.map { waypoint -> waypoint.toPlace()} else emptyList()
+
         )
+    }
+    private fun areLocationSet(origin: PlaceModel?, destination: PlaceModel?): Boolean {
+        if (origin == null) return false
+        if (destination == null) return false
+        if (origin.id.isBlank()) return false
+        if (destination.id.isBlank()) return false
+        return true
     }
 }
 
@@ -71,13 +87,7 @@ fun TourDetails.toTourModel(createdBy: String? = null): TourModel {
     )
 }
 
-private fun areLocationSet(origin: PlaceModel?,  destination: PlaceModel?): Boolean {
-    if (origin == null) return false
-    if (destination == null) return false
-    if (origin.id.isBlank()) return false
-    if (destination.id.isBlank()) return false
-    return true
-}
+
 
 
 

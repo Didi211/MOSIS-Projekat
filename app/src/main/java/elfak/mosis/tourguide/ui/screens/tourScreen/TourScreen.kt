@@ -153,7 +153,8 @@ fun TourScreen(
                         searchForPlaces = { query ->
                             viewModel.findPlacesFromInput(query, true)
                         },
-                        swapWaypointPlaces = viewModel::swapWaypointPlaces
+                        swapWaypointPlaces = viewModel::swapWaypointPlaces,
+                        onAddToTour = viewModel::addPlaceToTour
                     )
                     TourScreenState.PLACE_DETAILS -> PlaceDetails(
                         tourState = viewModel.uiState.tourState,
@@ -168,10 +169,10 @@ fun TourScreen(
 
                             viewModel.setTourScreenState(TourScreenState.TOUR_DETAILS)
                             viewModel.setSearchFlag(false)
-                            if(viewModel.uiState.tourDetails.origin.id.isNotBlank()
-                                && viewModel.uiState.tourDetails.destination.id.isNotBlank()) {
-                                viewModel.uiState.tourDetails.onBothLocationsSet(true)
-                            }
+//                            if(viewModel.uiState.tourDetails.origin.id.isNotBlank()
+//                                && viewModel.uiState.tourDetails.destination.id.isNotBlank()) {
+//                                viewModel.uiState.tourDetails.onBothLocationsSet(true)
+//                            }
                         }
                     )
                 }
@@ -350,7 +351,7 @@ fun TourScreen(
                         return@GoogleMap
                     }
                     viewModel.startLocationUpdates()
-                    if (viewModel.uiState.tourDetails.bothLocationsSet) {
+                    if (viewModel.uiState.tourDetails.shouldRedrawRoute) {
                         viewModel.changeLocationState(LocationState.LocationOn)
 //                        viewModel.allowShowFriendsButton(true)
                         return@GoogleMap
@@ -390,7 +391,7 @@ fun TourScreen(
                 //endregion
 
                 // region route
-                if(viewModel.uiState.tourDetails.bothLocationsSet) {
+                if(viewModel.uiState.tourDetails.shouldRedrawRoute) {
                     LaunchedEffect(viewModel.uiState.routeChanged) {
                         bottomSheetScaffoldState.bottomSheetState.collapse()
                         viewModel.setRouteChanged(false)

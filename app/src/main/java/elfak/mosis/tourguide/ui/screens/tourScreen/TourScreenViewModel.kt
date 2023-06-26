@@ -118,8 +118,8 @@ class TourScreenViewModel @Inject constructor(
                     if (uiState.tourId != null) {
                         val tour = tourRepository.getTour(uiState.tourId!!)
                         setTourDetails(uiState.tourDetails.update(tour))
-                        if (uiState.tourDetails.bothLocationsSet) {
-                            uiState.tourDetails.onBothLocationsSet(true)
+                        if (uiState.tourDetails.shouldRedrawRoute) {
+                            uiState.tourDetails.onRouteRedraw(true)
                         }
                         if (editMode) { // user clicked option edit from dropdown
                             setTourState(TourState.CREATING)
@@ -157,17 +157,53 @@ class TourScreenViewModel @Inject constructor(
             //region tourdetails callbacks
             uiState.tourDetails.onTitleChanged = { setTitle(it) }
             uiState.tourDetails.onSummaryChanged = { setSummary(it) }
-            uiState.tourDetails.onOriginChanged = { setOrigin(it) }
-            uiState.tourDetails.onDestinationChanged = { setDestination(it) }
+            uiState.tourDetails.onOriginChanged = { place ->
+                if (uiState.tourDetails.destination == place) {
+                    throw Exception("Place is already added as a destination.")
+                }
+                if (isAddedToWaypoint(place)) {
+                    throw Exception("Place is already added as a waypoint.")
+                }
+                setOrigin(place)
+            }
+            uiState.tourDetails.onDestinationChanged = { place ->
+                if (uiState.tourDetails.origin == place) {
+                    throw Exception("Place is already added as a origin.")
+                }
+                if (isAddedToWaypoint(place)) {
+                    throw Exception("Place is already added as a waypoint.")
+                }
+                setDestination(place)
+            }
             uiState.tourDetails.onDistanceChanged = { setDistance(it) }
-            uiState.tourDetails.onWaypointRemoved = { removeWaypointFromList(it) }
+            uiState.tourDetails.onWaypointAdded = { place ->
+                if (uiState.tourDetails.origin == place) {
+                    throw Exception("Place is already added as a origin.")
+                }
+                if (uiState.tourDetails.destination == place) {
+                    throw Exception("Place is already added as a destination.")
+                }
+                if (uiState.tourDetails.waypoints.count() == 5) {
+                    throw Exception ("Max 5 stops can be added.")
+                }
+                if (isAddedToWaypoint(place)) {
+                    throw Exception ("Place is already added.")
+                }
+                addWaypointToList(place)
+            }
+            uiState.tourDetails.onWaypointRemoved = {
+                removeWaypointFromList(it)
+                if (isRouteRedrawNeeded()) {
+                    uiState.tourDetails.onRouteRedraw(true)
+                }
+            }
             uiState.tourDetails.onTimeChanged = { setTime(it) }
-            uiState.tourDetails.onBothLocationsSet = {
-                setBothLocationsSet(it)
-                if (it) {
+            uiState.tourDetails.onRouteRedraw = { redraw ->
+                setShouldRedrawRoute(redraw)
+                if (redraw) {
                     viewModelScope.launch {
                         try {
-                            setPolylinePoints(emptyList()) // clearing old route
+//                            setPolylinePoints(emptyList()) // clearing old route
                             if (uiState.tourDetails.origin.id != uiState.tourDetails.destination.id) {
                                 setLocationsLatLng()
                             }
@@ -177,7 +213,8 @@ class TourScreenViewModel @Inject constructor(
                                 throw Exception("Origin and destination can't be the same for creating a tour!")
                             }
 
-                            val result: RouteResponse? = tourGuideApiWrapper.getRoute(originId, destinationId)
+                            val waypoints = uiState.tourDetails.waypoints.map { p -> p.id }
+                            val result: RouteResponse? = tourGuideApiWrapper.getRoute(originId, destinationId, waypoints)
                             // null checking if error has happened
                             if(result?.routes == null) {
                                 throw Exception("Couldn't find route.")
@@ -196,14 +233,23 @@ class TourScreenViewModel @Inject constructor(
                         }
                         catch(ex: Exception) {
                             handleError(ex)
+                            setShouldRedrawRoute(false)
                         }
 
                     }
                 }
             }
+            uiState.tourDetails.onBothLocationsSet = {
+                setBothLocationsSet(it)
+                if (it && uiState.tourDetails.shouldRedrawRoute) {
+                    uiState.tourDetails.onRouteRedraw(true)
+                }
+            }
             //endregion
         }
     }
+
+
 
     suspend fun isAuthenticated(): Boolean {
         return authRepository.getUserIdLocal() != null
@@ -217,6 +263,9 @@ class TourScreenViewModel @Inject constructor(
     }
 
     //region TOUR DETAILS
+    private fun setShouldRedrawRoute(redraw: Boolean) {
+        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(shouldRedrawRoute = redraw))
+    }
     private fun setFriends(friends: List<FriendMarker>) {
         uiState = uiState.copy(friends = friends)
     }
@@ -255,15 +304,27 @@ class TourScreenViewModel @Inject constructor(
         uiState = uiState.copy(tourDetails = tourDetails)
     }
     private fun addWaypointToList(place: elfak.mosis.tourguide.domain.models.Place) {
-        val newList = uiState.tourDetails.waypoints + place
+        // setting waypoints before new change
+//        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(
+//            previousWaypoints = uiState.tourDetails.waypoints
+//        ))
+//
+//        //changing current waypoints
+//        val newList = uiState.tourDetails.waypoints + place
+//        uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(
+//            waypoints = newList
+//        ))
+//        val newList = uiState.tourDetails.waypoints + place
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(
-            waypoints = newList
+            previousWaypoints = uiState.tourDetails.waypoints,
+            waypoints = uiState.tourDetails.waypoints + place,
         ))
     }
     private fun removeWaypointFromList(place: elfak.mosis.tourguide.domain.models.Place) {
 //        uiState.tourDetails.waypoints.remove(place)
         val newList = uiState.tourDetails.waypoints.filter { p -> p.id != place.id }
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(
+            previousWaypoints = uiState.tourDetails.waypoints,
             waypoints = newList
         ))
     }
@@ -290,6 +351,7 @@ class TourScreenViewModel @Inject constructor(
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(
             waypoints = reorderedList.toList()
         ))
+        uiState.tourDetails.onRouteRedraw(true)
     }
     //endregion
 
@@ -445,7 +507,7 @@ class TourScreenViewModel @Inject constructor(
             val place = tourGuideApiWrapper.getPlaceId(latLng.toPlaceLatLng()) ?: return@launch
 //            getPOIDetails(place.placeId)
             getPlaceDetails(place.placeId) { response ->
-                changePlaceDetails(place.placeId, response.place)
+//                changePlaceDetails(place.placeId, response.place)
                 changeSearchedLocation(response.place.latLng!!)
                 setSearchFlag(true)
             }
@@ -454,7 +516,7 @@ class TourScreenViewModel @Inject constructor(
     fun getPOIDetailsFromId(placeId: String) {
         viewModelScope.launch {
             getPlaceDetails(placeId) { response ->
-                changePlaceDetails(placeId, response.place)
+//                changePlaceDetails(placeId, response.place)
                 changeSearchedLocation(response.place.latLng!!)
                 setSearchFlag(true)
             }
@@ -573,34 +635,39 @@ class TourScreenViewModel @Inject constructor(
     }
 
     private suspend fun setLocationsLatLng() {
-        var startLocationLatLng = LatLng(0.0,0.0)
-        var endLocationLatLng = LatLng(0.0,0.0)
+        var originLatLng = LatLng(0.0,0.0)
+        var destinationLatLng = LatLng(0.0,0.0)
         val invalidLocation = LatLng(0.0,0.0)
 
         val job = listOf(
             viewModelScope.launch {
-                val result = findLocationLatLng(uiState.tourDetails.origin.id) ?: return@launch
-                startLocationLatLng = result
+                var result: LatLng? = uiState.tourDetails.origin.location
+                if (uiState.tourDetails.origin.location == invalidLocation) {
+                    result = findLocationLatLng(uiState.tourDetails.origin.id) ?: return@launch
+                }
+                originLatLng = result!!
             },
             viewModelScope.launch {
-                val result = findLocationLatLng(uiState.tourDetails.destination.id) ?: return@launch
-                endLocationLatLng = result
+                var result: LatLng? = uiState.tourDetails.destination.location
+                if (uiState.tourDetails.destination.location == invalidLocation)
+                    result = findLocationLatLng(uiState.tourDetails.destination.id) ?: return@launch
+                destinationLatLng = result!!
             }
         )
         job.joinAll()
 
-        if (startLocationLatLng == invalidLocation || endLocationLatLng == invalidLocation) return
+        if (originLatLng == invalidLocation || destinationLatLng == invalidLocation) return
 
         var place = elfak.mosis.tourguide.domain.models.Place(
             uiState.tourDetails.origin.id,
             uiState.tourDetails.origin.address,
-            startLocationLatLng
+            originLatLng
         )
         setOrigin(place)
         place = elfak.mosis.tourguide.domain.models.Place(
             uiState.tourDetails.destination.id,
             uiState.tourDetails.destination.address,
-            endLocationLatLng
+            destinationLatLng
         )
         setDestination(place)
     }
@@ -683,39 +750,12 @@ class TourScreenViewModel @Inject constructor(
     fun addPlaceToTour(place: elfak.mosis.tourguide.domain.models.Place, locationType: LocationType): Boolean {
         try {
             when (locationType) {
-                LocationType.Origin -> {
-                    if (uiState.tourDetails.destination == place) {
-                        throw Exception("Place is already added as a destination.")
-                    }
-                    if (isAddedToWaypoint(place)) {
-                        throw Exception("Place is already added as a waypoint.")
-                    }
-                    setOrigin(place)
-                }
-                LocationType.Destination -> {
-                    if (uiState.tourDetails.origin == place) {
-                        throw Exception("Place is already added as a origin.")
-                    }
-                    if (isAddedToWaypoint(place)) {
-                        throw Exception("Place is already added as a waypoint.")
-                    }
-                    setDestination(place)
-                }
-                LocationType.Waypoint -> {
-                    if (uiState.tourDetails.origin == place) {
-                        throw Exception("Place is already added as a origin.")
-                    }
-                    if (uiState.tourDetails.destination == place) {
-                        throw Exception("Place is already added as a destination.")
-                    }
-                    if (uiState.tourDetails.waypoints.count() == 5) {
-                        throw Exception ("Max 5 stops can be added.")
-                    }
-                    if (isAddedToWaypoint(place)) {
-                        throw Exception ("Place is already added.")
-                    }
-                    addWaypointToList(place)
-                }
+                LocationType.Origin -> { uiState.tourDetails.onOriginChanged(place) }
+                LocationType.Destination -> { uiState.tourDetails.onDestinationChanged(place) }
+                LocationType.Waypoint -> { uiState.tourDetails.onWaypointAdded(place) }
+            }
+            if (isRouteRedrawNeeded()) {
+                uiState.tourDetails.onRouteRedraw(true)
             }
             return true
         }
@@ -723,6 +763,19 @@ class TourScreenViewModel @Inject constructor(
             ex.message?.let { setErrorMessage(it) }
             return false
         }
+    }
+
+    private fun isRouteRedrawNeeded(): Boolean {
+        val bothLocationsSet = uiState.tourDetails.origin.isSet() && uiState.tourDetails.destination.isSet()
+//        var waypointsChanged = uiState.tourDetails.previousWaypoints.count() != uiState.tourDetails.waypoints.count()
+        if (bothLocationsSet)
+            return true
+//        if (waypointsChanged)
+//            return true
+//        waypointsChanged = uiState.tourDetails.previousWaypoints == uiState.tourDetails.waypoints
+//        if (waypointsChanged)
+//            return true
+        return false
     }
 
     //endregion
@@ -789,10 +842,6 @@ class TourScreenViewModel @Inject constructor(
         val builder = googleMapHelper.createLatLngBounds(uiState.friends.map { friend ->
             friend.location.coordinates.toGoogleLatLng()
         })
-//        val builder = LatLngBounds.Builder()
-//        for (friend in uiState.friends) {
-//            builder.include(friend.location.coordinates.toGoogleLatLng())
-//        }
         if (uiState.deviceSettings.gpsEnabled) {
             builder.include(uiState.myLocation)
         }

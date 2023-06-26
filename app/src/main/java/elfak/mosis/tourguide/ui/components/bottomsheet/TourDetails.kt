@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,29 +63,27 @@ import org.burnoutcrew.reorderable.ItemPosition
 fun TourDetails(
     state: TourState,
     tourDetails: TourDetails,
-//    notifyUser: Boolean,
     onSave: () -> Unit = { },
     onEdit: () -> Unit = { },
     onCancel: () -> Unit = { },
     placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
     swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit,
-//    onNotifyUserClick: () -> Unit
+    onAddToTour: (Place, LocationType) -> Unit
 
 ) {
     if (state == TourState.VIEWING) {
-        TourDetailsViewMode(tourDetails, /*notifyUser,*/ onEdit)
+        TourDetailsViewMode(tourDetails,  onEdit)
     }
     else {
         TourDetailsEditMode(
             tourDetails,
-//            notifyUser,
             onSave,
             onCancel,
             placesList,
             searchForPlaces,
             swapWaypointPlaces,
-//            onNotifyUserClick
+            onAddToTour
         )
     }
 }
@@ -92,24 +91,24 @@ fun TourDetails(
 @Composable
 fun TourDetailsEditMode(
     tourDetails: TourDetails,
-//    notifyUser: Boolean,
     onSave: () -> Unit,
     onCancel: () -> Unit,
     placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
     swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit,
-//    onNotifyUserClick: () -> Unit,
+    onAddToTour: (Place, LocationType) -> Unit
+
 ) {
     var locationInput by remember { mutableStateOf(LocationType.Origin.name) }
     var openDialog by remember { mutableStateOf(false) }
     var searchValue by remember { mutableStateOf("") }
 
-    var originSet by remember {
-        mutableStateOf( tourDetails.origin.id.isNotBlank() )
-    }
-    var destinationSet by remember {
-        mutableStateOf( tourDetails.destination.id.isNotBlank() )
-    }
+//    var originSet by remember {
+//        mutableStateOf( tourDetails.origin.id.isNotBlank())
+//    }
+//    var destinationSet by remember {
+//        mutableStateOf( tourDetails.destination.id.isNotBlank())
+//    }
 
     if (openDialog) {
         SearchLocationDialog(
@@ -119,16 +118,21 @@ fun TourDetailsEditMode(
             },
             onPlaceClick = { place ->
                 if (locationInput == LocationType.Origin.name) {
-                    tourDetails.onOriginChanged(Place(place.placeId, place.address))
-                    originSet = true
+                    onAddToTour(Place(place.placeId, place.address), LocationType.Origin)
+//                    tourDetails.onOriginChanged(Place(place.placeId, place.address))
+//                    originSet = true
                 }
                 else if (locationInput == LocationType.Destination.name) {
-                    tourDetails.onDestinationChanged(Place(place.placeId, place.address))
-                    destinationSet = true
+                    onAddToTour(Place(place.placeId, place.address), LocationType.Destination)
+//                    tourDetails.onDestinationChanged(Place(place.placeId, place.address))
+//                    destinationSet = true
                 }
-                if(originSet && destinationSet) {
-                    tourDetails.onBothLocationsSet(true)
-                }
+//                if(originSet && destinationSet) {
+//                    tourDetails.onBothLocationsSet(true)
+//                }
+//                else {
+//                    tourDetails.onBothLocationsSet(false)
+//                }
                 openDialog = false
                 placesList.clear()
             },
@@ -140,8 +144,6 @@ fun TourDetailsEditMode(
     TourDetailsContainer(
         tourState = TourState.EDITING,
         tourDetails = tourDetails,
-//        notifyUser = notifyUser,
-//        onNotifyUserClick = onNotifyUserClick,
         chooseLocation = { type, searchText ->
             locationInput = type.name
             searchValue = searchText
@@ -157,16 +159,12 @@ fun TourDetailsEditMode(
 @Composable
 fun TourDetailsViewMode(
     tourDetails: TourDetails,
-//    notifyUser: Boolean,
     onEdit: () -> Unit,
-//    onNotifyUserClick: () -> Unit = { },
 ) {
     TourDetailsContainer(
         tourState = TourState.VIEWING,
         tourDetails = tourDetails,
         enabledInputs = false,
-//        notifyUser = notifyUser,
-//        onNotifyUserClick = onNotifyUserClick,
     ) {
         EditButton(onEdit)
     }
@@ -175,16 +173,13 @@ fun TourDetailsViewMode(
 @Composable
 fun TourDetailsContainer(
     tourState: TourState,
-//    notifyUser: Boolean,
     tourDetails: TourDetails,
     enabledInputs: Boolean = true,
     chooseLocation: (LocationType, String) -> Unit = { _, _ ->  },
     swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit = {_,_ ->  },
-//    onNotifyUserClick: () -> Unit = { },
     buttons: @Composable () -> Unit,
 ) {
     var openDialogSummaryDialog by remember { mutableStateOf(false) }
-//    var openNotificationDialog by remember { mutableStateOf(false) }
 
     if (openDialogSummaryDialog) {
         BlockTextDialog(
@@ -197,14 +192,6 @@ fun TourDetailsContainer(
             }
         )
     }
-
-//    if (openNotificationDialog) {
-//        TourNotificationDialog(
-//            onDismiss = { openDialogSummaryDialog = false },
-//            onAcceptClick = { onNotifyUserClick() },
-//            tourTitle = tourDetails.title
-//        )
-//    }
 
     Column(
         modifier = Modifier
@@ -262,15 +249,6 @@ fun TourDetailsContainer(
                     singleLine = false,
                 )
             }
-//            // notification bell
-//            Row(
-//                horizontalArrangement = Arrangement.End,
-//                modifier = Modifier.fillMaxWidth().padding(5.dp).clickable {
-//                onNotifyUserClick()
-//            }) {
-//                val icon = if (notifyUser) Icons.Filled.Notifications else Icons.Rounded.Notifications
-//                Icon(icon, null, tint = MaterialTheme.colors.primary)
-//            }
             // Inputs
             Column(
                 modifier = Modifier.padding(top = 15.dp)
@@ -418,40 +396,6 @@ fun TourWaypoints(
                 tourState = tourState,
                 onRemoveFromList = onRemoveFromList
             )
-
-//            LazyColumn(
-//            ) {
-//                itemsIndexed(waypoints) { index, waypoint ->
-//                    Row(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(vertical = 4.dp, horizontal = 2.dp),
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.SpaceBetween
-//                    ) {
-//                        val fraction = if (tourState != TourState.VIEWING) 0.9f else 1f
-//                        Row(
-//                            Modifier.fillMaxWidth(fraction),
-//                            verticalAlignment = Alignment.CenterVertically,
-//                        ) {
-//                            Text(text = "${index + 1}.",
-//
-//                            )
-//                            Spacer(Modifier.width(3.dp))
-//                            Text(
-//                                text = waypoint.address, overflow = TextOverflow.Ellipsis,
-//                                style = MaterialTheme.typography.body2,
-//                                maxLines = 1,
-//                            )
-//                        }
-//                        if (tourState != TourState.VIEWING) {
-//                            CancelIcon(
-//                                onClick = { onRemoveFromList(waypoint) }
-//                            )
-//                        }
-//                    }
-//                }
-//            }
             Divider(
                 color = Color.DarkGray,
                 modifier = Modifier.widthIn(max = 280.dp)

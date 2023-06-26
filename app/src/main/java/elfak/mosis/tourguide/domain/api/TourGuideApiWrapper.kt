@@ -15,11 +15,12 @@ class TourGuideApiWrapper @Inject constructor(
     private val apiService: TourGuideApi
 ) {
 
-    suspend fun getRoute(origin: String, destination: String): RouteResponse? {
+    suspend fun getRoute(origin: String, destination: String, waypoints: List<String>): RouteResponse? {
         return try {
             val request = RouteRequest(
                 origin = Waypoint(origin),
-                destination = Waypoint(destination)
+                destination = Waypoint(destination),
+                intermediates = waypoints.map { id -> Waypoint(id) }
             )
             apiService.getRoute(request)
 
