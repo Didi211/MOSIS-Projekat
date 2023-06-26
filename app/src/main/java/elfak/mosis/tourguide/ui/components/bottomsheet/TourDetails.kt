@@ -1,5 +1,6 @@
 package elfak.mosis.tourguide.ui.components.bottomsheet
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,11 +10,14 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
@@ -36,12 +40,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.data.models.PlaceAutocompleteResult
-import elfak.mosis.tourguide.domain.models.tour.LocationType
 import elfak.mosis.tourguide.domain.models.Place
+import elfak.mosis.tourguide.domain.models.tour.LocationType
 import elfak.mosis.tourguide.domain.models.tour.TourDetails
 import elfak.mosis.tourguide.ui.components.TransparentTextField
 import elfak.mosis.tourguide.ui.components.buttons.ButtonRowContainer
@@ -53,6 +58,7 @@ import elfak.mosis.tourguide.ui.components.dialogs.SearchLocationDialog
 import elfak.mosis.tourguide.ui.components.icons.CancelIcon
 import elfak.mosis.tourguide.ui.screens.tourScreen.TourState
 import elfak.mosis.tourguide.ui.theme.Typography
+import org.burnoutcrew.reorderable.ItemPosition
 
 
 @Composable
@@ -64,11 +70,12 @@ fun TourDetails(
     onCancel: () -> Unit = { },
     placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
+    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit
 ) {
     when(state) {
-        TourState.CREATING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces)
+        TourState.CREATING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces, swapWaypointPlaces)
         TourState.VIEWING -> TourDetailsViewMode(tourDetails, onEdit)
-        TourState.EDITING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces)
+        TourState.EDITING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces, swapWaypointPlaces)
     }
 }
 
@@ -79,6 +86,7 @@ fun TourDetailsEditMode(
     onCancel: () -> Unit,
     placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
+    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit
 ) {
     var locationInput by remember { mutableStateOf(LocationType.Origin.name) }
     var openDialog by remember { mutableStateOf(false) }
@@ -124,7 +132,9 @@ fun TourDetailsEditMode(
             locationInput = type.name
             searchValue = searchText
             openDialog = true
-        }) {
+        },
+        swapWaypointPlaces = swapWaypointPlaces
+    ) {
         SaveButton(onClick = onSave)
         Spacer(Modifier.width(10.dp))
         CancelButton(onCancel)
@@ -143,6 +153,7 @@ fun TourDetailsContainer(
     tourDetails: TourDetails,
     enabledInputs: Boolean = true,
     chooseLocation: (LocationType, String) -> Unit = { _, _ ->  },
+    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit = {_,_ ->  },
     buttons: @Composable () -> Unit,
 ) {
     var openDialog by remember { mutableStateOf(false) }
@@ -257,6 +268,17 @@ fun TourDetailsContainer(
                     }
 
                 }
+
+                //waypoints - stop locations
+                AnimatedVisibility(visible = tourDetails.waypoints.isNotEmpty()) {
+                    TourWaypoints(
+                        waypoints = tourDetails.waypoints,
+                        tourState = tourState,
+                        onRemoveFromList = { tourDetails.onWaypointRemoved(it) },
+                        swapWaypointPlaces = swapWaypointPlaces
+                    )
+                }
+
                 InputRowContainer {
                     // Destination
                     Text("To:", color = MaterialTheme.colors.primary)
@@ -316,6 +338,81 @@ fun TourDetailsContainer(
     }
 }
 
+@Composable
+fun TourWaypoints(
+    waypoints: List<Place>,
+    tourState: TourState,
+    onRemoveFromList: (Place) -> Unit = { },
+    swapWaypointPlaces: (from: ItemPosition, to: ItemPosition) -> Unit = { _,_ ->  }
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 5.dp, bottom = 5.dp),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        val topPadding = if (waypoints.count() > 1) 10.dp else 5.dp
+        Column(
+            Modifier
+                .padding(top = topPadding)
+                .heightIn(max = 400.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("Stops:", color = MaterialTheme.colors.primary)
+        }
+        Column(
+            Modifier
+                .heightIn(max = 400.dp)
+                .padding(start = 5.dp)
+        ) {
+            DraggableLazyColumn(
+                waypoints = waypoints,
+                onMove = swapWaypointPlaces,
+                tourState = tourState,
+                onRemoveFromList = onRemoveFromList
+            )
+
+//            LazyColumn(
+//            ) {
+//                itemsIndexed(waypoints) { index, waypoint ->
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(vertical = 4.dp, horizontal = 2.dp),
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.SpaceBetween
+//                    ) {
+//                        val fraction = if (tourState != TourState.VIEWING) 0.9f else 1f
+//                        Row(
+//                            Modifier.fillMaxWidth(fraction),
+//                            verticalAlignment = Alignment.CenterVertically,
+//                        ) {
+//                            Text(text = "${index + 1}.",
+//
+//                            )
+//                            Spacer(Modifier.width(3.dp))
+//                            Text(
+//                                text = waypoint.address, overflow = TextOverflow.Ellipsis,
+//                                style = MaterialTheme.typography.body2,
+//                                maxLines = 1,
+//                            )
+//                        }
+//                        if (tourState != TourState.VIEWING) {
+//                            CancelIcon(
+//                                onClick = { onRemoveFromList(waypoint) }
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+            Divider(
+                color = Color.DarkGray,
+                modifier = Modifier.widthIn(max = 280.dp)
+            )
+        }
+  }
+}
 
 
 private fun onCancelIconClick(tourDetails: TourDetails, clearInput: () -> Unit) {

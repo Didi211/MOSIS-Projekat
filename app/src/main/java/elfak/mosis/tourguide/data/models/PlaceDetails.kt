@@ -1,5 +1,6 @@
 package elfak.mosis.tourguide.data.models
 
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.libraries.places.api.model.Place
 
@@ -10,7 +11,8 @@ data class PlaceDetails(
     val type: String? = null,
     val rating: Double? = null,
     val iconUrl: String? = null,
-    val viewport: LatLngBounds? = null
+    val viewport: LatLngBounds? = null,
+    val location: LatLng? = null
 ) {
     companion object {
         fun convert(place: Place): PlaceDetails {
@@ -20,7 +22,8 @@ data class PlaceDetails(
                 type = formatType(place.types?.get(0).toString()),
                 rating = place.rating,
                 iconUrl = place.iconUrl,
-                viewport = place.viewport
+                viewport = place.viewport,
+                location = place.latLng
             )
         }
     }

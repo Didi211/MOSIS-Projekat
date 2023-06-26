@@ -129,7 +129,7 @@ fun PlaceDetailsContainer(
                 ChooseLocationTypeDialog(
                     onDismiss = { openDialog = false },
                     onButtonClick = { type ->
-                        onAddToTour(Place(address = placeDetails.address!!,id = placeDetails.id),type)
+                        onAddToTour(Place(address = placeDetails.address!!,id = placeDetails.id, location = placeDetails.location!!),type)
                         openDialog = false
                     }
                 )

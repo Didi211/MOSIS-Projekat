@@ -20,6 +20,9 @@ data class TourDetails(
     var destination: Place = Place("","",LatLng(0.0,0.0)),
     var onDestinationChanged: (Place) -> Unit = { },
 
+    var waypoints: List<Place> = emptyList(),
+    var onWaypointRemoved: (Place) -> Unit = { },
+
     var distance: String = "",
     var onDistanceChanged: (String) -> Unit = { },
 
@@ -63,6 +66,7 @@ fun TourDetails.toTourModel(createdBy: String? = null): TourModel {
         summary = summary,
         origin = origin.toPlaceModel(),
         destination = destination.toPlaceModel(),
+        waypoints = waypoints.map { waypoint -> waypoint.toPlaceModel() },
         createdBy = createdBy ?: ""
     )
 }
@@ -77,3 +81,10 @@ private fun areLocationSet(origin: PlaceModel?,  destination: PlaceModel?): Bool
 
 
 
+private fun mockWaypoints(): List<Place> {
+    var list = mutableListOf<Place>()
+    for (i in 1..5) {
+        list.add(Place(id = i.toString(), address = "Text $i"))
+    }
+    return list.toList()
+}
