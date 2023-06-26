@@ -82,8 +82,6 @@ class TourScreenViewModel @Inject constructor(
     override val name: String
         get() = this::class.simpleName.toString()
 
-
-
     val locationAutofill = mutableStateListOf<PlaceAutocompleteResult>()
     val locationAutofillDialog = mutableStateListOf<PlaceAutocompleteResult>()
     private val placeFields = listOf(
@@ -229,6 +227,10 @@ class TourScreenViewModel @Inject constructor(
         uiState = uiState.copy(tourState = state)
     }
     private fun setTitle(title: String) {
+        if (title.length > 25) {
+            setErrorMessage("Title can't be longer than 25 characters.")
+            return
+        }
         uiState = uiState.copy(tourDetails = uiState.tourDetails.copy(title = title))
     }
     private fun setSummary(summary: String) {

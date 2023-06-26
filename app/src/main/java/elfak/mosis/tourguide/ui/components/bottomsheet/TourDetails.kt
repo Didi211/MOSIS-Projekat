@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
@@ -40,7 +38,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.R
@@ -65,28 +62,43 @@ import org.burnoutcrew.reorderable.ItemPosition
 fun TourDetails(
     state: TourState,
     tourDetails: TourDetails,
+//    notifyUser: Boolean,
     onSave: () -> Unit = { },
     onEdit: () -> Unit = { },
     onCancel: () -> Unit = { },
     placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
-    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit
+    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit,
+//    onNotifyUserClick: () -> Unit
+
 ) {
-    when(state) {
-        TourState.CREATING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces, swapWaypointPlaces)
-        TourState.VIEWING -> TourDetailsViewMode(tourDetails, onEdit)
-        TourState.EDITING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces, swapWaypointPlaces)
+    if (state == TourState.VIEWING) {
+        TourDetailsViewMode(tourDetails, /*notifyUser,*/ onEdit)
+    }
+    else {
+        TourDetailsEditMode(
+            tourDetails,
+//            notifyUser,
+            onSave,
+            onCancel,
+            placesList,
+            searchForPlaces,
+            swapWaypointPlaces,
+//            onNotifyUserClick
+        )
     }
 }
 
 @Composable
 fun TourDetailsEditMode(
     tourDetails: TourDetails,
+//    notifyUser: Boolean,
     onSave: () -> Unit,
     onCancel: () -> Unit,
     placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
-    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit
+    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit,
+//    onNotifyUserClick: () -> Unit,
 ) {
     var locationInput by remember { mutableStateOf(LocationType.Origin.name) }
     var openDialog by remember { mutableStateOf(false) }
@@ -128,6 +140,8 @@ fun TourDetailsEditMode(
     TourDetailsContainer(
         tourState = TourState.EDITING,
         tourDetails = tourDetails,
+//        notifyUser = notifyUser,
+//        onNotifyUserClick = onNotifyUserClick,
         chooseLocation = { type, searchText ->
             locationInput = type.name
             searchValue = searchText
@@ -141,8 +155,19 @@ fun TourDetailsEditMode(
     }
 }
 @Composable
-fun TourDetailsViewMode(tourDetails: TourDetails, onEdit: () -> Unit) {
-    TourDetailsContainer(tourState = TourState.VIEWING, tourDetails = tourDetails, enabledInputs = false) {
+fun TourDetailsViewMode(
+    tourDetails: TourDetails,
+//    notifyUser: Boolean,
+    onEdit: () -> Unit,
+//    onNotifyUserClick: () -> Unit = { },
+) {
+    TourDetailsContainer(
+        tourState = TourState.VIEWING,
+        tourDetails = tourDetails,
+        enabledInputs = false,
+//        notifyUser = notifyUser,
+//        onNotifyUserClick = onNotifyUserClick,
+    ) {
         EditButton(onEdit)
     }
 }
@@ -150,25 +175,36 @@ fun TourDetailsViewMode(tourDetails: TourDetails, onEdit: () -> Unit) {
 @Composable
 fun TourDetailsContainer(
     tourState: TourState,
+//    notifyUser: Boolean,
     tourDetails: TourDetails,
     enabledInputs: Boolean = true,
     chooseLocation: (LocationType, String) -> Unit = { _, _ ->  },
     swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit = {_,_ ->  },
+//    onNotifyUserClick: () -> Unit = { },
     buttons: @Composable () -> Unit,
 ) {
-    var openDialog by remember { mutableStateOf(false) }
+    var openDialogSummaryDialog by remember { mutableStateOf(false) }
+//    var openNotificationDialog by remember { mutableStateOf(false) }
 
-    if (openDialog) {
+    if (openDialogSummaryDialog) {
         BlockTextDialog(
             text = tourDetails.summary,
             onTextChanged = tourDetails.onSummaryChanged,
             label = stringResource(id = R.string.summary) + ":",
             enabled = tourState != TourState.VIEWING,
             onDismiss = {
-                openDialog = false
+                openDialogSummaryDialog = false
             }
         )
     }
+
+//    if (openNotificationDialog) {
+//        TourNotificationDialog(
+//            onDismiss = { openDialogSummaryDialog = false },
+//            onAcceptClick = { onNotifyUserClick() },
+//            tourTitle = tourDetails.title
+//        )
+//    }
 
     Column(
         modifier = Modifier
@@ -216,7 +252,7 @@ fun TourDetailsContainer(
                         .clip(RoundedCornerShape(13.dp))
                         .fillMaxWidth()
                         .clickable {
-                            openDialog = true
+                            openDialogSummaryDialog = true
                         },
                     text = tourDetails.summary,
                     placeholder = stringResource(id = R.string.summary),
@@ -226,6 +262,15 @@ fun TourDetailsContainer(
                     singleLine = false,
                 )
             }
+//            // notification bell
+//            Row(
+//                horizontalArrangement = Arrangement.End,
+//                modifier = Modifier.fillMaxWidth().padding(5.dp).clickable {
+//                onNotifyUserClick()
+//            }) {
+//                val icon = if (notifyUser) Icons.Filled.Notifications else Icons.Rounded.Notifications
+//                Icon(icon, null, tint = MaterialTheme.colors.primary)
+//            }
             // Inputs
             Column(
                 modifier = Modifier.padding(top = 15.dp)
@@ -337,6 +382,7 @@ fun TourDetailsContainer(
         }
     }
 }
+
 
 @Composable
 fun TourWaypoints(

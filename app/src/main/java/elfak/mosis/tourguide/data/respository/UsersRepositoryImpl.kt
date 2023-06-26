@@ -165,6 +165,10 @@ class UsersRepositoryImpl @Inject constructor(
         usersRef.document(userId).update("location",location.toMap()).await()
     }
 
+    override suspend fun setTourNotify(userId: String, tourId: String) {
+        usersRef.document(userId).update("tourNotify", tourId).await()
+    }
+
     private suspend fun findFriendShip(userId: String, friendId: String): FriendsModel? {
         val friendShip =  friendsRef
             .whereIn("userId1", listOf(userId, friendId))
