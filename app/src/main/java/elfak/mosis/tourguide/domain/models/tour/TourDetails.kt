@@ -20,7 +20,7 @@ data class TourDetails(
     var destination: Place = Place("","",LatLng(0.0,0.0)),
     var onDestinationChanged: (Place) -> Unit = { },
 
-    var waypoints: List<Place> = mockWaypoints(),
+    var waypoints: List<Place> = emptyList(),
     var onWaypointRemoved: (Place) -> Unit = { },
 
     var distance: String = "",
@@ -66,6 +66,7 @@ fun TourDetails.toTourModel(createdBy: String? = null): TourModel {
         summary = summary,
         origin = origin.toPlaceModel(),
         destination = destination.toPlaceModel(),
+        waypoints = waypoints.map { waypoint -> waypoint.toPlaceModel() },
         createdBy = createdBy ?: ""
     )
 }

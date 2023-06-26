@@ -449,23 +449,6 @@ class TourScreenViewModel @Inject constructor(
                 setSearchFlag(true)
             }
         }
-//        val request = FetchPlaceRequest.builder(placeId, placeFields)
-//            .setSessionToken(sessionTokenSingleton.token)
-//            .build()
-//        // find coordinates based on placeId
-//        placesClient.fetchPlace(request)
-//            .addOnSuccessListener {
-//                if (it != null) {
-//                    changePlaceDetails(placeId, it.place)
-//                    changeSearchedLocation(it.place.latLng!!)
-//                    setSearchFlag(true)
-//                    setTourScreenState(TourScreenState.PLACE_DETAILS)
-//                    sessionTokenSingleton.invalidateToken()
-//                }
-//            }
-//            .addOnFailureListener {
-//                it.printStackTrace()
-//            }
     }
 
     private fun getPlaceDetails(placeId: String, onSuccess: (FetchPlaceResponse) -> Unit ) {
@@ -677,6 +660,7 @@ class TourScreenViewModel @Inject constructor(
                 else {
                     val tourId = tourRepository.createTour(uiState.tourDetails.toTourModel(userId))
                     tourRepository.addFriendToTour(tourId, userId)
+                    setTourId(tourId)
                 }
                 setTourState(TourState.VIEWING)
                 setSuccessMessage("Tour successfully $successMessage")

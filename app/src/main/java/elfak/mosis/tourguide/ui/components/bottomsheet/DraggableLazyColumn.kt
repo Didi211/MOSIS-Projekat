@@ -59,17 +59,19 @@ fun DraggableLazyColumn(
                     ) {
                         val fraction = if (tourState != TourState.VIEWING) 0.9f else 1f
                         Row(
-                            Modifier.fillMaxWidth(fraction),
+                            Modifier.fillMaxWidth(fraction).padding(end = 5.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
                                 text = "${waypoints.indexOf(waypoint) + 1}.",
                                 style = MaterialTheme.typography.body2,
+                                color = MaterialTheme.colors.primary
                             )
                             Spacer(Modifier.width(3.dp))
                             Text(
                                 text = waypoint.address, overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.body2,
+                                color = MaterialTheme.colors.primary,
                                 maxLines = 1,
                             )
                         }
