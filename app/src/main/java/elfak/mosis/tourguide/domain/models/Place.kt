@@ -18,6 +18,9 @@ data class Place(
             location = LatLng(0.0,0.0),
         )
     }
+    fun isSet(): Boolean {
+        return id.isNotBlank()
+    }
 }
 
 fun Place.toPlaceModel(): PlaceModel {

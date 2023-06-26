@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
@@ -28,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,7 +39,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
 import elfak.mosis.tourguide.R
@@ -70,12 +68,23 @@ fun TourDetails(
     onCancel: () -> Unit = { },
     placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
-    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit
+    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit,
+    onAddToTour: (Place, LocationType) -> Unit
+
 ) {
-    when(state) {
-        TourState.CREATING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces, swapWaypointPlaces)
-        TourState.VIEWING -> TourDetailsViewMode(tourDetails, onEdit)
-        TourState.EDITING -> TourDetailsEditMode(tourDetails, onSave, onCancel, placesList, searchForPlaces, swapWaypointPlaces)
+    if (state == TourState.VIEWING) {
+        TourDetailsViewMode(tourDetails,  onEdit)
+    }
+    else {
+        TourDetailsEditMode(
+            tourDetails,
+            onSave,
+            onCancel,
+            placesList,
+            searchForPlaces,
+            swapWaypointPlaces,
+            onAddToTour
+        )
     }
 }
 
@@ -86,18 +95,20 @@ fun TourDetailsEditMode(
     onCancel: () -> Unit,
     placesList: MutableList<PlaceAutocompleteResult>,
     searchForPlaces: (String) -> Unit = { },
-    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit
+    swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit,
+    onAddToTour: (Place, LocationType) -> Unit
+
 ) {
     var locationInput by remember { mutableStateOf(LocationType.Origin.name) }
     var openDialog by remember { mutableStateOf(false) }
     var searchValue by remember { mutableStateOf("") }
 
-    var originSet by remember {
-        mutableStateOf( tourDetails.origin.id.isNotBlank() )
-    }
-    var destinationSet by remember {
-        mutableStateOf( tourDetails.destination.id.isNotBlank() )
-    }
+//    var originSet by remember {
+//        mutableStateOf( tourDetails.origin.id.isNotBlank())
+//    }
+//    var destinationSet by remember {
+//        mutableStateOf( tourDetails.destination.id.isNotBlank())
+//    }
 
     if (openDialog) {
         SearchLocationDialog(
@@ -107,16 +118,21 @@ fun TourDetailsEditMode(
             },
             onPlaceClick = { place ->
                 if (locationInput == LocationType.Origin.name) {
-                    tourDetails.onOriginChanged(Place(place.placeId, place.address))
-                    originSet = true
+                    onAddToTour(Place(place.placeId, place.address), LocationType.Origin)
+//                    tourDetails.onOriginChanged(Place(place.placeId, place.address))
+//                    originSet = true
                 }
                 else if (locationInput == LocationType.Destination.name) {
-                    tourDetails.onDestinationChanged(Place(place.placeId, place.address))
-                    destinationSet = true
+                    onAddToTour(Place(place.placeId, place.address), LocationType.Destination)
+//                    tourDetails.onDestinationChanged(Place(place.placeId, place.address))
+//                    destinationSet = true
                 }
-                if(originSet && destinationSet) {
-                    tourDetails.onBothLocationsSet(true)
-                }
+//                if(originSet && destinationSet) {
+//                    tourDetails.onBothLocationsSet(true)
+//                }
+//                else {
+//                    tourDetails.onBothLocationsSet(false)
+//                }
                 openDialog = false
                 placesList.clear()
             },
@@ -141,8 +157,15 @@ fun TourDetailsEditMode(
     }
 }
 @Composable
-fun TourDetailsViewMode(tourDetails: TourDetails, onEdit: () -> Unit) {
-    TourDetailsContainer(tourState = TourState.VIEWING, tourDetails = tourDetails, enabledInputs = false) {
+fun TourDetailsViewMode(
+    tourDetails: TourDetails,
+    onEdit: () -> Unit,
+) {
+    TourDetailsContainer(
+        tourState = TourState.VIEWING,
+        tourDetails = tourDetails,
+        enabledInputs = false,
+    ) {
         EditButton(onEdit)
     }
 }
@@ -156,16 +179,16 @@ fun TourDetailsContainer(
     swapWaypointPlaces: (ItemPosition, ItemPosition) -> Unit = {_,_ ->  },
     buttons: @Composable () -> Unit,
 ) {
-    var openDialog by remember { mutableStateOf(false) }
+    var openDialogSummaryDialog by remember { mutableStateOf(false) }
 
-    if (openDialog) {
+    if (openDialogSummaryDialog) {
         BlockTextDialog(
             text = tourDetails.summary,
             onTextChanged = tourDetails.onSummaryChanged,
             label = stringResource(id = R.string.summary) + ":",
             enabled = tourState != TourState.VIEWING,
             onDismiss = {
-                openDialog = false
+                openDialogSummaryDialog = false
             }
         )
     }
@@ -216,7 +239,7 @@ fun TourDetailsContainer(
                         .clip(RoundedCornerShape(13.dp))
                         .fillMaxWidth()
                         .clickable {
-                            openDialog = true
+                            openDialogSummaryDialog = true
                         },
                     text = tourDetails.summary,
                     placeholder = stringResource(id = R.string.summary),
@@ -338,6 +361,7 @@ fun TourDetailsContainer(
     }
 }
 
+
 @Composable
 fun TourWaypoints(
     waypoints: List<Place>,
@@ -372,40 +396,6 @@ fun TourWaypoints(
                 tourState = tourState,
                 onRemoveFromList = onRemoveFromList
             )
-
-//            LazyColumn(
-//            ) {
-//                itemsIndexed(waypoints) { index, waypoint ->
-//                    Row(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(vertical = 4.dp, horizontal = 2.dp),
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.SpaceBetween
-//                    ) {
-//                        val fraction = if (tourState != TourState.VIEWING) 0.9f else 1f
-//                        Row(
-//                            Modifier.fillMaxWidth(fraction),
-//                            verticalAlignment = Alignment.CenterVertically,
-//                        ) {
-//                            Text(text = "${index + 1}.",
-//
-//                            )
-//                            Spacer(Modifier.width(3.dp))
-//                            Text(
-//                                text = waypoint.address, overflow = TextOverflow.Ellipsis,
-//                                style = MaterialTheme.typography.body2,
-//                                maxLines = 1,
-//                            )
-//                        }
-//                        if (tourState != TourState.VIEWING) {
-//                            CancelIcon(
-//                                onClick = { onRemoveFromList(waypoint) }
-//                            )
-//                        }
-//                    }
-//                }
-//            }
             Divider(
                 color = Color.DarkGray,
                 modifier = Modifier.widthIn(max = 280.dp)

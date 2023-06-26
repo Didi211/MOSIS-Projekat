@@ -1,7 +1,5 @@
 package elfak.mosis.tourguide.domain.repository
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import elfak.mosis.tourguide.data.models.UserLocation
 import elfak.mosis.tourguide.data.models.UserModel
 import kotlinx.coroutines.flow.Flow
@@ -19,4 +17,5 @@ interface UsersRepository {
     suspend fun removeFriend(userId: String, friendId: String)
     suspend fun getUsers(ids: List<String>): Flow<List<UserModel>>
     suspend fun updateUserLocation(userId: String, location: UserLocation)
+    suspend fun setTourNotify(userId: String, tourId: String)
 }

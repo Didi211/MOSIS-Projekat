@@ -58,7 +58,8 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
                 navController = navController,
                 navigateToFriendProfile = { userId ->
                     navController.navigate(Screen.ProfileScreen.route + "?userId=$userId")
-                }
+                },
+                onAuthenticationFailed = { onAuthenticationFailed(navController) }
             )
         }
         composable(Screen.NotificationScreen.route) {
@@ -100,7 +101,17 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
             deepLinks = listOf(navDeepLink { uriPattern = NavigationConstants.SettingsUri })
         ){
             val viewModel = hiltViewModel<SettingsScreenViewModel>()
-            SettingsScreen(navController = navController, viewModel = viewModel)
+            SettingsScreen(
+                navController = navController,
+                viewModel = viewModel,
+                onAuthenticationFailed = { onAuthenticationFailed(navController) }
+            )
         }
+    }
+}
+
+private fun onAuthenticationFailed(navController: NavController) {
+    navController.navigate(Screen.WelcomeScreen.route) {
+        popUpTo(Screen.Main.route) { inclusive = true }
     }
 }

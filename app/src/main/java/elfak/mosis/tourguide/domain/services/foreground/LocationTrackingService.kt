@@ -121,8 +121,12 @@ class LocationTrackingService @Inject constructor(
         }
         serviceScope.launch {
             val userId = authRepository.getUserIdLocal()
-                ?: throw Exception("User not authenticated.")
-            setUserId(userId)
+            if (userId == null) {
+                stopService()
+            }
+            else {
+                setUserId(userId)
+            }
         }
         return START_STICKY
     }

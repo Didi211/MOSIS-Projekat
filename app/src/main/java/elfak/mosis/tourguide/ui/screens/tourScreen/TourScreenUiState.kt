@@ -2,13 +2,11 @@ package elfak.mosis.tourguide.ui.screens.tourScreen
 
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
 import com.google.maps.android.compose.CameraPositionState
 import elfak.mosis.tourguide.data.models.PlaceDetails
 import elfak.mosis.tourguide.data.models.tour.category.NearbyPlaceResult
 import elfak.mosis.tourguide.domain.models.DeviceSettings
 import elfak.mosis.tourguide.domain.models.ToastData
-import elfak.mosis.tourguide.domain.models.tour.CategoryMarker
 import elfak.mosis.tourguide.domain.models.tour.TourDetails
 import elfak.mosis.tourguide.ui.components.maps.FriendMarker
 import elfak.mosis.tourguide.ui.components.maps.LocationState
@@ -46,7 +44,4 @@ data class TourScreenUiState(
     val deviceSettings: DeviceSettings = DeviceSettings(),
 
     val userId: String = "",
-
-
-//    val allowShowFriendsButton: Boolean = false
 )

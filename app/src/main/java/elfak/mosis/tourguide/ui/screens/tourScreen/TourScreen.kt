@@ -71,7 +71,6 @@ import com.google.maps.android.compose.MarkerState
 import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.helper.BitmapHelper
 import elfak.mosis.tourguide.domain.models.tour.CategoryMarker
-import elfak.mosis.tourguide.domain.models.tour.LocationType
 import elfak.mosis.tourguide.ui.components.ToastHandler
 import elfak.mosis.tourguide.ui.components.bottomsheet.PlaceDetails
 import elfak.mosis.tourguide.ui.components.bottomsheet.TourDetails
@@ -94,7 +93,8 @@ import kotlinx.coroutines.launch
 fun TourScreen(
     viewModel: TourScreenViewModel,
     navController: NavController,
-    navigateToFriendProfile: (userId: String) -> Unit = { }
+    navigateToFriendProfile: (userId: String) -> Unit = { },
+    onAuthenticationFailed: () -> Unit = { }
 ) {
     val menuViewModel = hiltViewModel<MenuViewModel>()
     val context = LocalContext.current
@@ -117,7 +117,19 @@ fun TourScreen(
     var showCategoryDialog by remember { mutableStateOf(false) }
 
     if(bottomSheetScaffoldState.bottomSheetState.isExpanded) {
-        viewModel.setSearchBarVisibility(false)
+//        viewModel.setSearchBarVisibility(false)
+        viewModel.clearSearchBar()
+    }
+
+    LaunchedEffect(true) {
+        //authenticate user
+        coroutineScope.launch {
+            if (!viewModel.isAuthenticated()) {
+                viewModel.setErrorMessage("User not authenticated. Please login.")
+                onAuthenticationFailed()
+                return@launch
+            }
+        }
     }
 
     ToastHandler(
@@ -141,7 +153,8 @@ fun TourScreen(
                         searchForPlaces = { query ->
                             viewModel.findPlacesFromInput(query, true)
                         },
-                        swapWaypointPlaces = viewModel::swapWaypointPlaces
+                        swapWaypointPlaces = viewModel::swapWaypointPlaces,
+                        onAddToTour = viewModel::addPlaceToTour
                     )
                     TourScreenState.PLACE_DETAILS -> PlaceDetails(
                         tourState = viewModel.uiState.tourState,
@@ -156,10 +169,10 @@ fun TourScreen(
 
                             viewModel.setTourScreenState(TourScreenState.TOUR_DETAILS)
                             viewModel.setSearchFlag(false)
-                            if(viewModel.uiState.tourDetails.origin.id.isNotBlank()
-                                && viewModel.uiState.tourDetails.destination.id.isNotBlank()) {
-                                viewModel.uiState.tourDetails.onBothLocationsSet(true)
-                            }
+//                            if(viewModel.uiState.tourDetails.origin.id.isNotBlank()
+//                                && viewModel.uiState.tourDetails.destination.id.isNotBlank()) {
+//                                viewModel.uiState.tourDetails.onBothLocationsSet(true)
+//                            }
                         }
                     )
                 }
@@ -214,12 +227,7 @@ fun TourScreen(
                 viewModel.changeLocationState(LocationState.LocationOn)
             }
 
-            // buttons
-            val friends = viewModel.uiState.friends
-//            val allowShowButton = viewModel.uiState.allowShowFriendsButton
-
-
-            // buttons
+            // region buttons
             Column(
                 Modifier
                     .fillMaxSize()
@@ -233,6 +241,7 @@ fun TourScreen(
                         .align(Alignment.End)
                         .padding(start = 10.dp, top = 10.dp, end = 10.dp),
                 ) {
+                    val friends = viewModel.uiState.friends
                     if (friends.isNotEmpty()) {
                         val contentColor: Color = when(viewModel.uiState.showFriends) {
                             true -> MaterialTheme.colors.primary
@@ -260,14 +269,6 @@ fun TourScreen(
                     }
 
                 }
-//                if (friends.isNotEmpty() /*&& allowShowButton*/) {
-//                    //show friends button
-////                    val contentColor: Color = when(viewModel.uiState.showFriends) {
-////                        true -> MaterialTheme.colors.primary
-////                        false -> Color.LightGray
-////                    }
-//
-//                }
                 // lower buttons
                 Column(
                     modifier = Modifier.padding(start = 10.dp, bottom = 10.dp, end = 10.dp),
@@ -328,6 +329,7 @@ fun TourScreen(
                 }
             }
 
+            //endregion
 
 
             GoogleMap(
@@ -349,7 +351,7 @@ fun TourScreen(
                         return@GoogleMap
                     }
                     viewModel.startLocationUpdates()
-                    if (viewModel.uiState.tourDetails.bothLocationsSet) {
+                    if (viewModel.uiState.tourDetails.shouldRedrawRoute) {
                         viewModel.changeLocationState(LocationState.LocationOn)
 //                        viewModel.allowShowFriendsButton(true)
                         return@GoogleMap
@@ -389,16 +391,46 @@ fun TourScreen(
                 //endregion
 
                 // region route
-                if(viewModel.uiState.tourDetails.bothLocationsSet) {
+                if(viewModel.uiState.tourDetails.shouldRedrawRoute) {
                     LaunchedEffect(viewModel.uiState.routeChanged) {
                         bottomSheetScaffoldState.bottomSheetState.collapse()
                         viewModel.setRouteChanged(false)
                     }
 //                    val pattern = listOf(Dot(), Gap(10f)) // pattern for walking mode
-                   TourRoute(viewModel.uiState.tourDetails.polylinePoints)
+                    TourRoute(viewModel.uiState.tourDetails.polylinePoints)
+                    Marker(
+                        state = MarkerState(position = viewModel.uiState.tourDetails.origin.location),
+                        icon = BitmapHelper.bitmapDescriptorFromVector(
+                                context,
+                                R.drawable.i_am_here
+                        )
+                    )
                     Marker(
                         state = MarkerState(position = viewModel.uiState.tourDetails.destination.location),
+                        icon = BitmapHelper.bitmapDescriptorFromVector(
+                            context,
+                            R.drawable.tour_destination
+                        )
                     )
+                    // waypoints
+                    if (viewModel.uiState.tourDetails.waypoints.isNotEmpty()) {
+                        val counterIcons = arrayOf(
+                            R.drawable.counter_1,
+                            R.drawable.counter_2,
+                            R.drawable.counter_3,
+                            R.drawable.counter_4,
+                            R.drawable.counter_5
+                        )
+                        viewModel.uiState.tourDetails.waypoints.forEachIndexed { index, waypoint ->
+                            Marker(
+                                state = MarkerState(waypoint.location),
+                                icon =  BitmapHelper.bitmapDescriptorFromVector(
+                                    context,
+                                    counterIcons[index]
+                                )
+                            )
+                        }
+                    }
                 }
                 //endregion
 
@@ -429,22 +461,18 @@ fun TourScreen(
                 }
                 //endregion
 
-                //category places
+                //region category places
                 if (viewModel.uiState.categorySearchResult.isNotEmpty()) {
                     for (place in viewModel.uiState.categorySearchResult) {
                         val iconColor = if (place.selected) {
-                                CategoryMarker.SelectedMarkerIcon
-//                            BitmapDescriptorFactory.defaultMarker(
-//                            )
+                            CategoryMarker.SelectedMarkerIcon
                         }
                         else
-                                CategoryMarker.DefaultMarkerIcon
-//                            BitmapDescriptorFactory.defaultMarker(
-//                            )
+                            CategoryMarker.DefaultMarkerIcon
+
                         Marker(
                             state = MarkerState(position = place.location.toLatLng()),
                             icon = BitmapDescriptorFactory.defaultMarker(iconColor),
-                            title = place.toString(),
                             onClick = {
                                 viewModel.getCategoryResultDetails(place)
                                 viewModel.selectMarker(place)
@@ -453,7 +481,8 @@ fun TourScreen(
                         )
                     }
                 }
-                //
+                // endregion
+
             }
         }
     }
