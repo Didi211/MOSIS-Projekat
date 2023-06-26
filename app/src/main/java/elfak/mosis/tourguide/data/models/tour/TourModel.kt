@@ -12,6 +12,7 @@ data class TourModel(
     val summary: String? = null,
     val origin: PlaceModel? = null,
     val destination: PlaceModel? = null,
+    val waypoints: List<PlaceModel>? = null,
     val createdBy: String = "",
 ) {
     fun toTourCard(): TourCard {
@@ -34,7 +35,8 @@ data class TourModel(
             "title" to title,
             "summary" to summary,
             "origin" to origin?.toMap(),
-            "destination" to destination?.toMap()
+            "destination" to destination?.toMap(),
+            "waypoints" to waypoints?.map { waypoint -> waypoint.toMap()}
         )
     }
 }
