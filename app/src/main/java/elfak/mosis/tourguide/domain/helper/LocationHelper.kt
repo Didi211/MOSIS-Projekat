@@ -38,7 +38,7 @@ class LocationHelper @Inject constructor(
         if (isRequesting) {
             return
         }
-        startLocationTracking()
+//        startLocationTracking()
     }
 
     fun unregisterListener(name: String) {

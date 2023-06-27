@@ -409,6 +409,7 @@ class TourScreenViewModel @Inject constructor(
            return
         }
         locationHelper.registerListener(this)
+        locationHelper.startLocationTracking()
         isListenerRegistered = true
     }
 

@@ -129,7 +129,7 @@ class LocationTrackingService @Inject constructor(
             if (distances.isNotEmpty()) {
                 distances.sortBy { distance -> distance.first } //ascending - closest is at index = [0]
                 val closest = distances[0]
-                val notificationMessage: String = if (closest.first <= 5) { //meaning we are at the destination
+                val notificationMessage: String = if (closest.first <= serviceState.arrivedMeters) { //meaning we are at the destination
                     "You've arrived at location: ${distances[0].second.address}!"
                 } else {
                     "You are near the location: ${distances[0].second.address}!"
@@ -210,6 +210,7 @@ class LocationTrackingService @Inject constructor(
             if (!serviceState.isListenerRegistered) {
                 locationHelper.registerListener(this@LocationTrackingService)
                 setIsListenerRegistered(true)
+                locationHelper.stopLocationTracking()
             }
         }
 
@@ -247,7 +248,7 @@ class LocationTrackingService @Inject constructor(
             for (loc in locations) {
                 locationHelper.mockLocations(loc)
             }
-            locationHelper.startLocationTracking()
+//            locationHelper.startLocationTracking()
         }
 
     }

@@ -10,5 +10,6 @@ data class LocationServiceState(
     val tour: TourModel = TourModel(),
     val user: UserModel = UserModel(),
     val isMocking: Boolean = false,
-    val tourNotify: TourNotify = TourNotify()
+    val tourNotify: TourNotify = TourNotify(),
+    val arrivedMeters: Float = 15f,
 )
