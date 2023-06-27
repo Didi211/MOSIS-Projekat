@@ -49,9 +49,13 @@ class GoogleMapHelper @Inject constructor() {
         return polylinePoints.map { LatLng(it.first, it.second) }
     }
 
-    fun distanceInMeter(startLat: Double, startLon: Double, endLat: Double, endLon: Double): Float {
+    fun distanceInMeter(startLocation: LatLng, endLocation: LatLng): Float {
         val results = FloatArray(1)
-        Location.distanceBetween(startLat,startLon,endLat,endLon,results)
+        Location.distanceBetween(
+            startLocation.latitude, startLocation.longitude,
+            endLocation.latitude, endLocation.longitude,
+            results
+        )
         return results[0]
     }
 

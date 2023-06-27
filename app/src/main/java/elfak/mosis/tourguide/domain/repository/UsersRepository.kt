@@ -17,5 +17,4 @@ interface UsersRepository {
     suspend fun removeFriend(userId: String, friendId: String)
     suspend fun getUsers(ids: List<String>): Flow<List<UserModel>>
     suspend fun updateUserLocation(userId: String, location: UserLocation)
-    suspend fun setTourNotify(userId: String, tourId: String)
 }

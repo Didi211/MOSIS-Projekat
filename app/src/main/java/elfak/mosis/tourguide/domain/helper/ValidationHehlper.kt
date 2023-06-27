@@ -86,6 +86,11 @@ class ValidationHelper @Inject constructor() {
         if (category == TourConstants.DefaultCategory) {
             throw Exception("Category not chosen.")
         }
+        validateRadius(radius)
+
+    }
+
+    fun validateRadius(radius: String) {
         if (radius.isBlank()) {
             throw Exception("Radius can't be empty.")
         }

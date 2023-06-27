@@ -1,6 +1,7 @@
 package elfak.mosis.tourguide.domain.repository
 
 import elfak.mosis.tourguide.data.models.tour.TourModel
+import elfak.mosis.tourguide.data.models.tour.TourNotify
 
 interface TourRepository {
     suspend fun getTour(tourId: String): TourModel
@@ -14,4 +15,8 @@ interface TourRepository {
     suspend fun deleteTourFriends(tourId: String)
     suspend fun getFriendsIds(tourId: String, userId: String): List<String>
     suspend fun leaveTour(tourId: String, userId: String)
+    suspend fun getTourNotify(userId: String): TourNotify?
+    suspend fun addTourNotify(tourNotify: TourNotify): TourNotify
+    suspend fun updateTourNotify(id: String, tourNotify: TourNotify): TourNotify
+    suspend fun removeTourNotify(id: String)
 }
