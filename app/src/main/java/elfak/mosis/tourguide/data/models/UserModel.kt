@@ -20,7 +20,6 @@ data class UserModel(
     val profilePhotoUrl: String = "",
     val thumbnailPhotoUrl: String = "",
     val location: UserLocation = UserLocation(),
-    val tourNotify: String = ""
 ) {
     fun toFriendCard(): FriendCard {
         return FriendCard(

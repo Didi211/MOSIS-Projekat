@@ -56,6 +56,9 @@
     <!--  dialog titles  -->
     <string name="change_password">Change password</string>
     <string name="choose_tour">Choose tour</string>
+    <string name="set_radius">"Set radius for tour "</string>
+    <string name="choose_friend">Choose friend</string>
+
 
     <!--  button description  -->
     <string name="add">Add</string>
@@ -106,11 +109,14 @@
     <string name="location_tracking_service">Location Tracking Service</string>
     <string name="channel_name">Tour Guide Notification channel</string>
     <string name="channel_description">Channel for background location fetching.</string>
-    <string name="choose_friend">Choose friend</string>
     <string name="tour_channel_description">Channel for notifications about near tour places.</string>
     <string name="tour_channel_name">Tour Guide Near Place Channel</string>
     <string name="location_service_gps_on">Location tracking service is running.</string>
     <string name="location_service_gps_off">Gps is turned off. Service can\'t track location.</string>
     <string name="filter_places">Filter places</string>
+    <string name="tour_radius_validation_message">Radius must be between 0 and 10000. If 0, default value (500m) will be selected</string>
+    <string name="mock_service">Mock my location</string>
+    <string name="mock_service_description">Send fake data about your current location.</string>
+    <string name="mock_service_description_disable">Stop mocking.</string>
 
 </resources>

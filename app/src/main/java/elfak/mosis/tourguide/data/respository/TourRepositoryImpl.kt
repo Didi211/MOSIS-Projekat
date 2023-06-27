@@ -6,6 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
 import elfak.mosis.tourguide.data.models.tour.TourFriendsModel
 import elfak.mosis.tourguide.data.models.tour.TourModel
+import elfak.mosis.tourguide.data.models.tour.TourNotify
 import elfak.mosis.tourguide.domain.repository.TourRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
@@ -19,6 +20,7 @@ class TourRepositoryImpl @Inject constructor(
 ): TourRepository {
     private val toursRef = firestore.collection("Tours")
     private val tourFriendsRef = firestore.collection("TourFriends")
+    private val tourNotifyRef = firestore.collection("TourNotify")
 
     override suspend fun getTour(tourId: String): TourModel {
         if (tourId.isBlank())
@@ -76,6 +78,28 @@ class TourRepositoryImpl @Inject constructor(
         tourFriendsRef.document(tour.id).update("users", newUsers).await()
     }
 
+    override suspend fun getTourNotify(userId: String): TourNotify? {
+        return tourNotifyRef
+            .whereEqualTo("userId", userId)
+            .get().await()
+            .toObjects(TourNotify::class.java)
+            .singleOrNull()
+    }
+
+    override suspend fun addTourNotify(tourNotify: TourNotify): TourNotify {
+        val tourNotify = tourNotifyRef.add(tourNotify).await().get().await().toObject<TourNotify>()
+        return tourNotify!!
+    }
+
+    override suspend fun updateTourNotify(id: String, tourNotify: TourNotify): TourNotify {
+        tourNotifyRef.document(id).set(tourNotify).await()
+        val tourNotify = tourNotifyRef.document(id).get().await().toObject<TourNotify>()
+        return tourNotify!!
+    }
+
+    override suspend fun removeTourNotify(id: String) {
+        tourNotifyRef.document(id).delete().await()
+    }
 
     private suspend fun getTourFromTourFriends(tourId: String): TourFriendsModel? {
         return tourFriendsRef.whereEqualTo("tourId", tourId).get().await()

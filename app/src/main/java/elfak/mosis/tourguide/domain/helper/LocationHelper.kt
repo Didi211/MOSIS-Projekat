@@ -2,11 +2,14 @@ package elfak.mosis.tourguide.domain.helper
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.location.Location
 import android.location.LocationManager
 import android.os.Looper
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.Task
 import elfak.mosis.tourguide.domain.models.TourGuideLocationListener
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,7 +38,7 @@ class LocationHelper @Inject constructor(
         if (isRequesting) {
             return
         }
-        startLocationTracking()
+//        startLocationTracking()
     }
 
     fun unregisterListener(name: String) {
@@ -61,7 +64,7 @@ class LocationHelper @Inject constructor(
         return request
     }
 
-    private fun startLocationTracking() {
+    fun startLocationTracking() {
         try {
             val builder = LocationSettingsRequest.Builder()
                 .addLocationRequest(this.request)
@@ -77,7 +80,7 @@ class LocationHelper @Inject constructor(
         }
     }
 
-    private fun stopLocationTracking() {
+    fun stopLocationTracking() {
         this.isRequesting = false
         fusedLocationProviderClient.removeLocationUpdates(this)
     }
@@ -105,6 +108,18 @@ class LocationHelper @Inject constructor(
     fun isGpsOn(): Boolean {
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+    suspend fun mockLocations(location: LatLng): Boolean {
+        for(listener in listeners) {
+            val newLocation = Location("")
+            newLocation.latitude = location.latitude
+            newLocation.longitude = location.longitude
+            listener.onLocationResult(newLocation)
+            delay(1000)
+        }
+        delay(2000)
+        return true //end of mocking
     }
 
 }

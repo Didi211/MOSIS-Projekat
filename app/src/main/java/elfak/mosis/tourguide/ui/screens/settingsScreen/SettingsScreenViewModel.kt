@@ -11,8 +11,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import elfak.mosis.tourguide.data.models.tour.TourNotify
 import elfak.mosis.tourguide.domain.helper.LocationHelper
 import elfak.mosis.tourguide.domain.helper.PermissionHelper
+import elfak.mosis.tourguide.domain.helper.ValidationHelper
 import elfak.mosis.tourguide.domain.models.tour.TourCard
 import elfak.mosis.tourguide.domain.models.tour.TourSelectionDisplay
 import elfak.mosis.tourguide.domain.repository.AuthRepository
@@ -30,6 +32,7 @@ class SettingsScreenViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val tourRepository: TourRepository,
     private val usersRepository: UsersRepository,
+    private val validationHelper: ValidationHelper
 ): ViewModel() {
     var uiState by mutableStateOf(SettingsScreenUiState())
         private set
@@ -53,12 +56,18 @@ class SettingsScreenViewModel @Inject constructor(
             viewModelScope.launch {
                 try {
                     val user = usersRepository.getUserData(uiState.userId)
-                    val tour = tourRepository.getTour(user.tourNotify)
-                    setSelectedTour(tour.toTourCard())
+                    var tourNotify = tourRepository.getTourNotify(user.id)
+                    if (tourNotify == null) {
+                        tourNotify = tourRepository.addTourNotify(TourNotify(userId = user.id, radius = 500))
+                    }
+                    setTourNotify(tourNotify)
+                    if (tourNotify.tourId.isNotBlank()) {
+                        val tour = tourRepository.getTour(tourNotify.tourId)
+                        setSelectedTour(tour.toTourCard())
+                    }
                 }
                 catch (ex: Exception) {
-                    if (ex !is NoSuchFieldException)
-                        ex.message?.let { setErrorMessage(it) }
+                    ex.message?.let { setErrorMessage(it) }
                 }
             }
 
@@ -66,6 +75,11 @@ class SettingsScreenViewModel @Inject constructor(
     }
 
     //region UiState Methods
+
+    private fun setTourNotify(tourNotify: TourNotify) {
+        uiState = uiState.copy(tourNotify = tourNotify)
+    }
+
 
     private fun setSelectedTour(tour: TourCard) {
         uiState = uiState.copy(tour = tour)
@@ -84,6 +98,9 @@ class SettingsScreenViewModel @Inject constructor(
     }
     private fun setGps(enabled: Boolean) {
         uiState = uiState.copy(gpsEnabled = enabled)
+    }
+    fun setRadius(radius: Int) {
+        uiState = uiState.copy(radius = radius)
     }
     //endregion
 
@@ -148,20 +165,49 @@ class SettingsScreenViewModel @Inject constructor(
 
     fun setNotificationForTour(tourId: String) {
         viewModelScope.launch {
-            usersRepository.setTourNotify(uiState.userId, tourId)
+            setTourNotify(uiState.tourNotify.copy(tourId = tourId))
+            tourRepository.updateTourNotify(uiState.tourNotify.id, uiState.tourNotify )
             val tour = tourRepository.getTour(tourId)
             setSelectedTour(tour.toTourCard())
+            setSuccessMessage("Notification for tour updated.")
         }
     }
 
     fun removeTourFromNotification() {
         viewModelScope.launch {
-            usersRepository.setTourNotify(uiState.userId, "")
+            tourRepository.removeTourNotify(uiState.tourNotify.id)
             uiState = uiState.copy(tour = TourCard())
         }
     }
 
+    fun validateRadius(radius: String): Boolean {
+        return try {
+            validationHelper.validateRadius(radius)
+            true
+        }
+        catch (ex: Exception) {
+            ex.message?.let { setErrorMessage(it) }
+            false
+        }
+    }
 
+    fun toggleMockService(enabled: Boolean, context: Context) {
+        val command = if (enabled) LocationTrackingService.ACTION_MOCK else LocationTrackingService.ACTION_STOP
+        val intent = Intent(context, LocationTrackingService::class.java).apply {
+            action = command
+        }
+        context.startForegroundService(intent)
+        setEnabledService(enabled)
+        val state = if (enabled) "started" else "stopped"
+        setSuccessMessage("Mock Service $state.")
+    }
+    fun setIsMocking(mock: Boolean) {
+        uiState = uiState.copy(isMocking = mock)
+    }
+
+    fun startMocking(mocking: Boolean) {
+        uiState = uiState.copy(mockStarted = mocking)
+    }
 
 
 }

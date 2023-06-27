@@ -409,6 +409,7 @@ class TourScreenViewModel @Inject constructor(
            return
         }
         locationHelper.registerListener(this)
+        locationHelper.startLocationTracking()
         isListenerRegistered = true
     }
 
@@ -434,10 +435,8 @@ class TourScreenViewModel @Inject constructor(
     private fun isMovingCameraNecessary(currentCameraPosition: LatLng ): Boolean {
         // calculates if previous location is close to the new one so the camera is basically positioned
         val distance = googleMapHelper.distanceInMeter(
-            startLat = uiState.myLocation.latitude,
-            startLon = uiState.myLocation.longitude,
-            endLat = currentCameraPosition.latitude,
-            endLon = currentCameraPosition.longitude
+            uiState.myLocation,
+            LatLng(currentCameraPosition.latitude, currentCameraPosition.longitude)
         )
         val minimalDistanceInMeters = 30 //between two sequential locations, for map move animation
         return distance > minimalDistanceInMeters

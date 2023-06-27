@@ -22,6 +22,7 @@ import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Radar
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +44,7 @@ import elfak.mosis.tourguide.R
 import elfak.mosis.tourguide.domain.models.menu.MenuData
 import elfak.mosis.tourguide.ui.components.ToastHandler
 import elfak.mosis.tourguide.ui.components.dialogs.ChooseTourDialog
+import elfak.mosis.tourguide.ui.components.dialogs.SetRadiusDialog
 import elfak.mosis.tourguide.ui.components.scaffold.MenuViewModel
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideNavigationDrawer
 import elfak.mosis.tourguide.ui.components.scaffold.TourGuideTopAppBar
@@ -74,15 +76,23 @@ fun SettingsScreen(
                 }
                 permissionAlreadyRequested = true
                 sharedPreferences.edit().putBoolean(key, true).apply()
+                viewModel.setIsMocking(false)
                 return@rememberMultiplePermissionsState
             }
             permissionAlreadyRequested = true
             sharedPreferences.edit().putBoolean(key, true).apply()
             if (!viewModel.checkGps()) {
                 viewModel.setErrorMessage(context.getString(R.string.location_needed))
+                viewModel.setIsMocking(false)
                 return@rememberMultiplePermissionsState
             }
-            viewModel.toggleService(true, context)
+            if (viewModel.uiState.mockStarted) {
+                viewModel.setIsMocking(true)
+                viewModel.toggleMockService(true, context)
+            }
+            else {
+                viewModel.toggleService(true, context)
+            }
         }
     )
 
@@ -144,7 +154,32 @@ fun SettingsScreen(
                                 permissionsState.launchMultiplePermissionRequest()
                             }
                             else {
+
                                 viewModel.toggleService(false, context)
+                            }
+                        }
+                    )
+                }
+                Divider()
+                // mock
+                SettingRowContainer {
+                    val mockToggled = viewModel.uiState.isMocking && viewModel.uiState.isServiceEnabled
+                    val mockServiceDescription =
+                        if (mockToggled) R.string.mock_service_description_disable
+                        else R.string.mock_service_description
+                    SettingItem(
+                        text = stringResource(id = R.string.mock_service),
+                        description = stringResource(id = mockServiceDescription),
+                        switchState = mockToggled,
+                        onSwitchToggle = { enabled ->
+                            if (enabled) {
+                                viewModel.startMocking(true)
+                                permissionsState.launchMultiplePermissionRequest()
+                            }
+                            else {
+                                viewModel.startMocking(false)
+                                viewModel.setIsMocking(false)
+                                viewModel.toggleMockService(false, context)
                             }
                         }
                     )
@@ -166,12 +201,24 @@ fun SettingsScreen(
                 AnimatedContent(viewModel.uiState.tour.id.isNotBlank()) { hasTour ->
                     when(hasTour) {
                         true -> {
+                            var showSetRadiusDialog by remember { mutableStateOf(false) }
+                            if (showSetRadiusDialog) {
+                                SetRadiusDialog(
+                                    onDismiss = { showSetRadiusDialog = false },
+                                    onOkButtonClick = { radius ->
+                                        viewModel.setRadius(radius.toInt())
+                                        viewModel.setNotificationForTour(viewModel.uiState.tour.id)
+                                    },
+                                    validateRadius = { radius ->
+                                        viewModel.validateRadius(radius)
+                                    }
+
+                                )
+                            }
                             Column(Modifier.padding(10.dp)) {
-                                TourCard(tour = viewModel.uiState.tour, menuItems = listOf(
-                                    MenuData(
-                                        Icons.Rounded.Delete,
-                                        "Remove tour",
-                                        onClick = { viewModel.removeTourFromNotification() })
+                                TourCard(tour = viewModel.uiState.tour, menuItems = createOptions(
+                                    onRemove = { viewModel.removeTourFromNotification() },
+                                    onSetRadius = { showSetRadiusDialog = true }
                                 ))
                             }
                         }
@@ -205,6 +252,7 @@ fun SettingsScreen(
         }
     }
 }
+
 
 @Composable
 fun SettingRowContainer(content: @Composable RowScope.() -> Unit) {
@@ -243,5 +291,15 @@ fun SettingItem(
     Switch(
         checked = switchState,
         onCheckedChange = onSwitchToggle
+    )
+}
+
+private fun createOptions(
+    onRemove: () -> Unit,
+    onSetRadius: () -> Unit, // open dialog
+    ): List<MenuData> {
+    return listOf(
+        MenuData(Icons.Rounded.Radar, "Set radius", onClick = { onSetRadius() }),
+        MenuData(Icons.Rounded.Delete, "Remove tour", onClick = { onRemove() }),
     )
 }
