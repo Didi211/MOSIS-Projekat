@@ -30,6 +30,18 @@ The Tour Guide app provides users with a range of features centered around mappi
 
 The Tour Guide app is developed exclusively for the Android platform, utilizing Jetpack Compose for its UI development. The TourGuide-API web server is utilized for performing complex calls required for Google Maps APIs. These calls include functionalities such as route optimization, geocoding, and other advanced mapping features. The backend server is hosted separately and handles these complex operations, allowing the app to focus on providing a smooth user experience. For persistence on the client side, Firebase Authentication and Firestore are used to provide secure user authentication and store tour-related data.
 
+## Getting Started
+To run Android app with your own Firebase and Google Map APIs, you need to follow instructions:
+1. [Firebase Setup Instructions](https://firebase.google.com/docs/android/setup)
+2. [Google APIs integration](https://medium.com/@tarunanchala/step-by-step-integrating-google-apis-into-your-android-applications-bfb9c7e28cec)
+
+After getting required credentials, import **google-services.json** file to the Tour Guide Android app project structure in *app* folder. 
+To integrate google credentials add API keys in *local.properties* file:
+
+    API_URL=<tour-guide-api-url>
+    MAPS_API_KEY=<YOUR_MAPS_API_KEY> 
+    ROUTE_API_KEY=<YOUR_ROUTES_API_KEY>
+
 ## Screenshots
 
 Here are some screenshots of the Tour Guide app:
