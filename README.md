@@ -34,11 +34,12 @@ The Tour Guide app is developed exclusively for the Android platform, utilizing 
 
 Here are some screenshots of the Tour Guide app:
 
-**Home Screen**
+## Screenshots
 
-<img src="https://github.com/Didi211/MOSIS-Projekat/assets/82868612/11a70181-3bb2-4a4a-aac6-f38e19b4e19c" width="250" height="auto">
+| Home Screen | Tour Screen | Add new location | Filtered locations |
+|:-:|:-:|:-:|:-:|
+| <img src="https://github.com/Didi211/MOSIS-Projekat/assets/82868612/11a70181-3bb2-4a4a-aac6-f38e19b4e19c" alt="Home Screen" width="250" height="auto"> | <img src="https://github.com/Didi211/MOSIS-Projekat/assets/82868612/6a1215c1-7c67-44ce-b3b6-92a2f57f929d" alt="Tour Screen" width="250" height="auto"> | <img src="https://github.com/Didi211/MOSIS-Projekat/assets/82868612/dd886a8f-f49a-4f3e-84dd-abe43fbde718" width="250" height="auto"> | <img src="https://github.com/Didi211/MOSIS-Projekat/assets/82868612/11ef4486-39cd-41f8-9800-ff6e599055ac" width="250" height="auto">
 
-**Tour Screen**
 
-<img src="https://github.com/Didi211/MOSIS-Projekat/assets/82868612/6a1215c1-7c67-44ce-b3b6-92a2f57f929d" width="250" height="auto">
+
 
